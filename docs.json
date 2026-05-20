@@ -8,11 +8,11 @@
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
+  "openapi": "api-reference/openapi.json",
   "navigation": {
     "tabs": [
       {
         "tab": "API Reference",
-        "openapi": "api-reference/openapi.json",
         "groups": [
           {
             "group": "Visão geral",
@@ -23,105 +23,105 @@
           {
             "group": "Contacts",
             "pages": [
-              "openapi: GET /contacts",
-              "openapi: POST /contacts",
-              "openapi: GET /contacts/{id}",
-              "openapi: PATCH /contacts/{id}"
+              "api-reference/contacts/list",
+              "api-reference/contacts/create",
+              "api-reference/contacts/get",
+              "api-reference/contacts/update"
             ]
           },
           {
             "group": "Conversations",
             "pages": [
-              "openapi: GET /conversations",
-              "openapi: GET /conversations/{id}",
-              "openapi: PATCH /conversations/{id}"
+              "api-reference/conversations/list",
+              "api-reference/conversations/get",
+              "api-reference/conversations/update"
             ]
           },
           {
             "group": "Messages",
             "pages": [
-              "openapi: POST /messages/send",
-              "openapi: POST /conversations/send"
+              "api-reference/messages/send",
+              "api-reference/messages/send-alias"
             ]
           },
           {
             "group": "Broadcasts",
             "pages": [
-              "openapi: GET /broadcasts",
-              "openapi: POST /broadcasts",
-              "openapi: GET /broadcasts/kpis",
-              "openapi: POST /broadcasts/audience/estimate",
-              "openapi: GET /broadcasts/{id}",
-              "openapi: PATCH /broadcasts/{id}",
-              "openapi: DELETE /broadcasts/{id}",
-              "openapi: GET /broadcasts/{id}/messages",
-              "openapi: POST /broadcasts/{id}/launch",
-              "openapi: POST /broadcasts/{id}/pause",
-              "openapi: POST /broadcasts/{id}/resume",
-              "openapi: POST /broadcasts/{id}/cancel",
-              "openapi: POST /broadcasts/{id}/duplicate",
-              "openapi: PATCH /broadcasts/{id}/send-config"
+              "api-reference/broadcasts/list",
+              "api-reference/broadcasts/create",
+              "api-reference/broadcasts/kpis",
+              "api-reference/broadcasts/estimate",
+              "api-reference/broadcasts/get",
+              "api-reference/broadcasts/update",
+              "api-reference/broadcasts/delete",
+              "api-reference/broadcasts/messages",
+              "api-reference/broadcasts/launch",
+              "api-reference/broadcasts/pause",
+              "api-reference/broadcasts/resume",
+              "api-reference/broadcasts/cancel",
+              "api-reference/broadcasts/duplicate",
+              "api-reference/broadcasts/send-config"
             ]
           },
           {
             "group": "AI Agents",
             "pages": [
-              "openapi: GET /ai-agents",
-              "openapi: POST /ai-agents",
-              "openapi: GET /ai-agents/stats",
-              "openapi: POST /ai-agents/kill-switch",
-              "openapi: GET /ai-agents/runs",
-              "openapi: GET /ai-agents/runs/{id}",
-              "openapi: POST /ai-agents/runs/{id}/feedback",
-              "openapi: GET /ai-agents/{id}",
-              "openapi: PUT /ai-agents/{id}",
-              "openapi: DELETE /ai-agents/{id}",
-              "openapi: POST /ai-agents/{id}/publish",
-              "openapi: POST /ai-agents/{id}/pause",
-              "openapi: POST /ai-agents/{id}/resume",
-              "openapi: POST /ai-agents/{id}/duplicate"
+              "api-reference/ai-agents/list",
+              "api-reference/ai-agents/create",
+              "api-reference/ai-agents/stats",
+              "api-reference/ai-agents/kill-switch",
+              "api-reference/ai-agents/runs-list",
+              "api-reference/ai-agents/runs-get",
+              "api-reference/ai-agents/runs-feedback",
+              "api-reference/ai-agents/get",
+              "api-reference/ai-agents/update",
+              "api-reference/ai-agents/delete",
+              "api-reference/ai-agents/publish",
+              "api-reference/ai-agents/pause",
+              "api-reference/ai-agents/resume",
+              "api-reference/ai-agents/duplicate"
             ]
           },
           {
             "group": "Channels",
             "pages": [
-              "openapi: GET /whatsapp-instances",
-              "openapi: GET /messenger-pages",
-              "openapi: GET /instagram-accounts"
+              "api-reference/channels/whatsapp",
+              "api-reference/channels/messenger",
+              "api-reference/channels/instagram"
             ]
           },
           {
             "group": "Pipelines",
             "pages": [
-              "openapi: GET /pipelines",
-              "openapi: POST /pipelines",
-              "openapi: GET /pipelines/{id}",
-              "openapi: PATCH /pipelines/{id}",
-              "openapi: DELETE /pipelines/{id}"
+              "api-reference/pipelines/list",
+              "api-reference/pipelines/create",
+              "api-reference/pipelines/get",
+              "api-reference/pipelines/update",
+              "api-reference/pipelines/delete"
             ]
           },
           {
             "group": "Webhooks",
             "pages": [
-              "openapi: GET /webhooks",
-              "openapi: POST /webhooks",
-              "openapi: GET /webhooks/{id}",
-              "openapi: PATCH /webhooks/{id}",
-              "openapi: DELETE /webhooks/{id}"
+              "api-reference/webhooks/list",
+              "api-reference/webhooks/create",
+              "api-reference/webhooks/get",
+              "api-reference/webhooks/update",
+              "api-reference/webhooks/delete"
             ]
           },
           {
             "group": "Custom Fields",
             "pages": [
-              "openapi: GET /custom-fields",
-              "openapi: POST /custom-fields",
-              "openapi: PATCH /custom-fields/{id}"
+              "api-reference/custom-fields/list",
+              "api-reference/custom-fields/create",
+              "api-reference/custom-fields/update"
             ]
           },
           {
             "group": "Deals",
             "pages": [
-              "openapi: DELETE /deals/{id}"
+              "api-reference/deals/delete"
             ]
           }
         ]
