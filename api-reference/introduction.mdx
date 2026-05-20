@@ -1,33 +1,46 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'Introdução'
+description: 'API pública da SocialSell — gerencie contatos, conversas, disparos e agentes de IA'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## Base URL
 
-## Welcome
+Todos os endpoints usam a base:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
-
-## Authentication
-
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
-
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
 ```
+https://api.socialsell.ai/v1
+```
+
+## Autenticação
+
+Todas as requisições exigem um Bearer token no header `Authorization`:
+
+```http
+Authorization: Bearer sk_live_...
+```
+
+Cada API Key está vinculada a uma organização e possui scopes específicos. Obtenha sua chave no painel da SocialSell em **Configurações → Integrações → API Keys**.
+
+## Paginação
+
+Os endpoints de listagem usam paginação por **cursor**:
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página (padrão: 25, máx: 100) |
+| `cursor` | string | Token retornado em `next_cursor` da resposta anterior |
+
+## Rate Limits
+
+- **Geral**: 60 requisições/minuto por API Key
+- **Envio de mensagens**: 30 msgs/min por instância/página
+
+Respostas `429 Too Many Requests` incluem o header `Retry-After`.
+
+## Planos
+
+Alguns recursos exigem o plano **Growth+**:
+- Broadcasts (disparos em massa)
+- AI Agents
+
+Requisições a esses endpoints com plano Starter retornam `403 Forbidden`.

@@ -1,72 +1,127 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "SocialSell",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
+  "openapi": "api-reference/openapi.json",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Agent ready",
-            "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
+            "group": "Visão geral",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Contacts",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "openapi: GET /contacts",
+              "openapi: POST /contacts",
+              "openapi: GET /contacts/{id}",
+              "openapi: PATCH /contacts/{id}"
+            ]
+          },
+          {
+            "group": "Conversations",
+            "pages": [
+              "openapi: GET /conversations",
+              "openapi: GET /conversations/{id}",
+              "openapi: PATCH /conversations/{id}"
+            ]
+          },
+          {
+            "group": "Messages",
+            "pages": [
+              "openapi: POST /messages/send",
+              "openapi: POST /conversations/send"
+            ]
+          },
+          {
+            "group": "Broadcasts",
+            "pages": [
+              "openapi: GET /broadcasts",
+              "openapi: POST /broadcasts",
+              "openapi: GET /broadcasts/kpis",
+              "openapi: POST /broadcasts/audience/estimate",
+              "openapi: GET /broadcasts/{id}",
+              "openapi: PATCH /broadcasts/{id}",
+              "openapi: DELETE /broadcasts/{id}",
+              "openapi: GET /broadcasts/{id}/messages",
+              "openapi: POST /broadcasts/{id}/launch",
+              "openapi: POST /broadcasts/{id}/pause",
+              "openapi: POST /broadcasts/{id}/resume",
+              "openapi: POST /broadcasts/{id}/cancel",
+              "openapi: POST /broadcasts/{id}/duplicate",
+              "openapi: PATCH /broadcasts/{id}/send-config"
+            ]
+          },
+          {
+            "group": "AI Agents",
+            "pages": [
+              "openapi: GET /ai-agents",
+              "openapi: POST /ai-agents",
+              "openapi: GET /ai-agents/stats",
+              "openapi: POST /ai-agents/kill-switch",
+              "openapi: GET /ai-agents/runs",
+              "openapi: GET /ai-agents/runs/{id}",
+              "openapi: POST /ai-agents/runs/{id}/feedback",
+              "openapi: GET /ai-agents/{id}",
+              "openapi: PUT /ai-agents/{id}",
+              "openapi: DELETE /ai-agents/{id}",
+              "openapi: POST /ai-agents/{id}/publish",
+              "openapi: POST /ai-agents/{id}/pause",
+              "openapi: POST /ai-agents/{id}/resume",
+              "openapi: POST /ai-agents/{id}/duplicate"
+            ]
+          },
+          {
+            "group": "Channels",
+            "pages": [
+              "openapi: GET /whatsapp-instances",
+              "openapi: GET /messenger-pages",
+              "openapi: GET /instagram-accounts"
+            ]
+          },
+          {
+            "group": "Pipelines",
+            "pages": [
+              "openapi: GET /pipelines",
+              "openapi: POST /pipelines",
+              "openapi: GET /pipelines/{id}",
+              "openapi: PATCH /pipelines/{id}",
+              "openapi: DELETE /pipelines/{id}"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "openapi: GET /webhooks",
+              "openapi: POST /webhooks",
+              "openapi: GET /webhooks/{id}",
+              "openapi: PATCH /webhooks/{id}",
+              "openapi: DELETE /webhooks/{id}"
+            ]
+          },
+          {
+            "group": "Custom Fields",
+            "pages": [
+              "openapi: GET /custom-fields",
+              "openapi: POST /custom-fields",
+              "openapi: PATCH /custom-fields/{id}"
+            ]
+          },
+          {
+            "group": "Deals",
+            "pages": [
+              "openapi: DELETE /deals/{id}"
             ]
           }
         ]
@@ -75,14 +130,9 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "SocialSell",
+          "href": "https://socialsell.ai",
+          "icon": "globe"
         }
       ]
     }
@@ -94,33 +144,32 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "Suporte",
+        "href": "mailto:suporte@socialsell.ai"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://app.socialsell.ai"
     }
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/socialsell",
+      "github": "https://github.com/socialsell"
     }
   }
 }

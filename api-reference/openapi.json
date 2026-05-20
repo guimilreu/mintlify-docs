@@ -1,217 +1,947 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
+    "title": "SocialSell Public API",
     "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.socialsell.ai/v1"
     }
   ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "API Key",
+        "description": "Envie a API Key como `Authorization: Bearer sk_live_...`.\nCada chave possui scopes específicos e está vinculada a uma organização.\n"
+      }
+    }
+  },
   "security": [
     {
-      "bearerAuth": []
+      "ApiKeyAuth": []
     }
   ],
   "paths": {
-    "/plants": {
+    "/contacts": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
+        "tags": ["Contacts"],
+        "summary": "Listar contatos",
+        "description": "Lista paginada (cursor) com filtros por canal e metadados.\nUse `has_whatsapp`, `has_instagram` ou `has_messenger` para limitar a\ncontatos com determinado canal vinculado.\n",
+        "security": [{ "ApiKeyAuth": [] }],
         "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } },
+          { "in": "query", "name": "search", "schema": { "type": "string" } },
+          { "in": "query", "name": "tag", "schema": { "type": "string" } },
+          { "in": "query", "name": "assigned_to", "schema": { "type": "string" } },
+          { "in": "query", "name": "source", "schema": { "type": "string" } },
+          { "in": "query", "name": "has_whatsapp", "schema": { "type": "string", "enum": [true, false] } },
+          { "in": "query", "name": "has_instagram", "schema": { "type": "string", "enum": [true, false] } },
+          { "in": "query", "name": "has_messenger", "schema": { "type": "string", "enum": [true, false] } },
+          { "in": "query", "name": "created_after", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "created_before", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "updated_after", "schema": { "type": "string", "format": "date-time" } }
         ],
         "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+          "200": { "description": "Lista paginada" },
+          "401": { "description": "API Key inválida" },
+          "429": { "description": "Rate limit" }
+        }
+      },
+      "post": {
+        "tags": ["Contacts"],
+        "summary": "Criar contato",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "phone": { "type": "string" },
+                  "instagram_username": { "type": "string" },
+                  "messenger_psid": { "type": "string", "description": "PSID do Messenger" },
+                  "company_id": { "type": "string" },
+                  "assigned_to": { "type": "string" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "source": { "type": "string" },
+                  "custom_fields": { "type": "object", "additionalProperties": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Criado" },
+          "409": { "description": "Duplicata (telefone/email)" }
+        }
+      }
+    },
+    "/contacts/{id}": {
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "tags": ["Contacts"],
+        "summary": "Buscar contato por ID",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Não encontrado" }
+        }
+      },
+      "patch": {
+        "tags": ["Contacts"],
+        "summary": "Atualizar contato",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "instagram_username": { "type": "string" },
+                  "messenger_psid": { "type": "string" },
+                  "company_id": { "type": "string" },
+                  "assigned_to": { "type": "string" },
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "custom_fields": { "type": "object", "additionalProperties": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Atualizado" },
+          "404": { "description": "Não encontrado" }
+        }
+      }
+    },
+    "/conversations": {
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "Listar conversas",
+        "description": "Suporta filtros por canal (`channel`), `objective`, presença de IA\n(`ai_managed=true|false`), e por canal específico\n(`messenger_page_id`, `instagram_account_id`, `whatsapp_instance_id`).\n",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } },
+          { "in": "query", "name": "status", "schema": { "type": "string", "enum": ["open", "closed"] } },
+          { "in": "query", "name": "channel", "schema": { "type": "string", "enum": ["whatsapp", "instagram", "messenger"] } },
+          { "in": "query", "name": "assigned_to", "schema": { "type": "string" } },
+          { "in": "query", "name": "contact_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "unread", "schema": { "type": "string", "enum": [true, false] } },
+          { "in": "query", "name": "objective", "schema": { "type": "string" } },
+          { "in": "query", "name": "ai_managed", "schema": { "type": "string", "enum": [true, false] } },
+          { "in": "query", "name": "messenger_page_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "instagram_account_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "whatsapp_instance_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "updated_after", "schema": { "type": "string", "format": "date-time" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada" }
+        }
+      }
+    },
+    "/conversations/{id}": {
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "tags": ["Conversations"],
+        "summary": "Detalhar conversa",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Não encontrada" }
+        }
+      },
+      "patch": {
+        "tags": ["Conversations"],
+        "summary": "Atualizar conversa (atribuir / abrir / fechar)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "assigned_to": { "type": "string", "nullable": true },
+                  "status": { "type": "string", "enum": ["open", "closed"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Atualizada" }
+        }
+      }
+    },
+    "/conversations/send": {
+      "post": {
+        "tags": ["Messages"],
+        "summary": "Alias de POST /messages/send",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "201": { "description": "OK" }
+        }
+      }
+    },
+    "/messages/send": {
+      "post": {
+        "tags": ["Messages"],
+        "summary": "Enviar mensagem (WhatsApp / Messenger / Instagram*)",
+        "description": "Envia uma mensagem para um contato em um dos canais suportados.\nCria/atualiza a `Conversation` e persiste a `Message` correspondente.\n\n- `whatsapp`: requer contato com `whatsapp.remoteJid` e `whatsapp_instance_id` válido.\n- `messenger`: requer contato com `messenger.psid`. Se `messenger_page_id` não for\n  informado, usa a primeira página ativa da organização.\n- `instagram`: ainda em desenvolvimento (retorna `422`).\n\nAplica rate-limit de **30 msgs/min por instância/página**.\n",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["contact_id", "channel"],
+                "properties": {
+                  "contact_id": { "type": "string" },
+                  "channel": { "type": "string", "enum": ["whatsapp", "messenger"] },
+                  "content": { "type": "string", "description": "Texto (obrigatório para type=text)" },
+                  "type": { "type": "string", "enum": ["text", "image", "video", "audio", "document"], "default": "text" },
+                  "media_url": { "type": "string", "description": "URL pública obrigatória se type != text" },
+                  "whatsapp_instance_id": { "type": "string" },
+                  "messenger_page_id": { "type": "string", "description": "Se omitido, usa página ativa padrão" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Mensagem registrada/enviada" },
+          "422": { "description": "Regra de negócio (sem JID/PSID, sem instância/página, etc.)" },
+          "429": { "description": "Rate limit por instância/página" }
+        }
+      }
+    },
+    "/broadcasts": {
+      "get": {
+        "tags": ["Broadcasts"],
+        "summary": "Listar disparos (Growth+)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } },
+          { "in": "query", "name": "status", "schema": { "type": "string", "enum": ["draft", "scheduled", "processing", "sending", "paused", "completed", "cancelled", "failed", "all"] } },
+          { "in": "query", "name": "instance_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "search", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada" },
+          "403": { "description": "Plano Starter — exige Growth+" }
+        }
+      },
+      "post": {
+        "tags": ["Broadcasts"],
+        "summary": "Criar rascunho de disparo (Growth+)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "whatsappInstances", "audience", "message"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "whatsappInstances": { "type": "array", "items": { "type": "string" } },
+                  "audience": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string", "enum": ["all", "filtered", "manual"] },
+                      "filters": { "type": "object" },
+                      "manualContactIds": { "type": "array", "items": { "type": "string" } }
+                    }
+                  },
+                  "message": {
+                    "type": "object",
+                    "properties": {
+                      "text": { "type": "string" },
+                      "variations": { "type": "array", "items": { "type": "string" } },
+                      "attachments": { "type": "array", "items": { "type": "object" } }
+                    }
+                  },
+                  "sendConfig": {
+                    "type": "object",
+                    "properties": {
+                      "profile": { "type": "string" },
+                      "sendWindow": {
+                        "type": "object",
+                        "properties": {
+                          "pauseWindows": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "startHour": { "type": "number", "minimum": 0, "maximum": 23 },
+                                "endHour": { "type": "number", "minimum": 0, "maximum": 23 }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "scheduledFor": { "type": "string", "format": "date-time" }
+                    }
                   }
                 }
               }
             }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
           }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
         },
         "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "201": { "description": "Rascunho criado" }
         }
       }
     },
-    "/plants/{id}": {
+    "/broadcasts/kpis": {
+      "get": {
+        "tags": ["Broadcasts"],
+        "summary": "KPIs agregados de disparos (últimos 30 dias)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "KPIs" }
+        }
+      }
+    },
+    "/broadcasts/audience/estimate": {
+      "post": {
+        "tags": ["Broadcasts"],
+        "summary": "Estimar tamanho de audiência sem persistir",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["audience"],
+                "properties": {
+                  "audience": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Quantidade estimada" }
+        }
+      }
+    },
+    "/broadcasts/{id}": {
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "tags": ["Broadcasts"],
+        "summary": "Detalhar disparo (Growth+)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Não encontrado" }
+        }
+      },
+      "patch": {
+        "tags": ["Broadcasts"],
+        "summary": "Atualizar disparo (apenas draft/scheduled)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Atualizado" },
+          "422": { "description": "Status inválido para edição" }
+        }
+      },
       "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
+        "tags": ["Broadcasts"],
+        "summary": "Excluir disparo",
+        "security": [{ "ApiKeyAuth": [] }],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "204": { "description": "Removido" },
+          "422": { "description": "Cancele antes de excluir (sending/paused)" }
         }
       }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    },
+    "/broadcasts/{id}/messages": {
+      "get": {
+        "tags": ["Broadcasts"],
+        "summary": "Listar mensagens enviadas pelo disparo",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 50, "minimum": 1, "maximum": 100 } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada" }
+        }
+      }
+    },
+    "/broadcasts/{id}/launch": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "tags": ["Broadcasts"],
+        "summary": "Lançar disparo",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": false,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "type": "object",
+                "properties": {
+                  "confirmWarmupOverride": { "type": "boolean" }
+                }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+          "200": { "description": "Iniciado/agendado" },
+          "409": { "description": "Volume excede warm-up — use confirmWarmupOverride" }
+        }
+      }
+    },
+    "/broadcasts/{id}/pause": {
+      "post": {
+        "tags": ["Broadcasts"],
+        "summary": "Pausar disparo em envio",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Pausado" }
+        }
+      }
+    },
+    "/broadcasts/{id}/resume": {
+      "post": {
+        "tags": ["Broadcasts"],
+        "summary": "Retomar disparo pausado",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Retomado" }
+        }
+      }
+    },
+    "/broadcasts/{id}/cancel": {
+      "post": {
+        "tags": ["Broadcasts"],
+        "summary": "Cancelar disparo",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Cancelado" }
+        }
+      }
+    },
+    "/broadcasts/{id}/duplicate": {
+      "post": {
+        "tags": ["Broadcasts"],
+        "summary": "Duplicar disparo como novo rascunho",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "201": { "description": "Cópia criada" }
+        }
+      }
+    },
+    "/broadcasts/{id}/send-config": {
+      "patch": {
+        "tags": ["Broadcasts"],
+        "summary": "Atualizar perfil/janela durante envio ou pausa",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "profile": { "type": "string" },
+                  "sendWindow": {
+                    "type": "object",
+                    "properties": {
+                      "pauseWindows": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "startHour": { "type": "number", "minimum": 0, "maximum": 23 },
+                            "endHour": { "type": "number", "minimum": 0, "maximum": 23 }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
+        },
+        "responses": {
+          "200": { "description": "Atualizado" }
+        }
+      }
+    },
+    "/ai-agents": {
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "Listar agentes de IA (Growth+)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "query", "name": "type", "schema": { "type": "string", "enum": ["sales", "support"] } },
+          { "in": "query", "name": "status", "schema": { "type": "string", "enum": ["draft", "active", "paused", "archived"] } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada" }
+        }
+      },
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Criar agente (Growth+)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "type", "scope", "behavior", "aiConfig"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "type": { "type": "string", "enum": ["sales", "support"] },
+                  "scope": { "type": "object" },
+                  "behavior": { "type": "object" },
+                  "humanization": { "type": "object" },
+                  "guardrails": { "type": "object" },
+                  "toolsAllowed": { "type": "object" },
+                  "limits": { "type": "object" },
+                  "aiConfig": { "type": "object" },
+                  "priority": { "type": "integer", "minimum": 0, "maximum": 100 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Criado" },
+          "403": { "description": "Limite de agentes ativos atingido" }
+        }
+      }
+    },
+    "/ai-agents/stats": {
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "Estatísticas agregadas (KPIs) dos agentes",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "query", "name": "agentId", "schema": { "type": "string" } },
+          { "in": "query", "name": "startDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "endDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "periodDays", "schema": { "type": "integer", "minimum": 1, "maximum": 365, "default": 30 } }
+        ],
+        "responses": {
+          "200": { "description": "KPIs" }
+        }
+      }
+    },
+    "/ai-agents/kill-switch": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Ativar/desativar kill-switch global",
+        "description": "Pausa **todos** os agentes ativos quando `enabled=true` e restaura ao desativar.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["enabled"],
+                "properties": {
+                  "enabled": { "type": "boolean" },
+                  "reason": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Estado do kill-switch" }
+        }
+      }
+    },
+    "/ai-agents/runs": {
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "Listar runs (execuções) de agentes",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "query", "name": "agent_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "conversation_id", "schema": { "type": "string" } },
+          { "in": "query", "name": "status", "schema": { "type": "string", "enum": ["running", "completed", "failed", "skipped"] } },
+          { "in": "query", "name": "started_after", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 25, "minimum": 1, "maximum": 100 } },
+          { "in": "query", "name": "cursor", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Lista paginada" }
+        }
+      }
+    },
+    "/ai-agents/runs/{id}": {
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "Detalhar run",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      }
+    },
+    "/ai-agents/runs/{id}/feedback": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Registrar feedback humano em um run",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["rating"],
+                "properties": {
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+                  "issues": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": ["wrong_info", "missed_intent", "premature_handoff", "late_handoff", "tone_issue", "other"]
+                    }
+                  },
+                  "comment": { "type": "string", "maxLength": 1000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Feedback salvo" }
+        }
+      }
+    },
+    "/ai-agents/{id}": {
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "tags": ["AI Agents"],
+        "summary": "Detalhar agente",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Não encontrado" }
+        }
+      },
+      "put": {
+        "tags": ["AI Agents"],
+        "summary": "Atualizar agente (substitui)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Atualizado" }
+        }
+      },
+      "delete": {
+        "tags": ["AI Agents"],
+        "summary": "Remover agente (precisa estar pausado)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "204": { "description": "Removido" },
+          "422": { "description": "Pause antes de remover" }
+        }
+      }
+    },
+    "/ai-agents/{id}/publish": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Publicar agente (status=active)",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Publicado" },
+          "400": { "description": "Faltam campos obrigatórios" }
+        }
+      }
+    },
+    "/ai-agents/{id}/pause": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Pausar agente",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Pausado" }
+        }
+      }
+    },
+    "/ai-agents/{id}/resume": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Retomar agente pausado",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Retomado" }
+        }
+      }
+    },
+    "/ai-agents/{id}/duplicate": {
+      "post": {
+        "tags": ["AI Agents"],
+        "summary": "Duplicar agente como rascunho",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "201": { "description": "Cópia criada" }
+        }
+      }
+    },
+    "/whatsapp-instances": {
+      "get": {
+        "tags": ["Channels"],
+        "summary": "Listar instâncias WhatsApp ativas",
+        "description": "Use os IDs retornados em `whatsapp_instance_id` ao chamar `/messages/send`.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de instâncias" }
+        }
+      }
+    },
+    "/messenger-pages": {
+      "get": {
+        "tags": ["Channels"],
+        "summary": "Listar páginas do Messenger conectadas",
+        "description": "Use os IDs retornados em `messenger_page_id` ao chamar `/messages/send`.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de páginas" }
+        }
+      }
+    },
+    "/instagram-accounts": {
+      "get": {
+        "tags": ["Channels"],
+        "summary": "Listar contas do Instagram conectadas",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de contas" }
+        }
+      }
+    },
+    "/pipelines": {
+      "get": {
+        "tags": ["Pipelines"],
+        "summary": "Listar pipelines",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de pipelines com estatísticas" }
+        }
+      },
+      "post": {
+        "tags": ["Pipelines"],
+        "summary": "Criar pipeline",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "201": { "description": "Pipeline criado" }
+        }
+      }
+    },
+    "/pipelines/{id}": {
+      "get": {
+        "tags": ["Pipelines"],
+        "summary": "Detalhar pipeline",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "patch": {
+        "tags": ["Pipelines"],
+        "summary": "Atualizar pipeline",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Atualizado" }
+        }
+      },
+      "delete": {
+        "tags": ["Pipelines"],
+        "summary": "Excluir pipeline",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Removido" }
+        }
+      }
+    },
+    "/webhooks": {
+      "get": {
+        "tags": ["Webhooks"],
+        "summary": "Listar webhooks",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de assinaturas" }
+        }
+      },
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Criar webhook",
+        "description": "Retorna `secret` apenas na criação. Eventos suportados incluem contact.*, deal.* e message.received.",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "201": { "description": "Criado com secret" }
+        }
+      }
+    },
+    "/webhooks/{id}": {
+      "parameters": [
+        { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+      ],
+      "get": {
+        "tags": ["Webhooks"],
+        "summary": "Detalhar webhook",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "OK" }
+        }
+      },
+      "patch": {
+        "tags": ["Webhooks"],
+        "summary": "Atualizar webhook",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Atualizado" }
+        }
+      },
+      "delete": {
+        "tags": ["Webhooks"],
+        "summary": "Remover webhook",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "204": { "description": "Removido" }
+        }
+      }
+    },
+    "/custom-fields": {
+      "get": {
+        "tags": ["Custom Fields"],
+        "summary": "Listar campos personalizados",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de campos" }
+        }
+      },
+      "post": {
+        "tags": ["Custom Fields"],
+        "summary": "Criar campo personalizado",
+        "security": [{ "ApiKeyAuth": [] }],
+        "responses": {
+          "201": { "description": "Criado" }
+        }
+      }
+    },
+    "/custom-fields/{id}": {
+      "patch": {
+        "tags": ["Custom Fields"],
+        "summary": "Atualizar campo personalizado",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Atualizado" }
+        }
+      }
+    },
+    "/deals/{id}": {
+      "delete": {
+        "tags": ["Deals"],
+        "summary": "Excluir negócio",
+        "security": [{ "ApiKeyAuth": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "204": { "description": "Removido" }
         }
       }
     }
   },
-  "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    }
-  }
+  "tags": [
+    { "name": "Contacts", "description": "Contatos da organização" },
+    { "name": "Conversations", "description": "Conversas (chats) e mensagens" },
+    { "name": "Messages", "description": "Envio de mensagens (WhatsApp, Messenger, Instagram)" },
+    { "name": "Deals", "description": "Oportunidades / negócios" },
+    { "name": "Broadcasts", "description": "Disparos em massa" },
+    { "name": "AI Agents", "description": "Agentes de IA, runs, kill-switch e estatísticas" },
+    { "name": "Channels", "description": "Canais conectados (WhatsApp, Messenger, Instagram)" },
+    { "name": "Pipelines", "description": "Funis de venda (CRUD)" },
+    { "name": "Webhooks", "description": "Assinaturas de eventos HTTP" },
+    { "name": "Custom Fields", "description": "Definição de campos personalizados" }
+  ]
 }
