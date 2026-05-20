@@ -8,11 +8,11 @@
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
-  "openapi": "api-reference/openapi.json",
   "navigation": {
     "tabs": [
       {
         "tab": "API Reference",
+        "openapi": "api-reference/openapi.json",
         "groups": [
           {
             "group": "Visão geral",
