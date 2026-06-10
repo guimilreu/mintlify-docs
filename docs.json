@@ -94,7 +94,7 @@
             ]
           },
           {
-            "group": "Pipelines",
+            "group": "Funis de venda",
             "pages": [
               "api-reference/pipelines/list",
               "api-reference/pipelines/get",

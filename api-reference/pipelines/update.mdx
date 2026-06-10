@@ -1,6 +1,6 @@
 ---
-title: "Atualizar pipeline"
-description: "Atualiza nome, descrição, etapas ou configurações de um pipeline."
+title: "Atualizar funil de venda"
+description: "Atualiza nome, descrição, etapas ou configurações de um funil de venda."
 ---
 
 ## Endpoint
@@ -21,7 +21,7 @@ Envie apenas os campos que deseja alterar. O corpo deve ter ao menos um campo.
 | `description` | string | Descrição |
 | `stages` | array | Lista completa de etapas (substitui as existentes) |
 | `is_default` | boolean | Define como padrão |
-| `is_active` | boolean | Ativa ou desativa o pipeline |
+| `is_active` | boolean | Ativa ou desativa o funil |
 | `after_won` | object | Ação após ganhar |
 | `after_lost` | object | Ação após perder |
 
@@ -36,6 +36,6 @@ curl -X PATCH https://api.socialsell.ai/v1/pipelines/664a1b2c3d4e5f6789012345 \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Pipeline Principal 2026"
+    "name": "Funil Principal 2026"
   }'
 ```

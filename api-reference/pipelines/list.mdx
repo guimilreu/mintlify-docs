@@ -1,6 +1,6 @@
 ---
-title: "Listar pipelines"
-description: "Retorna todos os pipelines da organização com suas etapas."
+title: "Listar funis de venda"
+description: "Retorna todos os funis de venda da organização com suas etapas."
 ---
 
 ## Endpoint
@@ -25,7 +25,7 @@ curl "https://api.socialsell.ai/v1/pipelines" \
   "data": [
     {
       "id": "664a1b2c3d4e5f6789012345",
-      "name": "Pipeline Principal",
+      "name": "Funil Principal",
       "description": "Funil de vendas principal da equipe",
       "is_default": true,
       "is_active": true,
@@ -82,14 +82,14 @@ curl "https://api.socialsell.ai/v1/pipelines" \
 }
 ```
 
-## Objeto pipeline
+## Objeto funil de venda
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `id` | string | ID do pipeline |
+| `id` | string | ID do funil |
 | `name` | string | Nome |
 | `description` | string\|null | Descrição |
-| `is_default` | boolean | Se é o pipeline padrão |
+| `is_default` | boolean | Se é o funil padrão |
 | `is_active` | boolean | Se está ativo |
 | `stages` | array | Lista de etapas ordenadas |
 | `deals_count` | integer | Total de negócios |

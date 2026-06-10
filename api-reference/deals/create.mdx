@@ -1,6 +1,6 @@
 ---
 title: "Criar negócio"
-description: "Cria um novo negócio em um pipeline."
+description: "Cria um novo negócio em um funil de venda."
 ---
 
 ## Endpoint
@@ -17,7 +17,7 @@ POST /v1/deals
 |-------|------|-------------|-----------|
 | `title` | string | Sim | Título do negócio |
 | `pipeline_id` | string | Sim | ID do pipeline |
-| `stage_id` | string | Não | ID da etapa. Se omitido, usa a primeira etapa do pipeline |
+| `stage_id` | string | Não | ID da etapa. Se omitido, usa a primeira etapa do funil de venda |
 | `value` | number | Não | Valor em reais. Padrão: `0` |
 | `contact_ids` | string[] | Não | IDs dos contatos vinculados |
 | `company_id` | string | Não | ID da empresa |
@@ -58,6 +58,6 @@ A criação dispara o evento `deal.created` em webhooks configurados.
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `MISSING_REQUIRED_FIELD` | `400` | `title` ou `pipeline_id` ausente |
-| `PIPELINE_NOT_FOUND` | `404` | Pipeline não encontrado |
-| `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no pipeline |
-| `NO_STAGES` | `422` | Pipeline não tem etapas |
+| `PIPELINE_NOT_FOUND` | `404` | Funil de venda não encontrado |
+| `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no funil de venda |
+| `NO_STAGES` | `422` | Funil de venda não tem etapas |

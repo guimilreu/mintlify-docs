@@ -14,7 +14,7 @@ Webhooks permitem que a SocialSell envie notificações automáticas para o seu 
 | `contact.created` | Um novo contato foi criado |
 | `contact.updated` | Um contato foi atualizado |
 | `deal.created` | Um novo negócio foi criado |
-| `deal.stage.changed` | Um negócio mudou de etapa no pipeline |
+| `deal.stage.changed` | Um negócio mudou de etapa no funil de venda |
 | `deal.won` | Um negócio foi marcado como ganho |
 | `deal.lost` | Um negócio foi marcado como perdido |
 | `message.received` | Uma nova mensagem foi recebida de um contato |
@@ -73,7 +73,7 @@ Cada evento entregue tem o seguinte formato:
     "title": "Proposta Empresa XYZ",
     "value": 5000,
     "status": "won",
-    "pipeline": { "id": "...", "name": "Pipeline Principal" },
+    "pipeline": { "id": "...", "name": "Funil Principal" },
     "stage": { "name": "Fechamento" },
     "assigned_to": { "id": "...", "name": "João Silva" }
   }

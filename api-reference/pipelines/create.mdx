@@ -1,6 +1,6 @@
 ---
-title: "Criar pipeline"
-description: "Cria um novo pipeline de vendas com etapas."
+title: "Criar funil de venda"
+description: "Cria um novo funil de venda com etapas."
 ---
 
 ## Endpoint
@@ -15,10 +15,10 @@ POST /v1/pipelines
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `name` | string | Sim | Nome do pipeline (máx. 100 chars) |
+| `name` | string | Sim | Nome do funil (máx. 100 chars) |
 | `description` | string | Não | Descrição (máx. 500 chars) |
 | `stages` | array | Sim | Mínimo 1 etapa |
-| `is_default` | boolean | Não | Define como pipeline padrão |
+| `is_default` | boolean | Não | Define como funil padrão |
 | `after_won` | object | Não | Ação após ganhar |
 | `after_lost` | object | Não | Ação após perder |
 
@@ -39,7 +39,7 @@ POST /v1/pipelines
 |-------|------|-----------|
 | `enabled` | boolean | Ativar ação automática |
 | `action` | string\|null | Ação: `move_to_stage` |
-| `target_pipeline` | string\|null | ID do pipeline destino |
+| `target_pipeline` | string\|null | ID do funil de destino |
 | `target_stage` | string\|null | Nome da etapa destino |
 
 ## Exemplo de requisição
@@ -49,7 +49,7 @@ curl -X POST https://api.socialsell.ai/v1/pipelines \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Pipeline SDR",
+    "name": "Funil SDR",
     "description": "Funil de qualificação inicial",
     "stages": [
       {"name": "Prospecção", "order": 0, "win_probability": 5},
@@ -62,4 +62,4 @@ curl -X POST https://api.socialsell.ai/v1/pipelines \
 
 ## Resposta
 
-Retorna `HTTP 201` com o objeto pipeline criado (com IDs de etapas gerados).
+Retorna `HTTP 201` com o objeto funil de venda criado (com IDs de etapas gerados).

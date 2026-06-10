@@ -117,4 +117,4 @@ def fetch_with_retry(url, headers, max_retries=3, **kwargs):
 - **Implemente retry com backoff** — sempre respeite o `Retry-After` e adicione backoff exponencial
 - **Use `limit=100`** — maximizar o `limit` reduz o número de requisições para buscar muitos registros
 - **Filtre no lado servidor** — use os parâmetros de filtro disponíveis em vez de filtrar no cliente
-- **Cache dados estáticos** — membros, pipelines e instâncias mudam pouco; cache por alguns minutos
+- **Cache dados estáticos** — membros, funis de venda e instâncias mudam pouco; cache por alguns minutos
