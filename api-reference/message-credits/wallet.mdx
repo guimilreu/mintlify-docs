@@ -1,11 +1,11 @@
 ---
-title: "Créditos de mensagem"
-description: "Consulte saldo, extrato e gerencie recargas de créditos de mensagem (WhatsApp Cloud)."
+title: "Saldo da carteira"
+description: "Consulta o saldo atual de créditos de mensagem da organização."
 ---
 
-Os créditos de mensagem custeiam o envio via WhatsApp Cloud API. Estes endpoints permitem consultar saldo, ver o extrato e configurar recargas.
+Os créditos de mensagem custeiam o envio via WhatsApp Cloud API. Use este endpoint para verificar o saldo disponível antes de realizar disparos.
 
-## Consultar carteira
+## Endpoint
 
 ```
 GET /v1/message-credits/wallet
@@ -13,10 +13,14 @@ GET /v1/message-credits/wallet
 
 **Escopo necessário:** `read:message_credits`
 
+## Exemplo de requisição
+
 ```bash
 curl "https://api.socialsell.ai/v1/message-credits/wallet" \
   -H "Authorization: Bearer sk_live_..."
 ```
+
+## Exemplo de resposta
 
 ```json
 {
@@ -35,6 +39,8 @@ curl "https://api.socialsell.ai/v1/message-credits/wallet" \
 }
 ```
 
+## Campos da resposta
+
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `balance_cents` | integer | Saldo total em centavos |
@@ -42,99 +48,8 @@ curl "https://api.socialsell.ai/v1/message-credits/wallet" \
 | `available_cents` | integer | Saldo disponível (`balance - reserved`) |
 | `currency` | string | Moeda (`BRL`) |
 | `auto_topup` | object | Configuração de recarga automática |
-| `status` | string | Status da carteira |
+| `status` | string | Status da carteira (`active`, `suspended`) |
 
-## Extrato (ledger)
-
-```
-GET /v1/message-credits/ledger
-```
-
-**Escopo necessário:** `read:message_credits`
-
-Este endpoint usa paginação por **página** (não cursor).
-
-| Parâmetro | Tipo | Descrição |
-|-----------|------|-----------|
-| `page` | integer | Página. Padrão: `1` |
-| `limit` | integer | Itens por página. Padrão: `30`. Máximo: `100` |
-
-```bash
-curl "https://api.socialsell.ai/v1/message-credits/ledger?page=1&limit=30" \
-  -H "Authorization: Bearer sk_live_..."
-```
-
-```json
-{
-  "data": {
-    "items": [
-      {
-        "id": "664o0p1q2r3s4t5u6v7w8x9y",
-        "type": "debit",
-        "amount_cents": -120,
-        "balance_after_cents": 48880,
-        "description": "Envio WhatsApp Cloud — template boas_vindas",
-        "created_at": "2026-06-10T15:30:00.000Z"
-      }
-    ],
-    "pagination": { "page": 1, "limit": 30, "total": 412, "pages": 14 }
-  }
-}
-```
-
-## Recarga automática (auto top-up)
-
-```
-PATCH /v1/message-credits/auto-topup
-```
-
-**Escopo necessário:** `write:message_credits`
-
-| Campo | Tipo | Obrigatório | Descrição |
-|-------|------|-------------|-----------|
-| `enabled` | boolean | Sim | Ativa/desativa recarga automática |
-| `thresholdCents` | integer | Não | Saldo mínimo que dispara a recarga |
-| `amountCents` | integer | Não | Valor a recarregar (mín. 500) |
-
-```bash
-curl -X PATCH https://api.socialsell.ai/v1/message-credits/auto-topup \
-  -H "Authorization: Bearer sk_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"enabled": true, "thresholdCents": 10000, "amountCents": 50000}'
-```
-
-## Comprar créditos
-
-```
-POST /v1/message-credits/purchase
-```
-
-**Escopo necessário:** `write:message_credits`
-
-| Campo | Tipo | Obrigatório | Descrição |
-|-------|------|-------------|-----------|
-| `amountCents` | integer | Sim | Valor da compra em centavos (mín. 500) |
-| `billingType` | string | Não | `PIX` (padrão), `BOLETO`, `CREDIT_CARD`, `UNDEFINED` |
-
-```bash
-curl -X POST https://api.socialsell.ai/v1/message-credits/purchase \
-  -H "Authorization: Bearer sk_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"amountCents": 50000, "billingType": "PIX"}'
-```
-
-```json
-{
-  "data": {
-    "payment_id": "pay_abc123",
-    "amount_cents": 50000,
-    "pix": {
-      "qr_code": "00020126...",
-      "copy_paste": "00020126...",
-      "expires_at": "2026-06-10T16:30:00.000Z"
-    }
-  }
-}
-```
-
-Para pagamentos via PIX, use os dados de `pix` para exibir o QR Code ao usuário. O crédito é liberado após a confirmação do pagamento.
+<Tip>
+Sempre use `available_cents` para verificar se há saldo suficiente — `balance_cents` pode incluir valores já comprometidos com disparos em andamento.
+</Tip>

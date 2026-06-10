@@ -1,0 +1,31 @@
+---
+title: "Atualizar agente de IA"
+description: "Atualiza configurações de um agente de IA existente."
+---
+
+## Endpoint
+
+```
+PATCH /v1/ai-agents/:id
+```
+
+**Escopo necessário:** `write:ai_agents`
+
+Envie apenas os campos que deseja alterar. Campos não enviados permanecem inalterados.
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Qualificador de Leads v2", "priority": 2}'
+```
+
+## Resposta
+
+Retorna `HTTP 200` com o agente atualizado.
+
+<Warning>
+Atualizar um agente `active` aplica as mudanças imediatamente nas próximas execuções. Para testar alterações sem impacto em produção, pause o agente antes de atualizar.
+</Warning>

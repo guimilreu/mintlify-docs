@@ -1,0 +1,27 @@
+---
+title: "Excluir agente de IA"
+description: "Remove permanentemente um agente de IA."
+---
+
+## Endpoint
+
+```
+DELETE /v1/ai-agents/:id
+```
+
+**Escopo necessário:** `write:ai_agents`
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content` em caso de sucesso.
+
+<Warning>
+A exclusão é permanente. O histórico de execuções (runs) do agente é preservado, mas o agente em si não pode ser recuperado.
+</Warning>

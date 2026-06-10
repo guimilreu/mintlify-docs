@@ -1,0 +1,29 @@
+---
+title: "Cancelar disparo"
+description: "Cancela definitivamente um disparo em andamento ou pausado."
+---
+
+## Endpoint
+
+```
+POST /v1/broadcasts/:id/cancel
+```
+
+**Escopo necessário:** `write:broadcasts`
+
+Transições permitidas: `running` → `cancelled` | `paused` → `cancelled`
+
+<Warning>
+O cancelamento é irreversível. Contatos que ainda não receberam a mensagem não serão atingidos.
+</Warning>
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/cancel \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 200` com o disparo no status `cancelled`.

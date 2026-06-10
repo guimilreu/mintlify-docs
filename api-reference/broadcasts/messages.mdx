@@ -1,0 +1,23 @@
+---
+title: "Mensagens do disparo"
+description: "Lista as mensagens individuais enviadas em um disparo, com status por contato."
+---
+
+## Endpoint
+
+```
+GET /v1/broadcasts/:id/messages
+```
+
+**Escopo necessário:** `read:broadcasts`
+
+Use para auditar o status de entrega por contato — identifique quais mensagens foram entregues, lidas ou falharam.
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/messages" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna a lista paginada de mensagens individuais com status de entrega (`sent`, `delivered`, `read`, `failed`) por contato.

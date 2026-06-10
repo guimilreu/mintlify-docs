@@ -1,0 +1,46 @@
+---
+title: "Registrar feedback"
+description: "Envia avaliação humana sobre a qualidade de uma execução de agente."
+---
+
+## Endpoint
+
+```
+POST /v1/ai-agents/runs/:id/feedback
+```
+
+**Escopo necessário:** `write:ai_agents`
+
+O feedback humano é usado para monitorar a qualidade dos agentes e identificar padrões de erro. Pode ser integrado a fluxos de revisão internos.
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `rating` | number | Sim | Avaliação da execução (ex: 1–5) |
+| `issues` | string[] | Não | Problemas identificados |
+| `comment` | string | Não | Comentário livre |
+
+### Tipos de issue disponíveis
+
+| Valor | Descrição |
+|-------|-----------|
+| `wrong_info` | Informação incorreta fornecida |
+| `missed_intent` | Não entendeu a intenção do cliente |
+| `premature_handoff` | Transferiu para humano cedo demais |
+| `late_handoff` | Demorou para transferir quando deveria |
+| `tone_issue` | Tom inadequado na resposta |
+| `other` | Outro problema |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/ai-agents/runs/664q2r3s4t5u6v7w8x9y0z1a/feedback \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"rating": 2, "issues": ["premature_handoff"], "comment": "Transferiu cedo demais, poderia ter resolvido."}'
+```
+
+## Resposta
+
+Retorna `HTTP 200` com o feedback registrado.

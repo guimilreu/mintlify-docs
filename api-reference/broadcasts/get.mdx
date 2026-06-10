@@ -1,0 +1,21 @@
+---
+title: "Buscar disparo"
+description: "Retorna os dados completos de um disparo pelo ID."
+---
+
+## Endpoint
+
+```
+GET /v1/broadcasts/:id
+```
+
+**Escopo necessário:** `read:broadcasts`
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna o objeto disparo completo, incluindo configuração de `audience`, `message`, `send_config` e estatísticas em tempo real.

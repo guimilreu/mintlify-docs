@@ -1,0 +1,58 @@
+---
+title: "Listar disparos"
+description: "Retorna todos os disparos em massa da organização."
+---
+
+## Endpoint
+
+```
+GET /v1/broadcasts
+```
+
+**Escopo necessário:** `read:broadcasts` — disponível nos planos **Growth e Scale**.
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/broadcasts" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664t3s4t5u6v7w8x9y0z1a2b",
+      "name": "Black Friday 2026",
+      "status": "running",
+      "whatsapp_instances": [
+        { "id": "664h...", "name": "WhatsApp Principal", "phone": "+5511333344445", "status": "connected" }
+      ],
+      "audience": { "type": "tags", "tags": ["cliente"], "estimatedCount": 1250 },
+      "message": { "type": "text", "text": "🔥 Black Friday! 50% OFF..." },
+      "send_config": { "profile": "balanced" },
+      "stats": { "sent": 800, "delivered": 760, "read": 520, "failed": 12 },
+      "started_at": "2026-06-10T09:00:00.000Z",
+      "completed_at": null,
+      "created_at": "2026-06-09T18:00:00.000Z"
+    }
+  ],
+  "meta": { "total": 8, "has_more": false }
+}
+```
+
+## Objeto disparo
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do disparo |
+| `name` | string | Nome da campanha |
+| `status` | string | `draft`, `scheduled`, `running`, `paused`, `completed`, `cancelled` |
+| `whatsapp_instances` | array | Instâncias usadas no envio |
+| `audience` | object | Segmentação da audiência |
+| `message` | object | Conteúdo da mensagem |
+| `send_config` | object | Perfil e configuração de envio |
+| `stats` | object | Métricas: `sent`, `delivered`, `read`, `failed` |
+| `started_at` / `completed_at` / `paused_at` / `cancelled_at` | string\|null | Timestamps do ciclo |

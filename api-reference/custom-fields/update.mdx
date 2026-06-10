@@ -1,0 +1,39 @@
+---
+title: "Atualizar campo personalizado"
+description: "Atualiza rótulo, opções, valor padrão ou status de um campo personalizado."
+---
+
+## Endpoint
+
+```
+PATCH /v1/custom-fields/:id
+```
+
+**Escopo necessário:** `write:custom_fields`
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `label` | string | Rótulo de exibição |
+| `options` | array | Opções para `select`/`multiselect` |
+| `default_value` | any | Valor padrão |
+| `required` | boolean | Obrigatoriedade |
+| `is_active` | boolean | Ativa/desativa o campo |
+
+<Note>
+`key`, `type` e `entity` são imutáveis e não podem ser alterados após a criação.
+</Note>
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/custom-fields/664n9o0p1q2r3s4t5u6v7w8x \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"required": true, "label": "CPF do cliente"}'
+```
+
+## Resposta
+
+Retorna `HTTP 200` com o campo atualizado.

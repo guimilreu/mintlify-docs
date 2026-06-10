@@ -1,0 +1,48 @@
+---
+title: "Kill Switch global"
+description: "Pausa ou restaura todos os agentes de IA da organização de uma vez."
+---
+
+## Endpoint
+
+```
+POST /v1/ai-agents/kill-switch
+```
+
+**Escopo necessário:** `write:ai_agents`
+
+O kill switch é um controle de emergência que pausa **todos** os agentes ativos da organização simultaneamente. Ao desativar, os agentes são restaurados ao estado `active` anterior.
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `enabled` | boolean | Sim | `true` pausa todos os agentes; `false` restaura |
+| `reason` | string | Não | Motivo (registrado para auditoria) |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/ai-agents/kill-switch \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true, "reason": "Manutenção emergencial"}'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "kill_switch": {
+      "enabled": true,
+      "enabled_at": "2026-06-10T16:00:00.000Z",
+      "reason": "Manutenção emergencial"
+    }
+  }
+}
+```
+
+<Warning>
+Use com cautela. Ao ativar o kill switch, **nenhum agente responderá** a conversas novas até que seja desativado.
+</Warning>

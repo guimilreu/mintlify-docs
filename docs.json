@@ -28,7 +28,7 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "Início",
+        "tab": "Comece aqui",
         "groups": [
           {
             "group": "Introdução",
@@ -132,27 +132,56 @@
           {
             "group": "Campos personalizados",
             "pages": [
-              "api-reference/custom-fields/list"
+              "api-reference/custom-fields/list",
+              "api-reference/custom-fields/create",
+              "api-reference/custom-fields/update"
             ]
           },
           {
             "group": "Agentes de IA",
             "pages": [
-              "api-reference/ai-agents/manage",
-              "api-reference/ai-agents/runs"
+              "api-reference/ai-agents/list",
+              "api-reference/ai-agents/get",
+              "api-reference/ai-agents/create",
+              "api-reference/ai-agents/update",
+              "api-reference/ai-agents/delete",
+              "api-reference/ai-agents/publish",
+              "api-reference/ai-agents/pause",
+              "api-reference/ai-agents/resume",
+              "api-reference/ai-agents/duplicate",
+              "api-reference/ai-agents/kill-switch",
+              "api-reference/ai-agents/runs-list",
+              "api-reference/ai-agents/runs-get",
+              "api-reference/ai-agents/runs-feedback",
+              "api-reference/ai-agents/stats"
             ]
           },
           {
             "group": "Disparos",
             "pages": [
-              "api-reference/broadcasts/manage",
-              "api-reference/broadcasts/lifecycle"
+              "api-reference/broadcasts/list",
+              "api-reference/broadcasts/get",
+              "api-reference/broadcasts/create",
+              "api-reference/broadcasts/update",
+              "api-reference/broadcasts/send-config",
+              "api-reference/broadcasts/delete",
+              "api-reference/broadcasts/duplicate",
+              "api-reference/broadcasts/estimate",
+              "api-reference/broadcasts/launch",
+              "api-reference/broadcasts/pause",
+              "api-reference/broadcasts/resume",
+              "api-reference/broadcasts/cancel",
+              "api-reference/broadcasts/messages",
+              "api-reference/broadcasts/kpis"
             ]
           },
           {
             "group": "Créditos de mensagem",
             "pages": [
-              "api-reference/message-credits/wallet"
+              "api-reference/message-credits/wallet",
+              "api-reference/message-credits/ledger",
+              "api-reference/message-credits/auto-topup",
+              "api-reference/message-credits/purchase"
             ]
           },
           {

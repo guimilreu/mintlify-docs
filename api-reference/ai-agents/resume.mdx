@@ -1,0 +1,25 @@
+---
+title: "Retomar agente"
+description: "Reativa um agente de IA pausado."
+---
+
+## Endpoint
+
+```
+POST /v1/ai-agents/:id/resume
+```
+
+**Escopo necessário:** `write:ai_agents`
+
+Transição de status: `paused` → `active`
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z/resume \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 200` com o agente no status `active`.

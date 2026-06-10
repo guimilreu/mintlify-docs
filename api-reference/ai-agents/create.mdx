@@ -1,0 +1,51 @@
+---
+title: "Criar agente de IA"
+description: "Cria um novo agente de IA em status de rascunho."
+---
+
+## Endpoint
+
+```
+POST /v1/ai-agents
+```
+
+**Escopo necessário:** `write:ai_agents`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome do agente (3–100 chars) |
+| `type` | string | Sim | `sales` ou `support` |
+| `scope` | object | Sim | Canais e objetivos cobertos |
+| `triggers` | array | Sim | Eventos que ativam o agente |
+| `behavior` | object | Sim | Comportamento e modo de ativação |
+| `description` | string | Não | Descrição |
+| `humanization` | object | Não | Humanização de respostas (delays, split de mensagens) |
+| `guardrails` | object | Não | Limites e proteções |
+| `tools_allowed` | object | Não | Ferramentas habilitadas para o agente |
+| `limits` | object | Não | Limites de execução por conversa |
+| `ai_config` | object | Não | Modelo e parâmetros de IA |
+
+<Note>
+A estrutura de configuração espelha as opções disponíveis no painel em **Agentes de IA**. Recomenda-se criar um agente pelo painel e usar `GET /v1/ai-agents/:id` como referência para o formato exato dos objetos aninhados.
+</Note>
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/ai-agents \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Atendente Suporte L1",
+    "type": "support",
+    "scope": { "channels": ["whatsapp"], "objectives": ["support"] },
+    "triggers": [{ "event": "message.received.from_contact" }],
+    "behavior": { "activationMode": "always" }
+  }'
+```
+
+## Resposta
+
+Retorna `HTTP 201`. O agente é criado com `status: draft`. Para ativá-lo, use [Publicar agente](/api-reference/ai-agents/publish).

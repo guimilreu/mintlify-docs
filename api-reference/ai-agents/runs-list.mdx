@@ -1,0 +1,79 @@
+---
+title: "Listar execuções"
+description: "Lista execuções (runs) de agentes de IA com filtros e paginação."
+---
+
+## Endpoint
+
+```
+GET /v1/ai-agents/runs
+```
+
+**Escopo necessário:** `read:ai_agents`
+
+Cada vez que um agente atua em uma conversa, gera um **run**. Use este endpoint para auditar execuções, identificar problemas e acompanhar o desempenho.
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `agent_id` | string | Filtra por agente |
+| `conversation_id` | string | Filtra por conversa |
+| `status` | string | Filtra por status do run |
+| `started_after` | string | ISO 8601 — filtra runs iniciados após esta data |
+| `limit` | integer | Padrão `25`, máx `100` |
+| `cursor` | string | Cursor de paginação |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=664p1q2r3s4t5u6v7w8x9y0z&limit=10" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664q2r3s4t5u6v7w8x9y0z1a",
+      "agent": { "id": "664p1q2r3s4t5u6v7w8x9y0z", "name": "Qualificador de Leads", "type": "sales" },
+      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "trigger_event": "message.received.from_contact",
+      "status": "completed",
+      "skip_reason": null,
+      "messages_sent": [
+        { "message_id": "664r...", "content": "Olá! Como posso ajudar?", "sent_at": "2026-06-10T15:00:01.000Z", "delay_ms": 1200 }
+      ],
+      "handoff": {
+        "triggered": true,
+        "reason": "customer_requested_human",
+        "summary": "Cliente pediu falar com humano sobre contrato."
+      },
+      "usage": { "tokens": 1850, "cost_cents": 3 },
+      "duration_ms": 4200,
+      "started_at": "2026-06-10T15:00:00.000Z",
+      "completed_at": "2026-06-10T15:00:04.200Z"
+    }
+  ],
+  "meta": { "total": 142, "has_more": true, "next_cursor": "..." }
+}
+```
+
+## Objeto run
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do run |
+| `agent` | object | Agente `{id, name, type}` |
+| `conversation_id` | string\|null | Conversa onde atuou |
+| `trigger_event` | string\|null | Evento disparador |
+| `status` | string | Status do run |
+| `skip_reason` | string\|null | Motivo de pulo (se não atuou) |
+| `error_message` | string\|null | Erro, se houver |
+| `messages_sent` | array | Mensagens enviadas pelo agente |
+| `handoff` | object\|null | Detalhes de transferência para humano |
+| `usage` | object\|null | Tokens consumidos e custo |
+| `duration_ms` | integer\|null | Duração da execução em milissegundos |
+| `started_at` / `completed_at` | string\|null | Timestamps |

@@ -1,0 +1,39 @@
+---
+title: "Recarga automática"
+description: "Configura ou desativa a recarga automática de créditos de mensagem."
+---
+
+## Endpoint
+
+```
+PATCH /v1/message-credits/auto-topup
+```
+
+**Escopo necessário:** `write:message_credits`
+
+Quando habilitada, a recarga automática compra créditos assim que o saldo disponível cai abaixo do limite definido — evitando interrupções em disparos programados.
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `enabled` | boolean | Sim | Ativa ou desativa a recarga automática |
+| `thresholdCents` | integer | Não | Saldo mínimo que dispara a recarga (em centavos) |
+| `amountCents` | integer | Não | Valor a recarregar por evento (mín. 500 centavos) |
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/message-credits/auto-topup \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": true, "thresholdCents": 10000, "amountCents": 50000}'
+```
+
+## Resposta
+
+Retorna `HTTP 200` com a configuração atualizada da carteira.
+
+<Tip>
+Configure `thresholdCents` com margem generosa — a recarga pode levar alguns minutos para ser processada e confirmada.
+</Tip>

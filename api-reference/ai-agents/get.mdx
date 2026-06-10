@@ -1,0 +1,25 @@
+---
+title: "Buscar agente de IA"
+description: "Retorna os dados completos de um agente de IA pelo ID."
+---
+
+## Endpoint
+
+```
+GET /v1/ai-agents/:id
+```
+
+**Escopo necessário:** `read:ai_agents`
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna o objeto agente completo, incluindo toda a configuração de `scope`, `triggers`, `behavior`, `humanization`, `guardrails`, `tools_allowed`, `limits` e `ai_config`.
+
+<Tip>
+Use este endpoint como referência para montar o corpo ao criar ou atualizar agentes — a estrutura dos objetos aninhados é idêntica.
+</Tip>

@@ -1,0 +1,52 @@
+---
+title: "Estimar audiência"
+description: "Calcula quantos contatos serão atingidos por uma configuração de audiência."
+---
+
+## Endpoint
+
+```
+POST /v1/broadcasts/audience/estimate
+```
+
+**Escopo necessário:** `read:broadcasts`
+
+Use antes de criar um disparo para validar o alcance estimado da campanha.
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `audience` | object | Sim | Mesma estrutura do campo `audience` em criar disparo |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts/audience/estimate \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "audience": {
+      "type": "tags",
+      "tags": ["cliente"],
+      "tagsOperator": "or",
+      "hasWhatsapp": true
+    }
+  }'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "estimated_count": 1250,
+    "estimated_exclusions": 0
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `estimated_count` | integer | Contatos que receberão o disparo |
+| `estimated_exclusions` | integer | Contatos excluídos pelas regras de exclusão |

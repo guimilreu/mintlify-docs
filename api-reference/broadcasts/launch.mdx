@@ -1,0 +1,42 @@
+---
+title: "Lançar disparo"
+description: "Inicia o envio de um disparo em rascunho ou agendado."
+---
+
+## Endpoint
+
+```
+POST /v1/broadcasts/:id/launch
+```
+
+**Escopo necessário:** `write:broadcasts`
+
+Transições de status permitidas: `draft` → `running` | `scheduled` → `running`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `confirmWarmupOverride` | boolean | Não | Força o envio mesmo acima do limite de warm-up da instância |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/launch \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+## Erros de lançamento
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_STATUS` | `422` | Disparo não pode ser lançado neste status |
+| `MIXED_PROVIDERS` | `400` | Não misture instâncias Evolution e Cloud no mesmo disparo |
+| `MISSING_MESSAGE` | `400` | Configure a mensagem antes de lançar |
+| `MISSING_CLOUD_TEMPLATE` | `400` | Disparos Cloud exigem template HSM aprovado |
+
+<Warning>
+Se o volume exceder o limite de warm-up de uma instância, o lançamento é bloqueado. Reenvie com `confirmWarmupOverride: true` para forçar o envio.
+</Warning>

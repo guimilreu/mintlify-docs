@@ -1,0 +1,30 @@
+---
+title: "Estatísticas de agentes"
+description: "Métricas agregadas de execuções, handoffs, tokens e custo por período."
+---
+
+## Endpoint
+
+```
+GET /v1/ai-agents/stats
+```
+
+**Escopo necessário:** `read:ai_agents`
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `agentId` | string | Filtra por agente específico |
+| `startDate` | string | ISO 8601 — início do período |
+| `endDate` | string | ISO 8601 — fim do período |
+| `periodDays` | integer | Janela em dias. Padrão: `30` |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/ai-agents/stats?periodDays=30" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna métricas agregadas de execuções, handoffs, tokens consumidos e custo no período selecionado.

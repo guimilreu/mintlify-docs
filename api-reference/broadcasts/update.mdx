@@ -1,0 +1,27 @@
+---
+title: "Atualizar disparo"
+description: "Atualiza nome, descrição ou configurações de um disparo em rascunho."
+---
+
+## Endpoint
+
+```
+PATCH /v1/broadcasts/:id
+```
+
+**Escopo necessário:** `write:broadcasts`
+
+Apenas disparos em `draft` ou `scheduled` podem ser atualizados.
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Campanha Black Friday — v2"}'
+```
+
+## Resposta
+
+Retorna `HTTP 200` com o disparo atualizado.

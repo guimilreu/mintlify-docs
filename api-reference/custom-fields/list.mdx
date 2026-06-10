@@ -1,11 +1,11 @@
 ---
-title: "Campos personalizados"
-description: "Liste, crie e atualize campos personalizados de contatos, empresas e negócios."
+title: "Listar campos personalizados"
+description: "Retorna todos os campos personalizados da organização."
 ---
 
-Campos personalizados (custom fields) permitem estender contatos, empresas e negócios com dados próprios da sua operação.
+Campos personalizados estendem contatos, empresas e negócios com dados próprios da sua operação.
 
-## Listar campos
+## Endpoint
 
 ```
 GET /v1/custom-fields
@@ -13,14 +13,20 @@ GET /v1/custom-fields
 
 **Escopo necessário:** `read:custom_fields`
 
+## Parâmetros de query
+
 | Parâmetro | Tipo | Descrição |
 |-----------|------|-----------|
 | `entity` | string | Filtra por entidade: `contact`, `company`, `deal` |
+
+## Exemplo de requisição
 
 ```bash
 curl "https://api.socialsell.ai/v1/custom-fields?entity=contact" \
   -H "Authorization: Bearer sk_live_..."
 ```
+
+## Exemplo de resposta
 
 ```json
 {
@@ -41,69 +47,19 @@ curl "https://api.socialsell.ai/v1/custom-fields?entity=contact" \
 }
 ```
 
-## Criar campo
-
-```
-POST /v1/custom-fields
-```
-
-**Escopo necessário:** `write:custom_fields`
-
-| Campo | Tipo | Obrigatório | Descrição |
-|-------|------|-------------|-----------|
-| `key` | string | Sim | Chave única. Apenas minúsculas, dígitos e `_`, iniciando com letra. Máx. 50 |
-| `label` | string | Sim | Rótulo de exibição. Máx. 100 |
-| `type` | string | Sim | Tipo do campo (ver tabela abaixo) |
-| `entity` | string | Sim | `contact`, `company` ou `deal` |
-| `options` | array | Não | Opções para `select`/`multiselect`. Strings ou `{value, label}` |
-| `default_value` | any | Não | Valor padrão |
-| `required` | boolean | Não | Se é obrigatório |
-
-### Tipos de campo
-
-`text`, `textarea`, `number`, `currency`, `date`, `datetime`, `boolean`, `select`, `multiselect`, `url`, `email`, `phone`
-
-```bash
-curl -X POST https://api.socialsell.ai/v1/custom-fields \
-  -H "Authorization: Bearer sk_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "key": "origem_lead",
-    "label": "Origem do Lead",
-    "type": "select",
-    "entity": "contact",
-    "options": ["Site", "Indicação", "Evento", "Anúncio"]
-  }'
-```
-
-Retorna `HTTP 201` com o campo criado.
-
-## Atualizar campo
-
-```
-PATCH /v1/custom-fields/:id
-```
-
-**Escopo necessário:** `write:custom_fields`
+## Objeto campo personalizado
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `label` | string | Rótulo |
-| `options` | array | Opções (select/multiselect) |
+| `id` | string | ID do campo |
+| `key` | string | Chave única (imutável após criação) |
+| `label` | string | Rótulo de exibição |
+| `type` | string | Tipo do campo |
+| `entity` | string | Entidade: `contact`, `company` ou `deal` |
+| `options` | array | Opções para `select`/`multiselect` |
 | `default_value` | any | Valor padrão |
-| `required` | boolean | Obrigatoriedade |
-| `is_active` | boolean | Ativa/desativa o campo |
-
-<Note>
-`key`, `type` e `entity` não podem ser alterados após a criação.
-</Note>
-
-```bash
-curl -X PATCH https://api.socialsell.ai/v1/custom-fields/664n9o0p1q2r3s4t5u6v7w8x \
-  -H "Authorization: Bearer sk_live_..." \
-  -H "Content-Type: application/json" \
-  -d '{"required": true}'
-```
+| `required` | boolean | Se é obrigatório |
+| `is_active` | boolean | Se está ativo |
 
 <Tip>
 Os valores dos campos personalizados são lidos e gravados via o objeto `custom_fields` (chave → valor) em contatos, empresas e negócios.

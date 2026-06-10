@@ -1,0 +1,37 @@
+---
+title: "Configurar envio"
+description: "Ajusta o perfil de velocidade de envio e agendamento de um disparo."
+---
+
+## Endpoint
+
+```
+PATCH /v1/broadcasts/:id/send-config
+```
+
+**Escopo necessário:** `write:broadcasts`
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/send-config \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"profile": "slow"}'
+```
+
+### Perfis de envio disponíveis
+
+| Perfil | Velocidade | Indicado para |
+|--------|-----------|---------------|
+| `slow` | Lenta | Instâncias novas, warm-up |
+| `balanced` | Moderada | Uso geral (recomendado) |
+| `fast` | Rápida | Instâncias consolidadas com histórico |
+
+## Resposta
+
+Retorna `HTTP 200` com o disparo atualizado.
+
+<Warning>
+O perfil `custom` é exclusivo do painel web e não é aceito neste endpoint.
+</Warning>

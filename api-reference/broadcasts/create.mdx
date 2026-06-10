@@ -1,0 +1,74 @@
+---
+title: "Criar disparo"
+description: "Cria um novo disparo em massa em status de rascunho."
+---
+
+## Endpoint
+
+```
+POST /v1/broadcasts
+```
+
+**Escopo necessário:** `write:broadcasts`
+
+<Note>
+O perfil de envio `custom` é exclusivo do painel web e **não** é aceito na API. Use os perfis pré-definidos (`slow`, `balanced`, `fast`).
+</Note>
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome da campanha |
+| `whatsappInstances` | string[] | Sim | IDs das instâncias WhatsApp |
+| `audience` | object | Sim | Segmentação da audiência (ver abaixo) |
+| `message` | object | Sim | Mensagem a enviar (ver abaixo) |
+| `sendConfig` | object | Não | Perfil de envio e agendamento |
+| `description` | string | Não | Descrição |
+
+### Objeto `audience`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `type` | string | Tipo de audiência |
+| `tags` | string[] | Tags-alvo |
+| `tagsOperator` | string | `and` ou `or` |
+| `hasWhatsapp` | boolean | Apenas contatos com WhatsApp |
+| `hasOptIn` | boolean | Apenas contatos com opt-in |
+| `manualContactIds` | string[] | IDs específicos de contatos |
+| `exclusions` | object | Exclusões (bloqueados, contatados recentemente) |
+
+### Objeto `message`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `type` | string | `text`, `media`, `document`, `audio` |
+| `text` | string | Texto (suporta variáveis como `{{nome_cliente}}`) |
+| `media` | object | `{url, mimetype, filename, caption}` para mídia |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Aviso de Manutenção",
+    "whatsappInstances": ["664h3i4j5k6l7m8n9o0p1q2r"],
+    "audience": {
+      "type": "tags",
+      "tags": ["cliente"],
+      "tagsOperator": "or",
+      "hasWhatsapp": true
+    },
+    "message": {
+      "type": "text",
+      "text": "Olá {{nome_cliente}}! Informamos manutenção programada no dia 15/06."
+    },
+    "sendConfig": { "profile": "balanced" }
+  }'
+```
+
+## Resposta
+
+Retorna `HTTP 201` com o disparo em `status: draft`. Para lançá-lo, use [Lançar disparo](/api-reference/broadcasts/launch).

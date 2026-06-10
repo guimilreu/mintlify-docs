@@ -1,0 +1,23 @@
+---
+title: "Excluir disparo"
+description: "Remove permanentemente um disparo em rascunho ou cancelado."
+---
+
+## Endpoint
+
+```
+DELETE /v1/broadcasts/:id
+```
+
+**Escopo necessário:** `write:broadcasts`
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content` em caso de sucesso.
