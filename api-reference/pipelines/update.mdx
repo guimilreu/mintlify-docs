@@ -1,3 +1,41 @@
 ---
-openapi: PATCH /pipelines/{id}
+title: "Atualizar pipeline"
+description: "Atualiza nome, descrição, etapas ou configurações de um pipeline."
 ---
+
+## Endpoint
+
+```
+PATCH /v1/pipelines/:id
+```
+
+**Escopo necessário:** `write:pipelines`
+
+Envie apenas os campos que deseja alterar. O corpo deve ter ao menos um campo.
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `name` | string | Nome |
+| `description` | string | Descrição |
+| `stages` | array | Lista completa de etapas (substitui as existentes) |
+| `is_default` | boolean | Define como padrão |
+| `is_active` | boolean | Ativa ou desativa o pipeline |
+| `after_won` | object | Ação após ganhar |
+| `after_lost` | object | Ação após perder |
+
+<Warning>
+Ao enviar `stages`, a lista **substitui completamente** as etapas existentes. Inclua as etapas que deseja manter com seus IDs originais para preservá-las.
+</Warning>
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/pipelines/664a1b2c3d4e5f6789012345 \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pipeline Principal 2026"
+  }'
+```

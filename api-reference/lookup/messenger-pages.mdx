@@ -1,0 +1,57 @@
+---
+title: "Páginas Messenger"
+description: "Lista as páginas do Facebook Messenger conectadas à organização."
+---
+
+## Endpoint
+
+```
+GET /v1/messenger-pages
+```
+
+**Escopo necessário:** `read:messenger_pages`
+
+Use para obter IDs de páginas para usar em `messenger_page_id` ao enviar mensagens.
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/messenger-pages" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664i4j5k6l7m8n9o0p1q2r3s",
+      "page_id": "123456789012345",
+      "page_name": "Empresa ABC - Oficial",
+      "category": "Software",
+      "avatar_url": "https://...",
+      "last_sync_at": "2026-06-10T12:00:00.000Z",
+      "created_at": "2026-02-01T00:00:00.000Z",
+      "updated_at": "2026-06-10T12:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+## Objeto página
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID interno — use em `messenger_page_id` |
+| `page_id` | string | ID da página no Facebook |
+| `page_name` | string\|null | Nome da página |
+| `category` | string\|null | Categoria da página no Facebook |
+| `avatar_url` | string\|null | Foto de perfil da página |
+| `last_sync_at` | string\|null | Última sincronização com o Facebook |
+| `created_at` | string | Timestamp de criação |
+| `updated_at` | string | Timestamp de atualização |

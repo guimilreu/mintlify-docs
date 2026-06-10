@@ -1,0 +1,66 @@
+---
+title: "Tags de contato"
+description: "Adicione e remova tags de um contato sem sobrescrever as existentes."
+---
+
+## Adicionar tag
+
+```
+POST /v1/contacts/:id/tags
+```
+
+**Escopo necessário:** `write:tags`
+
+Adiciona uma tag ao contato sem remover as tags existentes (usa `$addToSet` internamente — não duplica).
+
+### Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `tag` | string | Sim | Nome da tag a adicionar |
+
+### Exemplo
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234/tags \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"tag": "enterprise"}'
+```
+
+### Resposta
+
+Retorna o contato atualizado com a nova tag incluída.
+
+## Remover tag
+
+```
+DELETE /v1/contacts/:id/tags/:tag
+```
+
+**Escopo necessário:** `write:tags`
+
+Remove uma tag específica do contato.
+
+### Exemplo
+
+```bash
+curl -X DELETE "https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234/tags/enterprise" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+### Resposta
+
+Retorna o contato atualizado sem a tag removida.
+
+<Tip>
+Para **substituir todas** as tags de um contato, use `PATCH /v1/contacts/:id` com o campo `tags`.
+</Tip>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `MISSING_TAG` | `400` | Campo `tag` ausente |
+| `NOT_FOUND` | `404` | Contato não encontrado |

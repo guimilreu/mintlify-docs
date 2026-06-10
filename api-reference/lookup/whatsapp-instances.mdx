@@ -1,0 +1,55 @@
+---
+title: "Instâncias WhatsApp"
+description: "Lista as instâncias WhatsApp conectadas à organização."
+---
+
+## Endpoint
+
+```
+GET /v1/whatsapp-instances
+```
+
+**Escopo necessário:** `read:whatsapp_instances`
+
+Use para obter IDs de instâncias para usar em `whatsapp_instance_id` ao enviar mensagens.
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/whatsapp-instances" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664h3i4j5k6l7m8n9o0p1q2r",
+      "name": "WhatsApp Principal",
+      "phone": "+5511333344445",
+      "status": "connected",
+      "avatar_url": null,
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "updated_at": "2026-06-10T12:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+## Objeto instância
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID da instância — use em `whatsapp_instance_id` |
+| `name` | string\|null | Nome da instância |
+| `phone` | string\|null | Número de telefone |
+| `status` | string | `connected` ou `disconnected` |
+| `avatar_url` | string\|null | URL do avatar do número |
+| `created_at` | string | Timestamp de criação |
+| `updated_at` | string | Timestamp de atualização |

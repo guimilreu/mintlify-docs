@@ -1,0 +1,67 @@
+---
+title: "Listar membros"
+description: "Retorna todos os membros ativos da organização."
+---
+
+## Endpoint
+
+```
+GET /v1/members
+```
+
+**Escopo necessário:** `read:members`
+
+Use este endpoint para obter IDs de membros para usar em `assigned_to` nos outros endpoints.
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/members" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664a1b2c3d4e5f6789012345",
+      "name": "Maria Santos",
+      "email": "maria@empresa.com.br",
+      "role": "admin",
+      "is_owner": true,
+      "is_active": true,
+      "last_active_at": "2026-06-10T16:00:00.000Z",
+      "avatar_url": null
+    },
+    {
+      "id": "664b2c3d4e5f6a7890123456",
+      "name": "Pedro Lima",
+      "email": "pedro@empresa.com.br",
+      "role": "member",
+      "is_owner": false,
+      "is_active": true,
+      "last_active_at": "2026-06-10T14:30:00.000Z",
+      "avatar_url": "https://..."
+    }
+  ],
+  "meta": {
+    "total": 8,
+    "has_more": false
+  }
+}
+```
+
+## Objeto membro
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do membro — use em `assigned_to` |
+| `name` | string | Nome completo |
+| `email` | string | Email |
+| `role` | string | Cargo na organização |
+| `is_owner` | boolean | Se é o dono da organização |
+| `is_active` | boolean | Se está ativo |
+| `last_active_at` | string\|null | Última vez ativo no painel |
+| `avatar_url` | string\|null | URL do avatar |

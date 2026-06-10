@@ -1,0 +1,102 @@
+---
+title: "Mensagens da conversa"
+description: "Lista as mensagens de uma conversa com suporte a paginação."
+---
+
+## Endpoint
+
+```
+GET /v1/conversations/:id/messages
+```
+
+**Escopo necessário:** `read:conversations`
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página. Padrão: `50`. Máximo: `100` |
+| `cursor` | string | Token de paginação |
+| `order` | string | `desc` (padrão, mais recentes primeiro) ou `asc` |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q/messages?limit=20&order=asc" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664i4j5k6l7m8n9o0p1q2r3s",
+      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "content": "Olá! Gostaria de saber mais sobre os planos.",
+      "type": "text",
+      "sender": "contact",
+      "sent_by": null,
+      "media": null,
+      "is_internal_note": false,
+      "reactions": [],
+      "sent_at": "2026-06-10T10:05:00.000Z"
+    },
+    {
+      "id": "664j5k6l7m8n9o0p1q2r3s4t",
+      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "content": "Olá! Com prazer! Temos planos Starter, Growth e Scale. Qual melhor se encaixa na sua necessidade?",
+      "type": "text",
+      "sender": "agent",
+      "sent_by": {
+        "id": "664a1b2c3d4e5f6789012345",
+        "name": "Maria Santos"
+      },
+      "media": null,
+      "is_internal_note": false,
+      "reactions": [
+        { "emoji": "👍", "sender": "contact" }
+      ],
+      "sent_at": "2026-06-10T10:07:00.000Z"
+    },
+    {
+      "id": "664k6l7m8n9o0p1q2r3s4t5u",
+      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "content": null,
+      "type": "image",
+      "sender": "contact",
+      "sent_by": null,
+      "media": {
+        "url": "https://s3.amazonaws.com/...",
+        "mime_type": "image/jpeg",
+        "filename": "screenshot.jpg",
+        "size_bytes": 245760
+      },
+      "is_internal_note": false,
+      "reactions": [],
+      "sent_at": "2026-06-10T10:10:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 47,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NGsybDNtNG41bzZwMXExcjJzM3Q0dTVpIiwiY2EiOiIyMDI2LTA2LTEwVDEwOjEwOjAwLjAwMFoifQ"
+  }
+}
+```
+
+## Objeto mensagem
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID da mensagem |
+| `conversation_id` | string | ID da conversa |
+| `content` | string\|null | Texto da mensagem |
+| `type` | string | `text`, `image`, `video`, `audio`, `document` |
+| `sender` | string | `contact`, `agent`, `ai_agent`, `system` |
+| `sent_by` | object\|null | Membro que enviou `{id, name}` (se sender = `agent`) |
+| `media` | object\|null | Mídia: `{url, mime_type, filename, size_bytes}` |
+| `is_internal_note` | boolean | Se é comentário interno (não visível ao contato) |
+| `reactions` | array | Reações: `[{emoji, sender}]` |
+| `sent_at` | string | Timestamp de envio |

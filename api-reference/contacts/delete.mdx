@@ -1,0 +1,40 @@
+---
+title: "Excluir contato"
+description: "Remove um contato da organização (soft delete)."
+---
+
+## Endpoint
+
+```
+DELETE /v1/contacts/:id
+```
+
+**Escopo necessário:** `write:contacts`
+
+## Parâmetros de path
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `id` | string | ID do contato |
+
+## Comportamento
+
+A exclusão é um **soft delete** — o contato é marcado como excluído mas permanece no banco de dados. Ele não aparece mais em listagens nem buscas.
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234 \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content` em caso de sucesso (sem corpo).
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Contato não encontrado |

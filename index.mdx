@@ -1,133 +1,90 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
-icon: 'star'
+title: "SocialSell API"
+description: "API pública v1 — integre CRM, conversas e automações da SocialSell com qualquer sistema."
 ---
 
-## Setting up
+## Bem-vindo à API SocialSell
 
-Get your documentation site up and running in minutes.
+A API pública v1 da SocialSell permite integrar seu CRM, conversas, negócios e automações com qualquer sistema externo. Use para sincronizar dados, disparar ações e receber eventos em tempo real.
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/api-reference/quickstart">
+    Faça sua primeira requisição em menos de 5 minutos.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Autenticação" icon="key" href="/api-reference/authentication">
+    Gere uma API Key e autentique suas requisições.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Erros e Códigos" icon="triangle-alert" href="/api-reference/errors">
+    Entenda o formato de erros e como tratá-los.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Webhooks" icon="webhook" href="/api-reference/webhooks-guide">
+    Receba eventos em tempo real no seu sistema.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Recursos disponíveis
 
-Everything you need to create world-class documentation.
+<CardGroup cols={3}>
+  <Card title="Contatos" icon="users" href="/api-reference/contacts/list">
+    CRUD completo, tags e notas
+  </Card>
+  <Card title="Empresas" icon="building" href="/api-reference/companies/list">
+    CRUD completo e tags
+  </Card>
+  <Card title="Negócios" icon="handshake" href="/api-reference/deals/list">
+    Pipeline, etapas, notas e status
+  </Card>
+  <Card title="Pipelines" icon="kanban" href="/api-reference/pipelines/list">
+    Gerencie funis e etapas
+  </Card>
+  <Card title="Conversas" icon="message-circle" href="/api-reference/conversations/list">
+    Inbox multi-canal
+  </Card>
+  <Card title="Mensagens" icon="send" href="/api-reference/messages/send">
+    Envie via WhatsApp ou Messenger
+  </Card>
+  <Card title="Tarefas" icon="check-square" href="/api-reference/tasks/list">
+    Gerencie atividades da equipe
+  </Card>
+  <Card title="Webhooks" icon="zap" href="/api-reference/webhooks/list">
+    Gerencie assinaturas de eventos
+  </Card>
+  <Card title="Lookup" icon="search" href="/api-reference/lookup/tags">
+    Tags, membros, instâncias e canais
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Base URL
 
-## Make your content agent ready
+```
+https://api.socialsell.ai/v1
+```
 
-Make your docs work for humans and AI agents alike.
+Todas as requisições devem usar **HTTPS**. O corpo das requisições deve ser `application/json`.
 
-<Columns cols={2}>
-  <Card
-    title="Prompt component"
-    icon="robot"
-    href="/agent-ready/prompt"
-  >
-    Embed shareable AI prompts readers can copy or open in Cursor.
-  </Card>
-  <Card
-    title="Visibility"
-    icon="eye"
-    href="/agent-ready/visibility"
-  >
-    Show different content to humans and agents reading your docs.
-  </Card>
-  <Card
-    title="Contextual menu"
-    icon="bolt"
-    href="/agent-ready/contextual"
-  >
-    Give readers one-click access to Claude, ChatGPT, Cursor, and more.
-  </Card>
-  <Card
-    title="AI coding tools"
-    icon="wand-magic-sparkles"
-    href="/ai-tools/claude-code"
-  >
-    Set up Claude Code, Cursor, or Windsurf with Mintlify's skill.
-  </Card>
-</Columns>
+## Exemplo rápido
 
-## Need inspiration?
+```bash
+curl https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_sua_chave_aqui"
+```
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+```json
+{
+  "data": [
+    {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresa.com.br",
+      "phone": "+5511999999999",
+      "tags": ["cliente", "vip"],
+      "created_at": "2026-01-15T10:30:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 142,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NGYxYTJiM2M0ZDVlNmY3ODkwMTIzNCIsImNhIjoiMjAyNi0wMS0xNVQxMDozMDowMC4wMDBaIn0"
+  }
+}
+```

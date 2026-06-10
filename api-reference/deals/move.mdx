@@ -1,0 +1,56 @@
+---
+title: "Mover negócio"
+description: "Move um negócio para outra etapa (e opcionalmente outro pipeline)."
+---
+
+## Endpoint
+
+```
+POST /v1/deals/:id/move
+```
+
+**Escopo necessário:** `write:deals`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `stage_id` | string | Sim | ID da etapa de destino (dentro do pipeline) |
+| `pipeline_id` | string | Não | ID do pipeline de destino (se diferente do atual) |
+
+## Obtendo IDs de etapas
+
+Use `GET /v1/pipelines/:id` para ver as etapas e seus IDs.
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/move \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"stage_id": "664e3f4a5b6c7d8901234567"}'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "id": "664c1d2e3f4a5b6789012347",
+    "title": "Proposta Enterprise ACME",
+    "stage": { "name": "Negociação" },
+    "updated_at": "2026-06-10T16:00:00.000Z"
+  }
+}
+```
+
+A movimentação dispara o evento `deal.stage.changed` em webhooks configurados.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `MISSING_STAGE_ID` | `400` | Campo `stage_id` ausente |
+| `NOT_FOUND` | `404` | Negócio não encontrado |
+| `PIPELINE_NOT_FOUND` | `404` | Pipeline não encontrado |
+| `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no pipeline |

@@ -1,3 +1,108 @@
 ---
-openapi: GET /contacts
+title: "Listar contatos"
+description: "Retorna uma lista paginada de contatos da organização."
 ---
+
+## Endpoint
+
+```
+GET /v1/contacts
+```
+
+**Escopo necessário:** `read:contacts`
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
+| `cursor` | string | Token de paginação para a próxima página |
+| `sort` | string | Campo de ordenação: `created_at` (padrão), `updated_at`, `name` |
+| `order` | string | Direção: `desc` (padrão) ou `asc` |
+| `search` | string | Busca por nome, email ou telefone (case-insensitive) |
+| `tag` | string | Filtra por tag exata |
+| `assigned_to` | string | ID do membro responsável |
+| `source` | string | Fonte do contato (ex: `whatsapp`, `instagram`, `manual`, `api`) |
+| `has_whatsapp` | boolean | `true` / `false` — filtra por presença de WhatsApp |
+| `has_instagram` | boolean | `true` / `false` — filtra por presença de Instagram |
+| `has_messenger` | boolean | `true` / `false` — filtra por presença de Messenger |
+| `created_after` | string | ISO 8601 — contatos criados após esta data |
+| `created_before` | string | ISO 8601 — contatos criados antes desta data |
+| `updated_after` | string | ISO 8601 — contatos atualizados após esta data |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresa.com.br",
+      "phone": "+5511999999999",
+      "instagram_username": "joaosilva",
+      "whatsapp_jid": "5511999999999@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": "https://...",
+      "assigned_to": {
+        "id": "664a1b2c3d4e5f6789012345",
+        "name": "Maria Santos"
+      },
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa ABC"
+      },
+      "tags": ["vip", "cliente"],
+      "custom_fields": {
+        "cpf": "123.456.789-00"
+      },
+      "funnel_stage": "Qualificados",
+      "notes_count": 3,
+      "deals_count": 2,
+      "last_message_at": "2026-06-01T14:22:00.000Z",
+      "created_at": "2026-01-15T10:30:00.000Z",
+      "updated_at": "2026-06-01T14:22:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 350,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NGYxYTJiM2M0ZDVlNmY3ODkwMTIzNCIsImNhIjoiMjAyNi0wMS0xNVQxMDozMDowMC4wMDBaIn0",
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+## Objeto contato
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID único do contato |
+| `name` | string | Nome completo |
+| `email` | string\|null | Email |
+| `phone` | string\|null | Telefone |
+| `instagram_username` | string\|null | Username do Instagram |
+| `whatsapp_jid` | string\|null | JID do WhatsApp (ex: `5511999999999@s.whatsapp.net`) |
+| `messenger_psid` | string\|null | PSID do Facebook Messenger |
+| `messenger_name` | string\|null | Nome no Messenger |
+| `source` | string\|null | Origem: `whatsapp`, `instagram`, `messenger`, `manual`, `import`, `api` |
+| `avatar_url` | string\|null | URL do avatar |
+| `assigned_to` | object\|null | Membro responsável `{id, name}` |
+| `company` | object\|null | Empresa vinculada `{id, name}` |
+| `tags` | string[] | Lista de tags |
+| `custom_fields` | object | Campos personalizados (chave → valor) |
+| `funnel_stage` | string\|null | Etapa no funil de contatos (plano Starter) |
+| `notes_count` | integer | Quantidade de notas |
+| `deals_count` | integer | Quantidade de negócios |
+| `last_message_at` | string\|null | Timestamp da última mensagem |
+| `created_at` | string | Timestamp de criação (ISO 8601) |
+| `updated_at` | string | Timestamp de atualização (ISO 8601) |

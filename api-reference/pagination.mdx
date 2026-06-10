@@ -1,0 +1,122 @@
+---
+title: "Paginação"
+description: "Como navegar por listas grandes usando paginação por cursor."
+---
+
+## Paginação por cursor
+
+Todos os endpoints de listagem usam **paginação por cursor** (cursor-based pagination), que é mais eficiente e consistente do que paginação por offset, especialmente em conjuntos de dados que mudam com frequência.
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Padrão | Descrição |
+|-----------|------|--------|-----------|
+| `limit` | integer | `25` | Número de itens por página. Mínimo: `1`, máximo: `100` |
+| `cursor` | string | — | Token da próxima página (obtido de `meta.next_cursor`) |
+
+## Estrutura da resposta
+
+```json
+{
+  "data": [...],
+  "meta": {
+    "total": 350,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NGYxYTJiM2M0ZDVlNmY3ODkwMTIzNCIsImNhIjoiMjAyNi0wMS0xNVQxMDozMDowMC4wMDBaIn0",
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `meta.total` | integer | Total de registros na organização (sem filtros) |
+| `meta.has_more` | boolean | Se existem mais páginas |
+| `meta.next_cursor` | string \| null | Token para a próxima página. `null` quando `has_more` é `false` |
+
+## Navegando pelas páginas
+
+<Steps>
+  <Step title="Primeira página">
+    Faça a requisição sem o parâmetro `cursor`:
+    ```bash
+    GET /v1/contacts?limit=50
+    ```
+  </Step>
+  <Step title="Verifique se há mais">
+    Se `meta.has_more` for `true`, use `meta.next_cursor` na próxima requisição.
+  </Step>
+  <Step title="Próximas páginas">
+    Passe o cursor como parâmetro:
+    ```bash
+    GET /v1/contacts?limit=50&cursor=eyJpZCI6IjY2NGYxYTJiM2M0ZDVlNmY3ODkwMTIzNCIsImNhIjoiMjAyNi0wMS0xNVQxMDozMDowMC4wMDBaIn0
+    ```
+  </Step>
+  <Step title="Última página">
+    Quando `meta.has_more` for `false`, você chegou ao fim da lista.
+  </Step>
+</Steps>
+
+## Exemplo: buscar todos os contatos
+
+<CodeGroup>
+
+```javascript Node.js
+async function getAllContacts() {
+  const contacts = [];
+  let cursor = null;
+
+  do {
+    const params = new URLSearchParams({ limit: '100' });
+    if (cursor) params.set('cursor', cursor);
+
+    const response = await fetch(
+      `https://api.socialsell.ai/v1/contacts?${params}`,
+      { headers: { 'Authorization': 'Bearer sk_live_...' } }
+    );
+    const { data, meta } = await response.json();
+
+    contacts.push(...data);
+    cursor = meta.has_more ? meta.next_cursor : null;
+  } while (cursor);
+
+  return contacts;
+}
+```
+
+```python Python
+import requests
+
+def get_all_contacts():
+    contacts = []
+    cursor = None
+    
+    while True:
+        params = {'limit': 100}
+        if cursor:
+            params['cursor'] = cursor
+        
+        response = requests.get(
+            'https://api.socialsell.ai/v1/contacts',
+            params=params,
+            headers={'Authorization': 'Bearer sk_live_...'}
+        )
+        result = response.json()
+        
+        contacts.extend(result['data'])
+        
+        if not result['meta']['has_more']:
+            break
+        cursor = result['meta']['next_cursor']
+    
+    return contacts
+```
+
+</CodeGroup>
+
+## Notas importantes
+
+- **Cursores não são permanentes** — não armazene cursores para uso posterior. Eles devem ser usados imediatamente dentro da mesma sessão de paginação.
+- **Filtros persistem** — ao passar um cursor, mantenha os mesmos filtros (`search`, `tag`, etc.) da requisição original.
+- **Ordem não muda** — a ordenação padrão é por `created_at` decrescente (mais recentes primeiro).
+- **O total é aproximado** — `meta.total` reflete a contagem sem filtros aplicados.

@@ -1,0 +1,47 @@
+---
+title: "Atualizar empresa"
+description: "Atualiza campos de uma empresa existente."
+---
+
+## Endpoint
+
+```
+PATCH /v1/companies/:id
+```
+
+**Escopo necessário:** `write:companies`
+
+Envie apenas os campos que deseja alterar.
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `name` | string | Nome da empresa |
+| `email` | string\|null | Email |
+| `phone` | string\|null | Telefone |
+| `website` | string\|null | URL do site |
+| `sector` | string | Setor |
+| `size` | string | Tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
+| `city` | string | Cidade |
+| `state` | string | Estado |
+| `assigned_to` | string\|null | ID do responsável (`null` para desatribuir) |
+| `tags` | string[] | Substitui completamente as tags |
+| `custom_fields` | object | Substitui completamente os campos personalizados |
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346 \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "size": "201-500",
+    "sector": "SaaS / Tecnologia",
+    "tags": ["enterprise", "parceiro-estratégico"]
+  }'
+```
+
+## Resposta
+
+Retorna o objeto empresa atualizado.

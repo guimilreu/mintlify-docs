@@ -1,0 +1,120 @@
+---
+title: "Rate Limits"
+description: "Limites de requisição por plano e como tratá-los."
+---
+
+## Visão geral
+
+A API aplica três camadas de rate limiting para garantir estabilidade do serviço:
+
+| Camada | Descrição |
+|--------|-----------|
+| **Minuto** | Limite principal de requisições por minuto |
+| **Burst** | Limite de curto prazo (10 segundos) para picos |
+| **Diário** | Limite total de requisições por dia |
+
+## Limites por plano
+
+| Plano | Por minuto | Burst (10s) | Por dia |
+|-------|-----------|-------------|---------|
+| Starter | 60 | 20 | 10.000 |
+| Growth | 120 | 40 | 50.000 |
+| Scale | 300 | 100 | 200.000 |
+| Enterprise | 600 | 200 | 500.000 |
+
+## Limites por canal (envio de mensagens)
+
+Independente do plano, o envio de mensagens tem limites adicionais por canal:
+
+| Canal | Limite |
+|-------|--------|
+| WhatsApp (por instância) | 30 mensagens/minuto |
+| Messenger (por página) | 30 mensagens/minuto |
+
+## Headers de rate limit
+
+Cada resposta bem-sucedida inclui headers informativos:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 2026-06-10T15:31:00.000Z
+```
+
+| Header | Descrição |
+|--------|-----------|
+| `X-RateLimit-Limit` | Limite total por minuto do seu plano |
+| `X-RateLimit-Remaining` | Requisições restantes no minuto atual |
+| `X-RateLimit-Reset` | Timestamp ISO 8601 de quando o limite reseta |
+
+## Quando o limite é atingido
+
+Ao exceder qualquer limite, a API retorna `HTTP 429`:
+
+```json
+{
+  "error": {
+    "type": "rate_limit_exceeded",
+    "message": "Limite de 60 requests/min atingido. Tente novamente em 15s.",
+    "code": "RATE_LIMIT_EXCEEDED",
+    "retry_after": 15
+  },
+  "meta": {
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+O header `Retry-After` indica quantos segundos aguardar antes de tentar novamente.
+
+## Como implementar retry
+
+<CodeGroup>
+
+```javascript Node.js — Retry com backoff exponencial
+async function fetchWithRetry(url, options = {}, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(url, options);
+    
+    if (response.status !== 429) return response;
+    
+    const retryAfter = parseInt(response.headers.get('Retry-After') || '5');
+    const backoff = retryAfter * 1000 * Math.pow(2, attempt);
+    
+    console.log(`Rate limited. Aguardando ${backoff / 1000}s...`);
+    await new Promise(r => setTimeout(r, backoff));
+  }
+  
+  throw new Error('Máximo de tentativas atingido');
+}
+```
+
+```python Python — Retry com backoff exponencial
+import requests
+import time
+
+def fetch_with_retry(url, headers, max_retries=3, **kwargs):
+    for attempt in range(max_retries):
+        response = requests.get(url, headers=headers, **kwargs)
+        
+        if response.status_code != 429:
+            return response
+        
+        retry_after = int(response.headers.get('Retry-After', 5))
+        backoff = retry_after * (2 ** attempt)
+        
+        print(f'Rate limited. Aguardando {backoff}s...')
+        time.sleep(backoff)
+    
+    raise Exception('Máximo de tentativas atingido')
+```
+
+</CodeGroup>
+
+## Boas práticas
+
+- **Distribua requisições no tempo** — evite enviar 60 requisições simultâneas no início de cada minuto
+- **Implemente retry com backoff** — sempre respeite o `Retry-After` e adicione backoff exponencial
+- **Use `limit=100`** — maximizar o `limit` reduz o número de requisições para buscar muitos registros
+- **Filtre no lado servidor** — use os parâmetros de filtro disponíveis em vez de filtrar no cliente
+- **Cache dados estáticos** — membros, pipelines e instâncias mudam pouco; cache por alguns minutos

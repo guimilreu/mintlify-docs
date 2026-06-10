@@ -1,3 +1,50 @@
 ---
-openapi: PATCH /conversations/{id}
+title: "Atualizar conversa"
+description: "Atualiza o responsável ou status de uma conversa."
 ---
+
+## Endpoint
+
+```
+PATCH /v1/conversations/:id
+```
+
+**Escopo necessário:** `write:conversations`
+
+Envie `assigned_to` e/ou `status`. Pelo menos um campo é obrigatório.
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `assigned_to` | string\|null | ID do membro responsável (`null` para desatribuir) |
+| `status` | string | `open` para reabrir, `closed` para arquivar |
+
+## Exemplo — Atribuir conversa
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"assigned_to": "664a1b2c3d4e5f6789012345"}'
+```
+
+## Exemplo — Fechar conversa
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"status": "closed"}'
+```
+
+## Resposta
+
+Retorna o objeto conversa atualizado.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID inválido |
+| `NOT_FOUND` | `404` | Conversa não encontrada |

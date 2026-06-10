@@ -1,0 +1,21 @@
+---
+title: "Buscar tarefa"
+description: "Retorna os dados de uma tarefa específica."
+---
+
+## Endpoint
+
+```
+GET /v1/tasks/:id
+```
+
+**Escopo necessário:** `read:tasks`
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna o objeto tarefa completo (mesmo formato da listagem).

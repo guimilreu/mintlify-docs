@@ -1,0 +1,57 @@
+---
+title: "Contas Instagram"
+description: "Lista as contas do Instagram conectadas à organização."
+---
+
+## Endpoint
+
+```
+GET /v1/instagram-accounts
+```
+
+**Escopo necessário:** `read:instagram_accounts`
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/instagram-accounts" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664j5k6l7m8n9o0p1q2r3s4t",
+      "instagram_id": "987654321098765",
+      "username": "empresa_abc",
+      "name": "Empresa ABC",
+      "follower_count": 12500,
+      "avatar_url": "https://...",
+      "last_sync_at": "2026-06-10T12:00:00.000Z",
+      "created_at": "2026-03-01T00:00:00.000Z",
+      "updated_at": "2026-06-10T12:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+## Objeto conta
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID interno — use em `instagram_account_id` para filtrar conversas |
+| `instagram_id` | string | ID do perfil no Instagram |
+| `username` | string | Username (sem @) |
+| `name` | string\|null | Nome de exibição |
+| `follower_count` | integer | Número de seguidores |
+| `avatar_url` | string\|null | Foto de perfil |
+| `last_sync_at` | string\|null | Última sincronização com o Instagram |
+| `created_at` | string | Timestamp de criação |
+| `updated_at` | string | Timestamp de atualização |

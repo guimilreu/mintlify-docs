@@ -1,142 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "SocialSell",
+  "name": "SocialSell API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#7C3AED",
+    "light": "#A78BFA",
+    "dark": "#6D28D9"
   },
   "favicon": "/favicon.svg",
-  "openapi": "api-reference/openapi.json",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Visão geral",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Contacts",
-            "pages": [
-              "api-reference/contacts/list",
-              "api-reference/contacts/create",
-              "api-reference/contacts/get",
-              "api-reference/contacts/update"
-            ]
-          },
-          {
-            "group": "Conversations",
-            "pages": [
-              "api-reference/conversations/list",
-              "api-reference/conversations/get",
-              "api-reference/conversations/update"
-            ]
-          },
-          {
-            "group": "Messages",
-            "pages": [
-              "api-reference/messages/send",
-              "api-reference/messages/send-alias"
-            ]
-          },
-          {
-            "group": "Broadcasts",
-            "pages": [
-              "api-reference/broadcasts/list",
-              "api-reference/broadcasts/create",
-              "api-reference/broadcasts/kpis",
-              "api-reference/broadcasts/estimate",
-              "api-reference/broadcasts/get",
-              "api-reference/broadcasts/update",
-              "api-reference/broadcasts/delete",
-              "api-reference/broadcasts/messages",
-              "api-reference/broadcasts/launch",
-              "api-reference/broadcasts/pause",
-              "api-reference/broadcasts/resume",
-              "api-reference/broadcasts/cancel",
-              "api-reference/broadcasts/duplicate",
-              "api-reference/broadcasts/send-config"
-            ]
-          },
-          {
-            "group": "AI Agents",
-            "pages": [
-              "api-reference/ai-agents/list",
-              "api-reference/ai-agents/create",
-              "api-reference/ai-agents/stats",
-              "api-reference/ai-agents/kill-switch",
-              "api-reference/ai-agents/runs-list",
-              "api-reference/ai-agents/runs-get",
-              "api-reference/ai-agents/runs-feedback",
-              "api-reference/ai-agents/get",
-              "api-reference/ai-agents/update",
-              "api-reference/ai-agents/delete",
-              "api-reference/ai-agents/publish",
-              "api-reference/ai-agents/pause",
-              "api-reference/ai-agents/resume",
-              "api-reference/ai-agents/duplicate"
-            ]
-          },
-          {
-            "group": "Channels",
-            "pages": [
-              "api-reference/channels/whatsapp",
-              "api-reference/channels/messenger",
-              "api-reference/channels/instagram"
-            ]
-          },
-          {
-            "group": "Pipelines",
-            "pages": [
-              "api-reference/pipelines/list",
-              "api-reference/pipelines/create",
-              "api-reference/pipelines/get",
-              "api-reference/pipelines/update",
-              "api-reference/pipelines/delete"
-            ]
-          },
-          {
-            "group": "Webhooks",
-            "pages": [
-              "api-reference/webhooks/list",
-              "api-reference/webhooks/create",
-              "api-reference/webhooks/get",
-              "api-reference/webhooks/update",
-              "api-reference/webhooks/delete"
-            ]
-          },
-          {
-            "group": "Custom Fields",
-            "pages": [
-              "api-reference/custom-fields/list",
-              "api-reference/custom-fields/create",
-              "api-reference/custom-fields/update"
-            ]
-          },
-          {
-            "group": "Deals",
-            "pages": [
-              "api-reference/deals/delete"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "SocialSell",
-          "href": "https://socialsell.ai",
-          "icon": "globe"
-        }
-      ]
-    }
-  },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
@@ -145,31 +16,194 @@
     "links": [
       {
         "label": "Suporte",
-        "href": "mailto:suporte@socialsell.ai"
+        "href": "https://wa.me/5511999999999"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
+      "label": "Acessar Painel",
       "href": "https://app.socialsell.ai"
     }
   },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Início",
+        "groups": [
+          {
+            "group": "Introdução",
+            "pages": [
+              "index",
+              "api-reference/quickstart",
+              "api-reference/authentication",
+              "api-reference/errors",
+              "api-reference/pagination"
+            ]
+          },
+          {
+            "group": "Guias",
+            "pages": [
+              "api-reference/rate-limits",
+              "api-reference/webhooks-guide",
+              "api-reference/idempotency",
+              "api-reference/scopes"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Referência da API",
+        "groups": [
+          {
+            "group": "Contatos",
+            "pages": [
+              "api-reference/contacts/list",
+              "api-reference/contacts/get",
+              "api-reference/contacts/create",
+              "api-reference/contacts/update",
+              "api-reference/contacts/delete",
+              "api-reference/contacts/notes",
+              "api-reference/contacts/tags"
+            ]
+          },
+          {
+            "group": "Empresas",
+            "pages": [
+              "api-reference/companies/list",
+              "api-reference/companies/get",
+              "api-reference/companies/create",
+              "api-reference/companies/update",
+              "api-reference/companies/delete",
+              "api-reference/companies/tags"
+            ]
+          },
+          {
+            "group": "Negócios",
+            "pages": [
+              "api-reference/deals/list",
+              "api-reference/deals/get",
+              "api-reference/deals/create",
+              "api-reference/deals/update",
+              "api-reference/deals/delete",
+              "api-reference/deals/move",
+              "api-reference/deals/won",
+              "api-reference/deals/lost",
+              "api-reference/deals/reopen",
+              "api-reference/deals/notes",
+              "api-reference/deals/tags"
+            ]
+          },
+          {
+            "group": "Pipelines",
+            "pages": [
+              "api-reference/pipelines/list",
+              "api-reference/pipelines/get",
+              "api-reference/pipelines/create",
+              "api-reference/pipelines/update",
+              "api-reference/pipelines/delete"
+            ]
+          },
+          {
+            "group": "Conversas",
+            "pages": [
+              "api-reference/conversations/list",
+              "api-reference/conversations/get",
+              "api-reference/conversations/update",
+              "api-reference/conversations/messages"
+            ]
+          },
+          {
+            "group": "Mensagens",
+            "pages": [
+              "api-reference/messages/send"
+            ]
+          },
+          {
+            "group": "Tarefas",
+            "pages": [
+              "api-reference/tasks/list",
+              "api-reference/tasks/get",
+              "api-reference/tasks/create",
+              "api-reference/tasks/update",
+              "api-reference/tasks/complete",
+              "api-reference/tasks/delete"
+            ]
+          },
+          {
+            "group": "Campos personalizados",
+            "pages": [
+              "api-reference/custom-fields/list"
+            ]
+          },
+          {
+            "group": "Agentes de IA",
+            "pages": [
+              "api-reference/ai-agents/manage",
+              "api-reference/ai-agents/runs"
+            ]
+          },
+          {
+            "group": "Disparos",
+            "pages": [
+              "api-reference/broadcasts/manage",
+              "api-reference/broadcasts/lifecycle"
+            ]
+          },
+          {
+            "group": "Créditos de mensagem",
+            "pages": [
+              "api-reference/message-credits/wallet"
+            ]
+          },
+          {
+            "group": "Webhooks",
+            "pages": [
+              "api-reference/webhooks/list",
+              "api-reference/webhooks/get",
+              "api-reference/webhooks/create",
+              "api-reference/webhooks/update",
+              "api-reference/webhooks/delete"
+            ]
+          },
+          {
+            "group": "Lookup",
+            "pages": [
+              "api-reference/lookup/tags",
+              "api-reference/lookup/members",
+              "api-reference/lookup/whatsapp-instances",
+              "api-reference/lookup/messenger-pages",
+              "api-reference/lookup/instagram-accounts"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "App",
+          "href": "https://app.socialsell.ai",
+          "icon": "arrow-up-right-from-square"
+        },
+        {
+          "anchor": "Status",
+          "href": "https://status.socialsell.ai",
+          "icon": "signal"
+        },
+        {
+          "anchor": "Suporte",
+          "href": "https://wa.me/5511999999999",
+          "icon": "whatsapp"
+        }
+      ]
+    }
+  },
   "contextual": {
-    "options": [
-      "copy",
-      "view",
-      "chatgpt",
-      "claude",
-      "perplexity",
-      "mcp",
-      "cursor",
-      "vscode"
-    ]
+    "options": ["copy", "view", "chatgpt", "claude"]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/socialsell",
-      "github": "https://github.com/socialsell"
+      "instagram": "https://instagram.com/socialsell.ai"
     }
   }
 }

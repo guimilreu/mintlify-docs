@@ -1,0 +1,84 @@
+---
+title: "Escopos de permissão"
+description: "Referência completa de todos os escopos disponíveis para API Keys."
+---
+
+## O que são escopos?
+
+Ao criar uma API Key, você define quais **escopos** ela possui. Um escopo é uma permissão específica para ler ou escrever um recurso. Isso permite criar chaves com acesso mínimo necessário para cada integração.
+
+## Tabela completa de escopos
+
+| Escopo | Acesso | Plano mínimo | Descrição |
+|--------|--------|-------------|-----------|
+| `read:contacts` | Leitura | Todos | Listar e buscar contatos |
+| `write:contacts` | Escrita | Todos | Criar, editar e excluir contatos |
+| `read:companies` | Leitura | Todos | Listar e buscar empresas |
+| `write:companies` | Escrita | Todos | Criar, editar e excluir empresas |
+| `read:deals` | Leitura | Growth+ | Listar e buscar negócios |
+| `write:deals` | Escrita | Growth+ | Criar, editar e excluir negócios |
+| `read:pipelines` | Leitura | Todos | Listar pipelines e etapas |
+| `write:pipelines` | Escrita | Todos | Criar e editar pipelines |
+| `read:conversations` | Leitura | Todos | Listar e buscar conversas |
+| `write:conversations` | Escrita | Todos | Atualizar status e responsável |
+| `write:messages` | Escrita | Todos | Enviar mensagens via WhatsApp/Messenger |
+| `read:tasks` | Leitura | Growth+ | Listar e buscar tarefas |
+| `write:tasks` | Escrita | Growth+ | Criar, editar e excluir tarefas |
+| `read:webhooks` | Leitura | Growth+ | Listar assinaturas de webhooks |
+| `write:webhooks` | Escrita | Growth+ | Criar e editar assinaturas de webhooks |
+| `read:broadcasts` | Leitura | Growth+ | Listar disparos em massa |
+| `write:broadcasts` | Escrita | Growth+ | Criar e gerenciar disparos |
+| `read:ai_agents` | Leitura | Growth+ | Listar agentes de IA |
+| `write:ai_agents` | Escrita | Growth+ | Gerenciar agentes de IA |
+| `read:tags` | Leitura | Todos | Listar tags da organização |
+| `write:tags` | Escrita | Todos | Adicionar e remover tags de recursos |
+| `read:members` | Leitura | Todos | Listar membros da organização |
+| `read:whatsapp_instances` | Leitura | Todos | Listar instâncias WhatsApp conectadas |
+| `read:messenger_pages` | Leitura | Todos | Listar páginas Messenger conectadas |
+| `read:instagram_accounts` | Leitura | Todos | Listar contas Instagram conectadas |
+| `read:custom_fields` | Leitura | Todos | Listar campos personalizados |
+| `write:custom_fields` | Escrita | Todos | Criar e editar campos personalizados |
+| `read:message_credits` | Leitura | Todos | Consultar saldo e extrato de créditos de mensagem |
+| `write:message_credits` | Escrita | Todos | Configurar recarga e comprar créditos |
+
+## Restrições por plano
+
+Os seguintes escopos não estão disponíveis no plano **Starter**:
+
+- `read:deals` / `write:deals`
+- `read:tasks` / `write:tasks`
+- `read:webhooks` / `write:webhooks`
+- `read:broadcasts` / `write:broadcasts`
+- `read:ai_agents` / `write:ai_agents`
+
+Ao tentar usar um endpoint que requer um escopo restrito, a API retorna:
+
+```json
+{
+  "error": {
+    "type": "forbidden",
+    "message": "Recurso não disponível no seu plano. Faça upgrade para Growth ou superior.",
+    "code": "PLAN_RESTRICTION"
+  }
+}
+```
+
+## Erro de escopo insuficiente
+
+Se a chave não tiver o escopo necessário para um endpoint:
+
+```json
+{
+  "error": {
+    "type": "forbidden",
+    "message": "Escopo 'write:contacts' necessário.",
+    "code": "INSUFFICIENT_SCOPE"
+  }
+}
+```
+
+## Boas práticas
+
+- **Princípio do mínimo privilégio**: conceda apenas os escopos que a integração realmente precisa
+- **Crie chaves separadas por integração**: facilita auditar e revogar acessos específicos
+- **Prefira `read:*` quando possível**: evite `write:*` em integrações que só precisam ler dados

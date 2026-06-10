@@ -1,0 +1,23 @@
+---
+title: "Excluir tarefa"
+description: "Remove permanentemente uma tarefa."
+---
+
+## Endpoint
+
+```
+DELETE /v1/tasks/:id
+```
+
+**Escopo necessário:** `write:tasks`
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456 \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content`.

@@ -1,0 +1,109 @@
+---
+title: "Notas de contato"
+description: "Crie, liste, atualize e exclua notas em um contato."
+---
+
+## Listar notas
+
+```
+GET /v1/contacts/:id/notes
+```
+
+**Escopo necessário:** `read:contacts`
+
+```bash
+curl "https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234/notes" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "664f9z8y7x6w5v4u3t2s1r0a",
+      "content": "Cliente interessado em plano Enterprise. Ligar na próxima semana.",
+      "color": "yellow",
+      "category": "follow_up",
+      "created_at": "2026-06-01T10:00:00.000Z",
+      "updated_at": "2026-06-01T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+## Criar nota
+
+```
+POST /v1/contacts/:id/notes
+```
+
+**Escopo necessário:** `write:contacts`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `content` | string | Sim | Conteúdo da nota |
+| `color` | string | Não | Cor: `yellow` (padrão), `blue`, `green`, `pink`, `orange`, `purple`, `red`, `gray` |
+| `category` | string | Não | Categoria: `general` (padrão), `follow_up`, `important`, `reminder`, `meeting`, `objection`, `success` |
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234/notes \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Reunião agendada para 15/06. Interesse confirmado.",
+    "color": "green",
+    "category": "meeting"
+  }'
+```
+
+Retorna `HTTP 201` com a nota criada.
+
+## Atualizar nota
+
+```
+PATCH /v1/contacts/:id/notes/:noteId
+```
+
+**Escopo necessário:** `write:contacts`
+
+Envie apenas os campos que deseja alterar:
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234/notes/664f9z8y7x6w5v4u3t2s1r0a \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Reunião confirmada para 15/06 às 14h.",
+    "category": "important"
+  }'
+```
+
+## Excluir nota
+
+```
+DELETE /v1/contacts/:id/notes/:noteId
+```
+
+**Escopo necessário:** `write:contacts`
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234/notes/664f9z8y7x6w5v4u3t2s1r0a \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna `HTTP 204 No Content`.
+
+## Objeto nota
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID da nota |
+| `content` | string | Conteúdo |
+| `color` | string | Cor: `yellow`, `blue`, `green`, `pink`, `orange`, `purple`, `red`, `gray` |
+| `category` | string | Categoria: `general`, `follow_up`, `important`, `reminder`, `meeting`, `objection`, `success` |
+| `created_at` | string | Timestamp de criação |
+| `updated_at` | string | Timestamp de atualização |

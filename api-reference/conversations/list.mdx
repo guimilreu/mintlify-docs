@@ -1,3 +1,103 @@
 ---
-openapi: GET /conversations
+title: "Listar conversas"
+description: "Retorna uma lista paginada de conversas do inbox multi-canal."
 ---
+
+## Endpoint
+
+```
+GET /v1/conversations
+```
+
+**Escopo necessário:** `read:conversations`
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
+| `cursor` | string | Token de paginação |
+| `status` | string | `open` ou `closed` (arquivada) |
+| `channel` | string | `whatsapp`, `instagram`, `messenger` |
+| `assigned_to` | string | ID do membro responsável |
+| `contact_id` | string | ID do contato |
+| `unread` | boolean | `true` — apenas conversas não lidas |
+| `updated_after` | string | ISO 8601 — conversas atualizadas após esta data |
+| `objective` | string | `sales` ou `support` |
+| `ai_managed` | boolean | `true` — gerenciadas por agente de IA |
+| `whatsapp_instance_id` | string | ID da instância WhatsApp |
+| `messenger_page_id` | string | ID da página Messenger |
+| `instagram_account_id` | string | ID da conta Instagram |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&unread=true" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": "+5511999999999"
+      },
+      "channel": "whatsapp",
+      "whatsapp_instance": {
+        "id": "664h3i4j5k6l7m8n9o0p1q2r",
+        "name": "WhatsApp Principal",
+        "phone": "+5511333344445"
+      },
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "assigned_to": {
+        "id": "664a1b2c3d4e5f6789012345",
+        "name": "Maria Santos"
+      },
+      "objective": "sales",
+      "ai_agent": null,
+      "unread_count": 3,
+      "last_message": {
+        "content": "Olá, gostaria de saber mais sobre os planos.",
+        "sent_at": "2026-06-10T15:45:00.000Z",
+        "sender": "contact"
+      },
+      "tags": ["quente"],
+      "created_at": "2026-06-10T10:00:00.000Z",
+      "updated_at": "2026-06-10T15:45:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 128,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NGcyaDNpNGo1azZsN204bjlvMHAxcSIsImNhIjoiMjAyNi0wNi0xMFQxNTo0NTowMC4wMDBaIn0"
+  }
+}
+```
+
+## Objeto conversa
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID da conversa |
+| `contact` | object | Contato `{id, name, phone}` |
+| `channel` | string | `whatsapp`, `instagram`, `messenger` |
+| `whatsapp_instance` | object\|null | Instância WhatsApp `{id, name, phone}` |
+| `messenger_page` | object\|null | Página Messenger `{id, page_id, page_name}` |
+| `instagram_account` | object\|null | Conta Instagram `{id, username}` |
+| `status` | string | `open` ou `closed` |
+| `assigned_to` | object\|null | Responsável `{id, name}` |
+| `objective` | string\|null | `sales` ou `support` |
+| `ai_agent` | object\|null | Agente ativo `{id, name, paused, activated_at}` |
+| `unread_count` | integer | Mensagens não lidas |
+| `last_message` | object\|null | Última mensagem `{content, sent_at, sender}` |
+| `tags` | string[] | Tags da conversa |
+| `created_at` | string | Timestamp de criação |
+| `updated_at` | string | Timestamp de atualização |

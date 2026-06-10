@@ -1,3 +1,21 @@
 ---
-openapi: GET /webhooks/{id}
+title: "Buscar webhook"
+description: "Retorna os dados de uma assinatura de webhook."
 ---
+
+## Endpoint
+
+```
+GET /v1/webhooks/:id
+```
+
+**Escopo necessário:** `read:webhooks`
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna o objeto webhook (mesmo formato da listagem). O campo `secret` **não** é retornado após a criação.

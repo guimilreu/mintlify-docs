@@ -1,0 +1,106 @@
+---
+title: "Listar negócios"
+description: "Retorna uma lista paginada de negócios da organização."
+---
+
+## Endpoint
+
+```
+GET /v1/deals
+```
+
+**Escopo necessário:** `read:deals` — disponível nos planos **Growth e Scale**
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
+| `cursor` | string | Token de paginação |
+| `pipeline_id` | string | Filtra por pipeline |
+| `stage_id` | string | Filtra por etapa |
+| `status` | string | `open`, `won`, `lost` |
+| `assigned_to` | string | ID do membro responsável |
+| `contact_id` | string | ID do contato vinculado |
+| `company_id` | string | ID da empresa vinculada |
+| `tag` | string | Tag exata |
+| `min_value` | number | Valor mínimo do negócio |
+| `max_value` | number | Valor máximo do negócio |
+| `created_after` | string | ISO 8601 |
+| `created_before` | string | ISO 8601 |
+| `expected_close_before` | string | ISO 8601 — data prevista de fechamento |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/deals?status=open&pipeline_id=664a1b2c3d4e5f6789012345&min_value=5000" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664c1d2e3f4a5b6789012347",
+      "title": "Proposta Enterprise ACME",
+      "description": "Implantação do módulo de automações",
+      "value": 18000,
+      "status": "open",
+      "pipeline": {
+        "id": "664a1b2c3d4e5f6789012345",
+        "name": "Pipeline Principal"
+      },
+      "stage": {
+        "name": "Proposta enviada"
+      },
+      "assigned_to": {
+        "id": "664a1b2c3d4e5f6789012345",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        { "id": "664f1a2b3c4d5e6f78901234", "name": "João Silva" }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "ACME Corp"
+      },
+      "tags": ["enterprise", "q2"],
+      "probability": 70,
+      "expected_close_date": "2026-07-31T00:00:00.000Z",
+      "closed_date": null,
+      "custom_fields": {},
+      "created_at": "2026-05-01T09:00:00.000Z",
+      "updated_at": "2026-06-05T16:30:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 45,
+    "has_more": false,
+    "next_cursor": null
+  }
+}
+```
+
+## Objeto negócio
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID único |
+| `title` | string | Título do negócio |
+| `description` | string\|null | Descrição |
+| `value` | number | Valor em reais |
+| `status` | string | `open`, `won`, `lost` |
+| `pipeline` | object\|null | Pipeline `{id, name}` |
+| `stage` | object\|null | Etapa `{name}` |
+| `assigned_to` | object\|null | Responsável `{id, name}` |
+| `contacts` | array | Contatos vinculados `[{id, name}]` |
+| `company` | object\|null | Empresa `{id, name}` |
+| `tags` | string[] | Tags |
+| `probability` | integer | Probabilidade de fechamento (0–100) |
+| `expected_close_date` | string\|null | Data prevista de fechamento |
+| `closed_date` | string\|null | Data de fechamento real |
+| `custom_fields` | object | Campos personalizados |
+| `created_at` | string | Timestamp de criação |
+| `updated_at` | string | Timestamp de atualização |

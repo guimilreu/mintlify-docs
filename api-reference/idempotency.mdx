@@ -1,0 +1,75 @@
+---
+title: "Idempotência"
+description: "Como usar Idempotency Keys para evitar duplicatas em requisições POST."
+---
+
+## O que é idempotência?
+
+Uma requisição idempotente pode ser enviada múltiplas vezes com o mesmo resultado — sem criar duplicatas ou causar efeitos colaterais indesejados. Isso é essencial para lidar com falhas de rede, timeouts e retentativas.
+
+## Como usar
+
+Inclua o header `Idempotency-Key` em requisições `POST` com um UUID v4 único gerado pelo seu sistema:
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -d '{"name": "João Silva", "phone": "+5511999999999"}'
+```
+
+Se você enviar a mesma requisição com a mesma `Idempotency-Key` novamente, a API retorna a resposta original em cache — **sem criar um novo recurso**.
+
+## Comportamento
+
+| Cenário | Comportamento |
+|---------|---------------|
+| Primeira requisição com a chave | Processa normalmente e armazena a resposta |
+| Repetição com a mesma chave | Retorna a resposta em cache (idêntica à original) |
+| Chave diferente, mesmo corpo | Processa como uma nova requisição independente |
+| Requisição `GET` com chave | A chave é ignorada (GET já é idempotente por natureza) |
+
+## Prazo de validade
+
+As chaves de idempotência têm validade de **24 horas**. Após esse período, a mesma chave pode ser reutilizada para uma nova operação.
+
+## Exemplo: criação segura de contato
+
+```javascript
+const { v4: uuidv4 } = require('uuid');
+
+async function createContactSafely(contactData) {
+  const idempotencyKey = uuidv4(); // gere uma vez e armazene
+  
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const response = await fetch('https://api.socialsell.ai/v1/contacts', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer sk_live_...',
+          'Content-Type': 'application/json',
+          'Idempotency-Key': idempotencyKey // mesma chave em todas as tentativas
+        },
+        body: JSON.stringify(contactData)
+      });
+      
+      if (response.ok) return await response.json();
+      
+      // se falhar com erro não-transiente, parar
+      if (response.status < 500) throw new Error('Erro não recuperável');
+      
+    } catch (err) {
+      if (attempt === 2) throw err;
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    }
+  }
+}
+```
+
+## Boas práticas
+
+- **Gere a chave antes de iniciar a operação** — não após uma falha
+- **Armazene a chave junto com a operação** — para poder reutilizá-la em retentativas
+- **Use UUID v4** — evite chaves previsíveis ou sequenciais
+- **Uma chave por operação lógica** — não reutilize a mesma chave para operações diferentes

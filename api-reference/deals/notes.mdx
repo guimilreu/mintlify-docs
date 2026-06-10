@@ -1,0 +1,51 @@
+---
+title: "Notas de negócio"
+description: "Adicione notas a um negócio."
+---
+
+## Criar nota
+
+```
+POST /v1/deals/:id/notes
+```
+
+**Escopo necessário:** `write:deals`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `content` | string | Sim | Conteúdo da nota |
+| `color` | string | Não | `yellow` (padrão), `blue`, `green`, `pink`, `orange`, `purple`, `red`, `gray` |
+| `category` | string | Não | `general` (padrão), `follow_up`, `important`, `reminder`, `meeting`, `objection`, `success` |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/notes \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Cliente confirmou aprovação do contrato. Aguardando assinatura.",
+    "color": "green",
+    "category": "success"
+  }'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "id": "664f9z8y7x6w5v4u3t2s1r0b",
+    "content": "Cliente confirmou aprovação do contrato. Aguardando assinatura.",
+    "color": "green",
+    "category": "success",
+    "created_at": "2026-06-10T16:00:00.000Z"
+  }
+}
+```
+
+Retorna `HTTP 201`.
+
+A criação da nota dispara o evento `deal.note.added` internamente.

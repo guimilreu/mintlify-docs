@@ -1,0 +1,36 @@
+---
+title: "Tags de empresa"
+description: "Adicione e remova tags de uma empresa."
+---
+
+## Adicionar tag
+
+```
+POST /v1/companies/:id/tags
+```
+
+**Escopo necessário:** `write:tags`
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346/tags \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"tag": "enterprise"}'
+```
+
+Retorna o objeto empresa atualizado com a nova tag.
+
+## Remover tag
+
+```
+DELETE /v1/companies/:id/tags/:tag
+```
+
+**Escopo necessário:** `write:tags`
+
+```bash
+curl -X DELETE "https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346/tags/prospect" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna o objeto empresa atualizado sem a tag removida.

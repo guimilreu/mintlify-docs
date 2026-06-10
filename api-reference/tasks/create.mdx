@@ -1,0 +1,56 @@
+---
+title: "Criar tarefa"
+description: "Cria uma nova tarefa na organização."
+---
+
+## Endpoint
+
+```
+POST /v1/tasks
+```
+
+**Escopo necessário:** `write:tasks`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `title` | string | Sim | Título da tarefa |
+| `type` | string | Não | Tipo. Padrão: `task`. Valores: `call`, `meeting`, `task`, `deadline`, `email`, `lunch`, `visit`, `message` |
+| `priority` | string | Não | Prioridade. Padrão: `medium`. Valores: `low`, `medium`, `high`, `urgent` |
+| `assigned_to` | string | Sim | ID do membro responsável |
+| `due_date` | string | Sim | Data limite (ISO 8601) |
+| `description` | string | Não | Descrição detalhada |
+| `deal_id` | string | Não | ID do negócio vinculado |
+| `contact_id` | string | Não | ID do contato vinculado |
+| `company_id` | string | Não | ID da empresa vinculada |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/tasks \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Enviar proposta revisada",
+    "type": "task",
+    "priority": "high",
+    "assigned_to": "664a1b2c3d4e5f6789012345",
+    "due_date": "2026-06-15T18:00:00.000Z",
+    "deal_id": "664c1d2e3f4a5b6789012347",
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "description": "Incluir desconto de 10% conforme acordado em reunião."
+  }'
+```
+
+## Resposta
+
+Retorna `HTTP 201` com o objeto tarefa criado.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `MISSING_REQUIRED_FIELD` | `400` | `title`, `assigned_to` ou `due_date` ausente |
+| `INVALID_TYPE` | `400` | Tipo inválido |
+| `INVALID_PRIORITY` | `400` | Prioridade inválida |

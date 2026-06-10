@@ -1,0 +1,57 @@
+---
+title: "Criar empresa"
+description: "Cria uma nova empresa na organização."
+---
+
+## Endpoint
+
+```
+POST /v1/companies
+```
+
+**Escopo necessário:** `write:companies`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome da empresa |
+| `email` | string | Não | Email |
+| `phone` | string | Não | Telefone |
+| `website` | string | Não | URL do site |
+| `sector` | string | Não | Setor de atuação |
+| `size` | string | Não | Tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
+| `city` | string | Não | Cidade |
+| `state` | string | Não | Estado (sigla, ex: `SP`) |
+| `assigned_to` | string | Não | ID do membro responsável |
+| `tags` | string[] | Não | Tags |
+| `custom_fields` | object | Não | Campos personalizados |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/companies \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Nova Empresa Ltda",
+    "email": "contato@novaempresa.com.br",
+    "phone": "+5511222233334",
+    "sector": "Varejo",
+    "size": "11-50",
+    "city": "Curitiba",
+    "state": "PR",
+    "tags": ["prospect"]
+  }'
+```
+
+## Resposta
+
+Retorna `HTTP 201` com o objeto empresa criado.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `MISSING_REQUIRED_FIELD` | `400` | Campo `name` ausente |
+| `DUPLICATE` | `409` | Empresa duplicada |

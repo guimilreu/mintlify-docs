@@ -1,3 +1,47 @@
 ---
-openapi: PATCH /webhooks/{id}
+title: "Atualizar webhook"
+description: "Atualiza nome, URL, eventos ou status de uma assinatura."
 ---
+
+## Endpoint
+
+```
+PATCH /v1/webhooks/:id
+```
+
+**Escopo necessário:** `write:webhooks`
+
+Envie apenas os campos que deseja alterar.
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `name` | string | Nome descritivo |
+| `url` | string | Nova URL HTTPS |
+| `events` | string[] | Nova lista de eventos (substitui completamente) |
+| `status` | string | `active` para reativar, `paused` para pausar |
+
+<Note>
+Ao definir `status: "active"`, o contador de `consecutive_failures` é zerado automaticamente.
+</Note>
+
+## Exemplo — Pausar webhook
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"status": "paused"}'
+```
+
+## Exemplo — Adicionar evento
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "events": ["contact.created", "contact.updated", "deal.won", "deal.lost"]
+  }'
+```

@@ -1,0 +1,48 @@
+---
+title: "Listar tags"
+description: "Retorna todas as tags usadas na organização com contagem de uso."
+---
+
+## Endpoint
+
+```
+GET /v1/tags
+```
+
+**Escopo necessário:** `read:tags`
+
+As tags são agregadas de contatos, empresas e negócios, com contagem total de uso em cada entidade.
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/tags" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    { "name": "cliente", "count": 87 },
+    { "name": "vip", "count": 34 },
+    { "name": "lead", "count": 128 },
+    { "name": "inbound", "count": 65 },
+    { "name": "enterprise", "count": 12 }
+  ],
+  "meta": {
+    "total": 5,
+    "has_more": false
+  }
+}
+```
+
+Os resultados são ordenados por contagem de uso (decrescente).
+
+## Objeto tag
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `name` | string | Nome da tag |
+| `count` | integer | Total de usos (contatos + empresas + negócios) |

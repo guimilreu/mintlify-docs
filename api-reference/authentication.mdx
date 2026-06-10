@@ -1,0 +1,73 @@
+---
+title: "Autenticação"
+description: "Como autenticar suas requisições à API SocialSell com API Keys."
+---
+
+## Visão geral
+
+A API SocialSell usa **API Keys** para autenticação. Cada chave é vinculada a uma organização e possui escopos de permissão específicos.
+
+## Gerando uma API Key
+
+1. Acesse **Configurações → Developers** no painel da SocialSell
+2. Clique em **Nova API Key**
+3. Dê um nome descritivo (ex: `Integração ERP`, `Zapier`)
+4. Selecione os escopos necessários
+5. Copie e armazene a chave com segurança — ela só é exibida uma vez
+
+<Warning>
+A chave começa com `sk_live_` e nunca mais é exibida após a criação. Armazene-a em um local seguro (ex: variável de ambiente, cofre de segredos).
+</Warning>
+
+## Enviando a chave
+
+Inclua a API Key em todas as requisições no header `Authorization`:
+
+```bash
+Authorization: Bearer sk_live_sua_chave_aqui
+```
+
+### Exemplo completo
+
+```bash
+curl https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_abc123xyz" \
+  -H "Content-Type: application/json"
+```
+
+## Erros de autenticação
+
+| Código HTTP | Código de erro | Descrição |
+|-------------|---------------|-----------|
+| `401` | `MISSING_API_KEY` | Header `Authorization` ausente |
+| `401` | `INVALID_API_KEY_FORMAT` | Chave não começa com `sk_live_` |
+| `401` | `INVALID_API_KEY` | Chave inválida, expirada ou revogada |
+| `403` | `INSUFFICIENT_SCOPE` | A chave não tem o escopo necessário |
+| `403` | `PLAN_RESTRICTION` | Recurso não disponível no seu plano |
+
+### Exemplo de erro
+
+```json
+{
+  "error": {
+    "type": "unauthorized",
+    "message": "API key inválida, expirada ou revogada.",
+    "code": "INVALID_API_KEY"
+  },
+  "meta": {
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+## Boas práticas
+
+- **Nunca exponha a chave no frontend** — use sempre do lado servidor
+- **Use uma chave por integração** — facilita revogar acessos específicos
+- **Defina apenas os escopos necessários** — princípio do menor privilégio
+- **Rotacione chaves periodicamente** — especialmente após mudanças de equipe
+- **Monitore o uso** — logs de uso estão disponíveis no painel em **Developers**
+
+## Escopos disponíveis
+
+Veja a referência completa de escopos em [Escopos de permissão](/api-reference/scopes).

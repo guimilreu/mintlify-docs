@@ -1,0 +1,142 @@
+---
+title: "Quickstart"
+description: "Faça sua primeira requisição à API SocialSell em menos de 5 minutos."
+---
+
+## Passo 1: Gere sua API Key
+
+No painel da SocialSell, acesse **Configurações → Developers** e crie uma nova API Key. Selecione os escopos que sua integração precisa.
+
+A chave terá o formato `sk_live_...`.
+
+## Passo 2: Faça sua primeira requisição
+
+Liste os contatos da sua organização:
+
+<CodeGroup>
+
+```bash cURL
+curl https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_sua_chave_aqui"
+```
+
+```javascript Node.js
+const response = await fetch('https://api.socialsell.ai/v1/contacts', {
+  headers: {
+    'Authorization': 'Bearer sk_live_sua_chave_aqui'
+  }
+});
+const data = await response.json();
+console.log(data);
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.socialsell.ai/v1/contacts',
+    headers={'Authorization': 'Bearer sk_live_sua_chave_aqui'}
+)
+print(response.json())
+```
+
+```php PHP
+$ch = curl_init('https://api.socialsell.ai/v1/contacts');
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Authorization: Bearer sk_live_sua_chave_aqui'
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$response = json_decode(curl_exec($ch), true);
+print_r($response);
+```
+
+</CodeGroup>
+
+## Passo 3: Interprete a resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresa.com.br",
+      "phone": "+5511999999999",
+      "whatsapp_jid": "5511999999999@s.whatsapp.net",
+      "instagram_username": null,
+      "source": "whatsapp",
+      "assigned_to": {
+        "id": "664a1b2c3d4e5f6789012345",
+        "name": "Maria Santos"
+      },
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa ABC"
+      },
+      "tags": ["cliente", "vip"],
+      "custom_fields": {},
+      "notes_count": 2,
+      "deals_count": 1,
+      "created_at": "2026-01-15T10:30:00.000Z",
+      "updated_at": "2026-06-01T14:22:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 142,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NGYxYTJiM2M0ZDVlNmY3ODkwMTIzNCIsImNhIjoiMjAyNi0wMS0xNVQxMDozMDowMC4wMDBaIn0",
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+- **`data`** — array com os itens retornados
+- **`meta.total`** — total de registros na organização
+- **`meta.has_more`** — se há mais páginas
+- **`meta.next_cursor`** — token para a próxima página
+
+## Passo 4: Crie um contato
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_sua_chave_aqui" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ana Costa",
+    "email": "ana@empresa.com.br",
+    "phone": "+5521988888888",
+    "tags": ["lead", "inbound"],
+    "source": "site"
+  }'
+```
+
+## Passo 5: Envie uma mensagem via WhatsApp
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/messages/send \
+  -H "Authorization: Bearer sk_live_sua_chave_aqui" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "channel": "whatsapp",
+    "type": "text",
+    "content": "Olá! Como posso ajudar você hoje?"
+  }'
+```
+
+## Próximos passos
+
+<CardGroup cols={2}>
+  <Card title="Paginação" icon="list" href="/api-reference/pagination">
+    Como navegar por listas grandes com cursores.
+  </Card>
+  <Card title="Webhooks" icon="zap" href="/api-reference/webhooks-guide">
+    Receba eventos em tempo real no seu sistema.
+  </Card>
+  <Card title="Escopos" icon="shield" href="/api-reference/scopes">
+    Quais permissões sua chave precisa para cada endpoint.
+  </Card>
+  <Card title="Erros" icon="triangle-alert" href="/api-reference/errors">
+    Como tratar erros e entender os códigos.
+  </Card>
+</CardGroup>

@@ -1,0 +1,35 @@
+---
+title: "Atualizar tarefa"
+description: "Atualiza campos de uma tarefa existente."
+---
+
+## Endpoint
+
+```
+PATCH /v1/tasks/:id
+```
+
+**Escopo necessário:** `write:tasks`
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `title` | string | Título |
+| `description` | string | Descrição |
+| `type` | string | Tipo da tarefa |
+| `priority` | string | Prioridade |
+| `assigned_to` | string | ID do responsável |
+| `due_date` | string | Data limite (ISO 8601) |
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456 \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "priority": "urgent",
+    "due_date": "2026-06-11T10:00:00.000Z"
+  }'
+```

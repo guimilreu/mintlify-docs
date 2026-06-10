@@ -1,3 +1,21 @@
 ---
-openapi: GET /conversations/{id}
+title: "Buscar conversa"
+description: "Retorna os dados de uma conversa específica."
 ---
+
+## Endpoint
+
+```
+GET /v1/conversations/:id
+```
+
+**Escopo necessário:** `read:conversations`
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Retorna o objeto conversa completo (mesmo formato da listagem).

@@ -1,3 +1,30 @@
 ---
-openapi: DELETE /deals/{id}
+title: "Excluir negócio"
+description: "Remove permanentemente um negócio."
 ---
+
+## Endpoint
+
+```
+DELETE /v1/deals/:id
+```
+
+**Escopo necessário:** `write:deals`
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347 \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content` em caso de sucesso.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID inválido |
+| `NOT_FOUND` | `404` | Negócio não encontrado |

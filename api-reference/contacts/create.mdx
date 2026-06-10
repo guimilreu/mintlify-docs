@@ -1,3 +1,108 @@
 ---
-openapi: POST /contacts
+title: "Criar contato"
+description: "Cria um novo contato na organização."
 ---
+
+## Endpoint
+
+```
+POST /v1/contacts
+```
+
+**Escopo necessário:** `write:contacts`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome completo. Máximo 200 caracteres |
+| `email` | string | Não | Email. Deve ser válido |
+| `phone` | string | Não | Telefone. Máximo 40 caracteres |
+| `instagram_username` | string | Não | Username do Instagram (sem @) |
+| `messenger_psid` | string | Não | PSID do Facebook Messenger |
+| `company_id` | string | Não | ID da empresa para vincular |
+| `assigned_to` | string | Não | ID do membro responsável |
+| `tags` | string[] | Não | Lista de tags |
+| `source` | string | Não | Origem do contato. Padrão: `"api"` |
+| `custom_fields` | object | Não | Campos personalizados (chave → valor) |
+
+## Detecção de duplicatas
+
+Se `phone` ou `email` já existirem em outro contato da organização, a API retorna `HTTP 409`:
+
+```json
+{
+  "error": {
+    "type": "conflict",
+    "message": "Já existe um contato com este telefone ou email.",
+    "code": "DUPLICATE_CONTACT",
+    "existing_contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    }
+  }
+}
+```
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Ana Costa",
+    "email": "ana@empresa.com.br",
+    "phone": "+5521988888888",
+    "tags": ["lead", "inbound"],
+    "source": "site",
+    "custom_fields": {
+      "cargo": "Gerente de TI"
+    }
+  }'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "id": "664f9z8y7x6w5v4u3t2s1r0q",
+    "name": "Ana Costa",
+    "email": "ana@empresa.com.br",
+    "phone": "+5521988888888",
+    "instagram_username": null,
+    "whatsapp_jid": null,
+    "messenger_psid": null,
+    "messenger_name": null,
+    "source": "site",
+    "avatar_url": null,
+    "assigned_to": null,
+    "company": null,
+    "tags": ["lead", "inbound"],
+    "custom_fields": {
+      "cargo": "Gerente de TI"
+    },
+    "funnel_stage": null,
+    "notes_count": 0,
+    "deals_count": 0,
+    "last_message_at": null,
+    "created_at": "2026-06-10T15:30:00.000Z",
+    "updated_at": "2026-06-10T15:30:00.000Z"
+  },
+  "meta": {
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+A criação do contato dispara automaticamente o evento `contact.created` em webhooks configurados.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `MISSING_REQUIRED_FIELD` | `400` | Campo `name` ausente |
+| `INVALID_COMPANY_ID` | `400` | `company_id` com formato inválido |
+| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou email |
+| `DUPLICATE` | `409` | Conflito de índice único no banco |

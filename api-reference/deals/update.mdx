@@ -1,0 +1,48 @@
+---
+title: "Atualizar negócio"
+description: "Atualiza campos de um negócio existente."
+---
+
+## Endpoint
+
+```
+PATCH /v1/deals/:id
+```
+
+**Escopo necessário:** `write:deals`
+
+Envie apenas os campos que deseja alterar.
+
+## Corpo da requisição
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `title` | string | Título |
+| `description` | string\|null | Descrição |
+| `value` | number | Valor em reais |
+| `assigned_to` | string\|null | ID do responsável |
+| `expected_close_date` | string\|null | Data prevista de fechamento |
+| `probability` | integer | Probabilidade 0–100 |
+| `tags` | string[] | Substitui completamente as tags |
+| `custom_fields` | object | Substitui completamente os campos personalizados |
+
+<Note>
+Para mover o negócio para outra etapa, use `POST /v1/deals/:id/move`. Para marcar como ganho ou perdido, use os endpoints dedicados.
+</Note>
+
+## Exemplo de requisição
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347 \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "value": 22000,
+    "probability": 85,
+    "expected_close_date": "2026-07-15T00:00:00.000Z"
+  }'
+```
+
+## Resposta
+
+Retorna o objeto negócio atualizado.

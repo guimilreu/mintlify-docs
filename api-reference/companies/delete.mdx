@@ -1,0 +1,30 @@
+---
+title: "Excluir empresa"
+description: "Remove uma empresa da organização."
+---
+
+## Endpoint
+
+```
+DELETE /v1/companies/:id
+```
+
+**Escopo necessário:** `write:companies`
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346 \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content` em caso de sucesso.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Empresa não encontrada |

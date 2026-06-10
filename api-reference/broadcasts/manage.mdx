@@ -1,0 +1,152 @@
+---
+title: "Disparos (Broadcasts)"
+description: "Crie e gerencie campanhas de disparo em massa via WhatsApp."
+---
+
+Disparos permitem enviar mensagens em massa via WhatsApp para audiências segmentadas.
+
+**Escopos:** `read:broadcasts` (leitura), `write:broadcasts` (escrita) — disponível nos planos **Growth e Scale**.
+
+<Note>
+O perfil de envio `custom` é exclusivo do painel web e **não** é aceito na API pública. Use os perfis pré-definidos.
+</Note>
+
+## Listar disparos
+
+```
+GET /v1/broadcasts
+```
+
+```bash
+curl "https://api.socialsell.ai/v1/broadcasts" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "664t3s4t5u6v7w8x9y0z1a2b",
+      "name": "Black Friday 2026",
+      "description": "Campanha de ofertas",
+      "status": "running",
+      "whatsapp_instances": [
+        { "id": "664h...", "name": "WhatsApp Principal", "phone": "+5511333344445", "status": "connected" }
+      ],
+      "audience": { "type": "tags", "tags": ["cliente"], "estimatedCount": 1250 },
+      "message": { "type": "text", "text": "🔥 Black Friday! 50% OFF..." },
+      "send_config": { "profile": "balanced" },
+      "stats": { "sent": 800, "delivered": 760, "read": 520, "failed": 12 },
+      "started_at": "2026-06-10T09:00:00.000Z",
+      "completed_at": null,
+      "created_at": "2026-06-09T18:00:00.000Z",
+      "updated_at": "2026-06-10T15:00:00.000Z"
+    }
+  ],
+  "meta": { "total": 8, "has_more": false }
+}
+```
+
+### Objeto disparo
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do disparo |
+| `name` | string | Nome da campanha |
+| `status` | string | `draft`, `scheduled`, `running`, `paused`, `completed`, `cancelled` |
+| `whatsapp_instances` | array | Instâncias usadas no envio |
+| `audience` | object | Segmentação da audiência |
+| `message` | object | Conteúdo da mensagem |
+| `send_config` | object | Perfil e configuração de envio |
+| `stats` | object | Métricas: enviadas, entregues, lidas, falhas |
+| `started_at` / `completed_at` / `paused_at` / `cancelled_at` | string\|null | Timestamps do ciclo |
+
+## Buscar disparo
+
+```
+GET /v1/broadcasts/:id
+```
+
+## Criar disparo
+
+```
+POST /v1/broadcasts
+```
+
+**Escopo:** `write:broadcasts`
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome da campanha |
+| `whatsappInstances` | string[] | Sim | IDs das instâncias WhatsApp |
+| `audience` | object | Sim | Segmentação (ver abaixo) |
+| `message` | object | Sim | Mensagem (ver abaixo) |
+| `sendConfig` | object | Não | Perfil de envio e agendamento |
+| `description` | string | Não | Descrição |
+
+### Objeto `audience`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `type` | string | Tipo de audiência |
+| `tags` | string[] | Tags-alvo |
+| `tagsOperator` | string | `and` ou `or` |
+| `hasWhatsapp` | boolean | Apenas contatos com WhatsApp |
+| `hasOptIn` | boolean | Apenas contatos com opt-in |
+| `manualContactIds` | string[] | IDs específicos |
+| `exclusions` | object | Exclusões (bloqueados, contatados recentemente) |
+
+### Objeto `message`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `type` | string | `text`, `media`, `document`, `audio` |
+| `text` | string | Texto da mensagem (suporta variáveis) |
+| `media` | object | `{url, mimetype, filename, caption}` para mídia |
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Aviso de Manutenção",
+    "whatsappInstances": ["664h3i4j5k6l7m8n9o0p1q2r"],
+    "audience": { "type": "tags", "tags": ["cliente"], "tagsOperator": "or", "hasWhatsapp": true },
+    "message": { "type": "text", "text": "Olá {{nome_cliente}}! Informamos manutenção programada no dia 15/06." },
+    "sendConfig": { "profile": "balanced" }
+  }'
+```
+
+Retorna `HTTP 201` com o disparo em `status: draft`.
+
+## Atualizar disparo
+
+```
+PATCH /v1/broadcasts/:id
+```
+
+**Escopo:** `write:broadcasts` — apenas disparos em `draft`/`scheduled`.
+
+## Configurar envio
+
+```
+PATCH /v1/broadcasts/:id/send-config
+```
+
+**Escopo:** `write:broadcasts` — ajusta perfil de envio e agendamento.
+
+## Excluir disparo
+
+```
+DELETE /v1/broadcasts/:id
+```
+
+**Escopo:** `write:broadcasts` — retorna `HTTP 204`.
+
+## Duplicar disparo
+
+```
+POST /v1/broadcasts/:id/duplicate
+```
+
+**Escopo:** `write:broadcasts` — cria cópia em `draft`.

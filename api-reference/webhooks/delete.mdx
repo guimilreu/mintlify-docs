@@ -1,3 +1,23 @@
 ---
-openapi: DELETE /webhooks/{id}
+title: "Excluir webhook"
+description: "Remove uma assinatura de webhook."
 ---
+
+## Endpoint
+
+```
+DELETE /v1/webhooks/:id
+```
+
+**Escopo necessário:** `write:webhooks`
+
+## Exemplo de requisição
+
+```bash
+curl -X DELETE https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna `HTTP 204 No Content`. A assinatura é removida permanentemente e nenhum evento futuro será entregue para a URL configurada.

@@ -1,3 +1,65 @@
 ---
-openapi: POST /pipelines
+title: "Criar pipeline"
+description: "Cria um novo pipeline de vendas com etapas."
 ---
+
+## Endpoint
+
+```
+POST /v1/pipelines
+```
+
+**Escopo necessário:** `write:pipelines`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome do pipeline (máx. 100 chars) |
+| `description` | string | Não | Descrição (máx. 500 chars) |
+| `stages` | array | Sim | Mínimo 1 etapa |
+| `is_default` | boolean | Não | Define como pipeline padrão |
+| `after_won` | object | Não | Ação após ganhar |
+| `after_lost` | object | Não | Ação após perder |
+
+### Objeto stage
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome da etapa |
+| `order` | integer | Não | Posição (0 = primeira) |
+| `color` | string | Não | Cor hexadecimal |
+| `win_probability` | integer | Não | 0–100 |
+| `stalling_enabled` | boolean | Não | Alerta de estagnação |
+| `stalling_days` | integer | Não | Dias para alertar |
+
+### Objeto after_won / after_lost
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `enabled` | boolean | Ativar ação automática |
+| `action` | string\|null | Ação: `move_to_stage` |
+| `target_pipeline` | string\|null | ID do pipeline destino |
+| `target_stage` | string\|null | Nome da etapa destino |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/pipelines \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Pipeline SDR",
+    "description": "Funil de qualificação inicial",
+    "stages": [
+      {"name": "Prospecção", "order": 0, "win_probability": 5},
+      {"name": "Primeiro contato", "order": 1, "win_probability": 15},
+      {"name": "Interesse confirmado", "order": 2, "win_probability": 40, "stalling_enabled": true, "stalling_days": 5},
+      {"name": "Reunião agendada", "order": 3, "win_probability": 70}
+    ]
+  }'
+```
+
+## Resposta
+
+Retorna `HTTP 201` com o objeto pipeline criado (com IDs de etapas gerados).

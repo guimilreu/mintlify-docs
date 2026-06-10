@@ -1,0 +1,42 @@
+---
+title: "Marcar como perdido"
+description: "Marca um negócio como perdido (status: lost)."
+---
+
+## Endpoint
+
+```
+POST /v1/deals/:id/lost
+```
+
+**Escopo necessário:** `write:deals`
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `closed_date` | string | Não | Data de fechamento. Padrão: data atual |
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/lost \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "id": "664c1d2e3f4a5b6789012347",
+    "title": "Proposta Enterprise ACME",
+    "status": "lost",
+    "closed_date": "2026-06-10T00:00:00.000Z"
+  }
+}
+```
+
+Dispara o evento `deal.lost` em webhooks configurados.

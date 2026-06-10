@@ -1,0 +1,29 @@
+---
+title: "Completar tarefa"
+description: "Marca uma tarefa como concluída."
+---
+
+## Endpoint
+
+```
+POST /v1/tasks/:id/complete
+```
+
+**Escopo necessário:** `write:tasks`
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456/complete \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta
+
+Retorna o objeto tarefa com `status: "completed"` e `completed_at` preenchido.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `NOT_FOUND` | `404` | Tarefa não encontrada |

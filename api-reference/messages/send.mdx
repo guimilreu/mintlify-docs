@@ -1,3 +1,155 @@
 ---
-openapi: POST /messages/send
+title: "Enviar mensagem"
+description: "Envia uma mensagem para um contato via WhatsApp ou Messenger."
 ---
+
+## Endpoint
+
+```
+POST /v1/messages/send
+```
+
+Também disponível como `POST /v1/conversations/send` (alias).
+
+**Escopo necessário:** `write:messages`
+
+## Canais suportados
+
+| Canal | Requisito no contato |
+|-------|---------------------|
+| `whatsapp` | Contato deve ter `whatsapp_jid` configurado |
+| `messenger` | Contato deve ter `messenger_psid` configurado |
+
+<Note>
+O canal Instagram não está disponível na API pública neste momento.
+</Note>
+
+## Rate limits por canal
+
+- **WhatsApp:** 30 mensagens/minuto por instância
+- **Messenger:** 30 mensagens/minuto por página
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `contact_id` | string | Sim | ID do contato destinatário |
+| `channel` | string | Sim | `whatsapp` ou `messenger` |
+| `type` | string | Não | `text` (padrão), `image`, `video`, `audio`, `document` |
+| `content` | string | Condicional | Texto da mensagem. Obrigatório quando `type=text` |
+| `media_url` | string | Condicional | URL pública da mídia. Obrigatório para tipos não-texto |
+| `whatsapp_instance_id` | string | Não | ID da instância WhatsApp. Se omitido, usa a instância conectada disponível |
+| `messenger_page_id` | string | Não | ID da página Messenger. Se omitido, usa a página ativa |
+| `template_name` | string | Não | Nome do template WhatsApp (Cloud API) |
+| `template_language` | string | Não | Código do idioma do template. Padrão: `pt_BR` |
+| `template_components` | array | Não | Componentes do template (Cloud API) |
+
+## Comportamento de conversa
+
+Se não existir uma conversa ativa entre o contato e a instância/página, uma nova conversa é criada automaticamente.
+
+## Exemplos
+
+### Texto via WhatsApp
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/messages/send \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "channel": "whatsapp",
+    "type": "text",
+    "content": "Olá! Sua proposta foi aprovada. Podemos agendar uma reunião?"
+  }'
+```
+
+### Imagem via WhatsApp
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/messages/send \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "channel": "whatsapp",
+    "type": "image",
+    "media_url": "https://meusistema.com/proposta.jpg",
+    "content": "Segue a proposta em anexo!"
+  }'
+```
+
+### Template WhatsApp (Cloud API)
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/messages/send \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "channel": "whatsapp",
+    "template_name": "boas_vindas",
+    "template_language": "pt_BR",
+    "template_components": [
+      {
+        "type": "body",
+        "parameters": [
+          {"type": "text", "text": "João Silva"}
+        ]
+      }
+    ]
+  }'
+```
+
+### Texto via Messenger
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/messages/send \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "channel": "messenger",
+    "type": "text",
+    "content": "Olá! Vi seu interesse no nosso produto. Posso ajudar?"
+  }'
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "id": "664l7m8n9o0p1q2r3s4t5u6v",
+    "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "content": "Olá! Sua proposta foi aprovada.",
+    "type": "text",
+    "sender": "agent",
+    "status": "sent",
+    "sent_at": "2026-06-10T16:00:00.000Z",
+    "external_id": "wamid.HBg..."
+  },
+  "meta": {
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+  }
+}
+```
+
+Retorna `HTTP 201` em caso de sucesso.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `MISSING_REQUIRED_FIELD` | `400` | `contact_id` ausente |
+| `INVALID_CHANNEL` | `400` | Canal inválido |
+| `CHANNEL_NOT_SUPPORTED` | `400` | Instagram ainda não suportado |
+| `MISSING_CONTENT` | `400` | `content` ausente para mensagem de texto |
+| `MISSING_MEDIA_URL` | `400` | `media_url` ausente para mensagens de mídia |
+| `CONTACT_NOT_FOUND` | `404` | Contato não encontrado |
+| `NO_WHATSAPP_JID` | `422` | Contato sem WhatsApp |
+| `NO_WHATSAPP_INSTANCE` | `422` | Sem instância WhatsApp conectada |
+| `NO_MESSENGER_PSID` | `422` | Contato sem PSID Messenger |
+| `NO_MESSENGER_PAGE` | `422` | Sem página Messenger conectada |
+| `WHATSAPP_INSTANCE_RATE_LIMIT` | `429` | 30 msg/min por instância atingido |
+| `MESSENGER_PAGE_RATE_LIMIT` | `429` | 30 msg/min por página atingido |
