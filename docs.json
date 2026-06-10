@@ -22,7 +22,7 @@
     "primary": {
       "type": "button",
       "label": "Acessar Painel",
-      "href": "https://app.socialsell.ai"
+      "href": "https://socialsell.ai/login"
     }
   },
   "navigation": {
@@ -182,7 +182,7 @@
       "anchors": [
         {
           "anchor": "App",
-          "href": "https://app.socialsell.ai",
+          "href": "https://socialsell.ai/login",
           "icon": "arrow-up-right-from-square"
         },
         {
