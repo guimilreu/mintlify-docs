@@ -1,0 +1,102 @@
+---
+title: "deal.lost"
+description: "Disparado quando um negócio é marcado como perdido."
+---
+
+## Quando ocorre
+
+Este evento é disparado quando um membro da equipe marca um negócio como perdido — via painel ou pela API (`POST /v1/deals/:id/lost`).
+
+## Casos de uso comuns
+
+- Atualizar a oportunidade no CRM externo para "Fechada Perdida"
+- Registrar o motivo da perda em ferramentas de analytics
+- Acionar um fluxo de reengajamento após um período de tempo
+- Notificar a equipe de produto sobre motivos de perda recorrentes
+- Mover o contato para uma lista de nurturing no e-mail marketing
+
+## Payload completo
+
+```json
+{
+  "id": "evt_01jxd5e6f7g8h9i0j1k2l3m4n",
+  "event": "deal.lost",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "created_at": "2026-06-14T11:00:00.000Z",
+  "data": {
+    "id": "664h3i4j5k6l7m8n9o0p1q2r",
+    "title": "Projeto Integração API",
+    "value": 200000,
+    "currency": "BRL",
+    "status": "lost",
+    "pipeline": {
+      "id": "664a1b2c3d4e5f6789012345",
+      "name": "Funil Principal"
+    },
+    "stage": {
+      "id": "664e1a2b3c4d5e6f78901232",
+      "name": "Proposta enviada",
+      "order": 2
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901299",
+      "name": "Ana Costa",
+      "email": "ana@outraempresa.com.br",
+      "phone": "+5521988888888"
+    },
+    "company": null,
+    "assigned_to": {
+      "id": "664a1b2c3d4e5f6789012345",
+      "name": "Carlos Lima"
+    },
+    "lost_by": {
+      "id": "664a1b2c3d4e5f6789012345",
+      "name": "Carlos Lima"
+    },
+    "lost_reason": "Escolheu concorrente",
+    "tags": ["smb"],
+    "lost_at": "2026-06-14T11:00:00.000Z",
+    "created_at": "2026-06-05T09:00:00.000Z"
+  }
+}
+```
+
+## Referência de campos
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `data.status` | string | Sempre `lost` neste evento |
+| `data.lost_at` | string | Timestamp do momento em que foi marcado como perdido |
+| `data.lost_by` | object\|null | Membro que registrou a perda: `{id, name}` |
+| `data.lost_reason` | string\|null | Motivo da perda informado pelo membro |
+| `data.stage` | object | Etapa em que o negócio estava quando foi perdido |
+
+## Exemplo de handler
+
+```javascript
+if (event === 'deal.lost') {
+  // Registrar motivo de perda para análise
+  await analytics.track('deal_lost', {
+    dealId: data.id,
+    value: data.value,
+    reason: data.lost_reason,
+    stage: data.stage.name,
+    daysInPipeline: daysBetween(data.created_at, data.lost_at),
+  });
+
+  // Iniciar nurturing após 90 dias
+  if (data.contact?.email) {
+    await emailAutomation.scheduleReengagement({
+      email: data.contact.email,
+      name: data.contact.name,
+      delayDays: 90,
+      reason: data.lost_reason,
+    });
+  }
+
+  // Notificar equipe
+  await slack.notify('canal-vendas', {
+    text: `❌ Negócio perdido: "${data.title}" — Motivo: ${data.lost_reason || 'não informado'}`
+  });
+}
+```

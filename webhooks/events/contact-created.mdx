@@ -1,0 +1,86 @@
+---
+title: "contact.created"
+description: "Disparado quando um novo contato é criado na organização."
+---
+
+## Quando ocorre
+
+Este evento é disparado sempre que um contato é criado na SocialSell — seja pelo painel, por outra integração via API ou automaticamente ao receber uma mensagem de um número desconhecido no WhatsApp ou Messenger.
+
+## Casos de uso comuns
+
+- Sincronizar novos leads com seu CRM ou ERP interno
+- Adicionar o contato a uma lista de e-mail marketing
+- Criar um registro no seu sistema de suporte (Zendesk, Intercom, etc.)
+- Disparar um fluxo de boas-vindas em outra ferramenta
+- Notificar a equipe de vendas via Slack ou e-mail
+
+## Payload completo
+
+```json
+{
+  "id": "evt_01jx8kz3m4n5p6q7r8s9t0u1v",
+  "event": "contact.created",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "created_at": "2026-06-10T15:00:00.000Z",
+  "data": {
+    "id": "664f1a2b3c4d5e6f78901234",
+    "name": "João Silva",
+    "email": "joao@empresa.com.br",
+    "phone": "+5511999999999",
+    "whatsapp_jid": "5511999999999@s.whatsapp.net",
+    "instagram_username": null,
+    "source": "whatsapp",
+    "assigned_to": null,
+    "company": null,
+    "tags": [],
+    "custom_fields": {},
+    "notes_count": 0,
+    "deals_count": 0,
+    "created_at": "2026-06-10T15:00:00.000Z",
+    "updated_at": "2026-06-10T15:00:00.000Z"
+  }
+}
+```
+
+## Referência de campos
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `data.id` | string | ID do contato na SocialSell |
+| `data.name` | string | Nome completo |
+| `data.email` | string\|null | E-mail |
+| `data.phone` | string\|null | Telefone formatado com DDI |
+| `data.whatsapp_jid` | string\|null | JID do WhatsApp (para envio de mensagens) |
+| `data.instagram_username` | string\|null | Username do Instagram |
+| `data.source` | string | Origem: `whatsapp`, `messenger`, `instagram`, `api`, `manual` |
+| `data.assigned_to` | object\|null | Membro responsável `{id, name}` |
+| `data.company` | object\|null | Empresa vinculada `{id, name}` |
+| `data.tags` | string[] | Tags no momento da criação |
+| `data.custom_fields` | object | Campos personalizados `{chave: valor}` |
+
+## Exemplo de handler
+
+```javascript
+app.post('/webhooks/socialsell', express.raw({ type: 'application/json' }), (req, res) => {
+  // 1. Validar assinatura (ver Segurança e verificação)
+  if (!isValidSignature(req.body, req.headers['x-socialsell-signature'])) {
+    return res.status(401).send('Assinatura inválida');
+  }
+
+  const { event, data } = JSON.parse(req.body);
+
+  res.status(200).send('OK'); // responde imediatamente
+
+  if (event === 'contact.created') {
+    // sincronizar com ERP
+    erpClient.createContact({
+      externalId: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      source: data.source,
+    });
+  }
+});
+```

@@ -1,0 +1,123 @@
+---
+title: "message.received"
+description: "Disparado quando uma mensagem é recebida de um contato via WhatsApp, Messenger ou Instagram."
+---
+
+## Quando ocorre
+
+Este evento é disparado sempre que a SocialSell recebe uma mensagem de um contato — via WhatsApp, Messenger ou Instagram. É um dos eventos mais frequentes e mais úteis para construir integrações em tempo real.
+
+## Casos de uso comuns
+
+- Responder automaticamente com uma mensagem de confirmação ou menu
+- Acionar um fluxo de atendimento em outro sistema
+- Registrar a mensagem em um sistema de tickets (Zendesk, Freshdesk)
+- Notificar o responsável pelo contato quando ele manda mensagem
+- Escalar para atendimento humano se o agente de IA não souber responder
+- Alimentar um sistema de analytics de intenção de compra com o conteúdo das mensagens
+
+## Payload completo
+
+```json
+{
+  "id": "evt_01jxe6f7g8h9i0j1k2l3m4n5o",
+  "event": "message.received",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "created_at": "2026-06-10T15:45:00.000Z",
+  "data": {
+    "id": "664i4j5k6l7m8n9o0p1q2r3s",
+    "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "channel": "whatsapp",
+    "direction": "inbound",
+    "type": "text",
+    "content": "Olá, gostaria de saber mais sobre os planos.",
+    "media_url": null,
+    "media_mime": null,
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999999999",
+      "whatsapp_jid": "5511999999999@s.whatsapp.net"
+    },
+    "whatsapp_instance": {
+      "id": "664h3i4j5k6l7m8n9o0p1q2r",
+      "name": "WhatsApp Principal",
+      "phone": "+5511333344445"
+    },
+    "messenger_page": null,
+    "received_at": "2026-06-10T15:45:00.000Z"
+  }
+}
+```
+
+### Exemplo com mídia (imagem)
+
+```json
+{
+  "data": {
+    "id": "664j5k6l7m8n9o0p1q2r3s4t",
+    "channel": "whatsapp",
+    "type": "image",
+    "content": "Segue o comprovante de pagamento",
+    "media_url": "https://cdn.socialsell.ai/media/664j5k6l7m8n9o0p1q2r3s4t.jpg",
+    "media_mime": "image/jpeg",
+    "contact": { "id": "...", "name": "Ana Costa" },
+    "received_at": "2026-06-10T16:00:00.000Z"
+  }
+}
+```
+
+## Referência de campos
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `data.id` | string | ID da mensagem |
+| `data.conversation_id` | string | ID da conversa na SocialSell |
+| `data.channel` | string | Canal de origem: `whatsapp`, `messenger`, `instagram` |
+| `data.direction` | string | Sempre `inbound` neste evento |
+| `data.type` | string | Tipo da mensagem: `text`, `image`, `video`, `audio`, `document`, `sticker`, `location` |
+| `data.content` | string\|null | Texto da mensagem (ou legenda para mídia) |
+| `data.media_url` | string\|null | URL da mídia, quando aplicável |
+| `data.media_mime` | string\|null | MIME type da mídia (ex: `image/jpeg`) |
+| `data.contact` | object | Remetente: `{id, name, phone, whatsapp_jid}` |
+| `data.whatsapp_instance` | object\|null | Instância WhatsApp que recebeu, se canal = `whatsapp` |
+| `data.messenger_page` | object\|null | Página Messenger que recebeu, se canal = `messenger` |
+| `data.received_at` | string | Timestamp de recebimento |
+
+## Exemplo de handler
+
+```javascript
+if (event === 'message.received') {
+  const { contact, channel, type, content, conversation_id } = data;
+
+  // Notificar responsável se contato tiver responsável atribuído
+  const storedContact = await db.contacts.findById(contact.id);
+  if (storedContact?.assignedMemberId) {
+    await slack.notify(storedContact.assignedMemberId, {
+      text: `💬 Nova mensagem de ${contact.name} via ${channel}: "${content?.substring(0, 100)}"`
+    });
+  }
+
+  // Criar ticket no Zendesk para mensagens de suporte
+  if (content?.toLowerCase().includes('problema') || content?.toLowerCase().includes('erro')) {
+    await zendesk.tickets.create({
+      subject: `Mensagem de ${contact.name}`,
+      description: content,
+      requester: { name: contact.name },
+      tags: ['socialsell', channel],
+      externalId: conversation_id,
+    });
+  }
+
+  // Responder automaticamente fora do horário comercial
+  const hour = new Date().getHours();
+  if (hour < 8 || hour >= 18) {
+    await socialsellApi.sendMessage({
+      contact_id: contact.id,
+      channel,
+      type: 'text',
+      content: 'Recebemos sua mensagem! Nosso horário de atendimento é das 8h às 18h. Retornaremos em breve.',
+    });
+  }
+}
+```

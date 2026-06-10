@@ -1,56 +1,44 @@
 ---
-title: "Visão Geral"
-description: "API pública v1 — integre CRM, conversas e automações da SocialSell com qualquer sistema."
+title: "Bem-vindo à API SocialSell"
+description: "API pública v1 — integre CRM, conversas, disparos e automações da SocialSell com qualquer sistema externo."
 ---
 
-## Bem-vindo à API SocialSell
+A API SocialSell permite que desenvolvedores integrem qualquer sistema ao CRM, inbox multi-canal, funis de venda e automações de IA da SocialSell. Sincronize contatos, dispare mensagens, monitore negócios e reaja a eventos em tempo real.
 
-A API pública v1 da SocialSell permite integrar seu CRM, conversas, negócios e automações com qualquer sistema externo. Use para sincronizar dados, disparar ações e receber eventos em tempo real.
+```bash
+curl https://api.socialsell.ai/v1/contacts \
+  -H "Authorization: Bearer sk_live_sua_chave"
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999999999",
+      "tags": ["cliente", "vip"],
+      "created_at": "2026-01-15T10:30:00.000Z"
+    }
+  ],
+  "meta": { "total": 142, "has_more": true, "next_cursor": "eyJp..." }
+}
+```
+
+## Como a API funciona
 
 <CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/api-reference/quickstart">
-    Faça sua primeira requisição em menos de 5 minutos.
+  <Card title="REST sobre HTTPS" icon="lock">
+    Todos os endpoints seguem o padrão REST. Verbos HTTP representam ações: `GET` lê, `POST` cria, `PATCH` atualiza, `DELETE` remove.
   </Card>
-  <Card title="Autenticação" icon="key" href="/api-reference/authentication">
-    Gere uma API Key e autentique suas requisições.
+  <Card title="JSON em tudo" icon="braces">
+    Corpo das requisições e respostas sempre em `application/json`. Timestamps em ISO 8601. Valores monetários em centavos.
   </Card>
-  <Card title="Erros e Códigos" icon="triangle-alert" href="/api-reference/errors">
-    Entenda o formato de erros e como tratá-los.
+  <Card title="Paginação por cursor" icon="list">
+    Listas retornam `data[]` + `meta.next_cursor`. Passe o cursor na próxima requisição para avançar páginas — sem offset, sem saltos.
   </Card>
-  <Card title="Webhooks" icon="webhook" href="/api-reference/webhooks-guide">
-    Receba eventos em tempo real no seu sistema.
-  </Card>
-</CardGroup>
-
-## Recursos disponíveis
-
-<CardGroup cols={3}>
-  <Card title="Contatos" icon="users" href="/api-reference/contacts/list">
-    CRUD completo, tags e notas
-  </Card>
-  <Card title="Empresas" icon="building" href="/api-reference/companies/list">
-    CRUD completo e tags
-  </Card>
-  <Card title="Negócios" icon="handshake" href="/api-reference/deals/list">
-    Funis de venda, etapas, notas e status
-  </Card>
-  <Card title="Pipelines" icon="kanban" href="/api-reference/pipelines/list">
-    Gerencie funis e etapas
-  </Card>
-  <Card title="Conversas" icon="message-circle" href="/api-reference/conversations/list">
-    Inbox multi-canal
-  </Card>
-  <Card title="Mensagens" icon="send" href="/api-reference/messages/send">
-    Envie via WhatsApp ou Messenger
-  </Card>
-  <Card title="Tarefas" icon="check-square" href="/api-reference/tasks/list">
-    Gerencie atividades da equipe
-  </Card>
-  <Card title="Webhooks" icon="zap" href="/api-reference/webhooks/list">
-    Gerencie assinaturas de eventos
-  </Card>
-  <Card title="Lookup" icon="search" href="/api-reference/lookup/tags">
-    Tags, membros, instâncias e canais
+  <Card title="Eventos em tempo real" icon="zap">
+    Configure webhooks para receber notificações instantâneas de criação de contatos, movimentação de negócios, mensagens recebidas e mais.
   </Card>
 </CardGroup>
 
@@ -60,31 +48,87 @@ A API pública v1 da SocialSell permite integrar seu CRM, conversas, negócios e
 https://api.socialsell.ai/v1
 ```
 
-Todas as requisições devem usar **HTTPS**. O corpo das requisições deve ser `application/json`.
+Todas as requisições devem usar **HTTPS**. Requisições HTTP são rejeitadas.
 
-## Exemplo rápido
+## Autenticação
 
 ```bash
-curl https://api.socialsell.ai/v1/contacts \
-  -H "Authorization: Bearer sk_live_sua_chave_aqui"
+Authorization: Bearer sk_live_sua_chave_aqui
 ```
+
+Gere uma API Key em **Configurações → Developers** no painel. Cada chave possui escopos de permissão granulares — conceda apenas o acesso que sua integração precisa.
+
+## Recursos disponíveis
+
+<CardGroup cols={3}>
+  <Card title="Contatos" icon="users" href="/api-reference/contacts/list">
+    CRUD completo, tags, notas e campos personalizados.
+  </Card>
+  <Card title="Empresas" icon="building" href="/api-reference/companies/list">
+    Vincule contatos a empresas com CRUD e tags.
+  </Card>
+  <Card title="Negócios" icon="handshake" href="/api-reference/deals/list">
+    Gerencie negócios em funis, mova entre etapas, marque como ganho/perdido.
+  </Card>
+  <Card title="Funis de venda" icon="kanban" href="/api-reference/pipelines/list">
+    Crie e configure funis com etapas e probabilidades de fechamento.
+  </Card>
+  <Card title="Conversas" icon="message-circle" href="/api-reference/conversations/list">
+    Inbox multi-canal: WhatsApp, Messenger e Instagram.
+  </Card>
+  <Card title="Mensagens" icon="send" href="/api-reference/messages/send">
+    Envie mensagens de texto, mídia e templates via WhatsApp ou Messenger.
+  </Card>
+  <Card title="Tarefas" icon="check-square" href="/api-reference/tasks/list">
+    Crie e gerencie atividades da equipe de vendas.
+  </Card>
+  <Card title="Agentes de IA" icon="bot" href="/api-reference/ai-agents/list">
+    Configure, publique e monitore agentes de IA de vendas e suporte.
+  </Card>
+  <Card title="Disparos" icon="megaphone" href="/api-reference/broadcasts/list">
+    Campanhas de disparo em massa via WhatsApp com segmentação de audiência.
+  </Card>
+  <Card title="Campos personalizados" icon="sliders" href="/api-reference/custom-fields/list">
+    Crie campos extras em contatos, empresas e negócios.
+  </Card>
+  <Card title="Webhooks" icon="webhook" href="/webhooks/introduction">
+    Receba eventos em tempo real no seu sistema.
+  </Card>
+  <Card title="Créditos de mensagem" icon="coins" href="/api-reference/message-credits/wallet">
+    Saldo, extrato e recarga de créditos para WhatsApp Cloud API.
+  </Card>
+</CardGroup>
+
+## Formato padrão de resposta
+
+Toda resposta bem-sucedida segue o mesmo padrão:
 
 ```json
 {
-  "data": [
-    {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "email": "joao@empresa.com.br",
-      "phone": "+5511999999999",
-      "tags": ["cliente", "vip"],
-      "created_at": "2026-01-15T10:30:00.000Z"
-    }
-  ],
+  "data": { ... },
   "meta": {
-    "total": 142,
-    "has_more": true,
-    "next_cursor": "eyJpZCI6IjY2NGYxYTJiM2M0ZDVlNmY3ODkwMTIzNCIsImNhIjoiMjAyNi0wMS0xNVQxMDozMDowMC4wMDBaIn0"
+    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
   }
 }
 ```
+
+Em listas, `data` é um array e `meta` inclui `total`, `has_more` e `next_cursor`.
+
+Em erros, a resposta tem `error.type`, `error.code` e `error.message` — sempre legível para humanos e tratável por código. Veja a [referência de erros](/api-reference/errors).
+
+## Próximos passos
+
+<CardGroup cols={2}>
+  <Card title="Início Rápido" icon="rocket" href="/api-reference/quickstart">
+    Faça sua primeira requisição em menos de 5 minutos.
+  </Card>
+  <Card title="Autenticação" icon="key" href="/api-reference/authentication">
+    Gere uma API Key e entenda os escopos de permissão.
+  </Card>
+  <Card title="Webhooks" icon="zap" href="/webhooks/introduction">
+    Receba eventos em tempo real sem polling.
+  </Card>
+  <Card title="Referência completa" icon="book" href="/api-reference/contacts/list">
+    Todos os endpoints com exemplos e parâmetros.
+  </Card>
+</CardGroup>

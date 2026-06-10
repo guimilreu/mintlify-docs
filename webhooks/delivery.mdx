@@ -1,0 +1,115 @@
+---
+title: "Política de entregas"
+description: "Como a SocialSell entrega eventos, lida com falhas e gerencia retentativas."
+---
+
+## Garantias de entrega
+
+A SocialSell garante entrega **at-least-once** — o mesmo evento pode ser entregue mais de uma vez em situações de falha de rede ou timeout. Seu sistema deve ser idempotente: use o campo `id` do evento para descartar duplicatas.
+
+```javascript
+const processedEvents = new Set();
+
+function handleEvent(event) {
+  if (processedEvents.has(event.id)) {
+    console.log('Evento duplicado ignorado:', event.id);
+    return;
+  }
+
+  processedEvents.add(event.id);
+  // processar...
+}
+```
+
+<Note>
+Em produção, armazene os IDs processados em um banco de dados persistente (Redis, PostgreSQL, etc.) — um Set em memória é perdido ao reiniciar a aplicação.
+</Note>
+
+## Timeout e resposta esperada
+
+A SocialSell aguarda **10 segundos** pela resposta do seu endpoint. Se não receber resposta em tempo hábil, considera a entrega como falha e agenda uma retentativa.
+
+**Resposta esperada:** qualquer status `2xx` (200, 201, 202, 204).
+
+**Resposta de falha:** qualquer outro status HTTP, timeout ou erro de conexão.
+
+<Tip>
+Responda com `200 OK` o mais rápido possível e processe o evento de forma assíncrona (em uma fila como BullMQ, Celery, RabbitMQ). Isso evita timeouts causados por processamento lento ou chamadas a APIs externas dentro do handler.
+</Tip>
+
+```javascript
+// ✅ Correto: responde imediatamente, processa depois
+app.post('/webhooks/socialsell', (req, res) => {
+  res.status(200).send('OK'); // responde imediatamente
+  queue.add('process-event', req.body); // processa em background
+});
+
+// ❌ Evitar: processa antes de responder (risco de timeout)
+app.post('/webhooks/socialsell', async (req, res) => {
+  await syncContactToERP(req.body.data); // pode demorar > 10s
+  res.status(200).send('OK');
+});
+```
+
+## Política de retentativas
+
+Quando uma entrega falha, a SocialSell tenta novamente com **backoff exponencial**:
+
+| Tentativa | Aguarda |
+|-----------|---------|
+| 1ª | Imediato |
+| 2ª | 5 minutos |
+| 3ª | 30 minutos |
+| 4ª | 2 horas |
+| 5ª | 8 horas |
+
+Após 5 falhas consecutivas, a assinatura é automaticamente pausada (`status: paused`) para proteger o seu sistema de requisições desnecessárias.
+
+## Monitorando falhas
+
+O objeto da assinatura inclui um contador de falhas:
+
+```json
+{
+  "id": "664f1a2b...",
+  "status": "active",
+  "consecutive_failures": 2,
+  "last_failure_at": "2026-06-10T14:00:00.000Z",
+  "last_failure_reason": "Connection timeout"
+}
+```
+
+| Campo | Descrição |
+|-------|-----------|
+| `consecutive_failures` | Falhas consecutivas sem sucesso |
+| `last_failure_at` | Timestamp da última falha |
+| `last_failure_reason` | Motivo da falha (timeout, status HTTP, etc.) |
+
+## Reativando uma assinatura pausada
+
+Após corrigir o problema no seu endpoint, reative a assinatura:
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/webhooks/664f1a2b... \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"status": "active"}'
+```
+
+## Ordem de entrega
+
+Eventos são entregues na ordem em que ocorrem, mas a ordem de entrega não é garantida em caso de retentativas. Por exemplo, se `contact.updated` falhou e está sendo retentado, `contact.updated` mais recente pode ser entregue antes da retentativa.
+
+Projete seu sistema para lidar com eventos fora de ordem usando os campos `created_at` do evento.
+
+## Ambientes e testes
+
+Durante desenvolvimento, use ferramentas como **ngrok**, **localtunnel** ou **webhook.site** para receber eventos localmente:
+
+```bash
+# ngrok expõe localhost:3000 publicamente
+ngrok http 3000
+# Use a URL gerada como endpoint da assinatura
+```
+
+Para testar sem um endpoint público, use o endpoint `/v1/webhooks/:id/test` (disponível no painel) para disparar um evento de exemplo com o payload real.

@@ -1,0 +1,90 @@
+---
+title: "contact.updated"
+description: "Disparado quando os dados de um contato existente são modificados."
+---
+
+## Quando ocorre
+
+Este evento é disparado quando qualquer campo de um contato é atualizado — seja pelo painel, por outro membro da equipe ou por uma integração via API. Isso inclui alterações de nome, e-mail, telefone, responsável, empresa, tags e campos personalizados.
+
+## Casos de uso comuns
+
+- Manter o cadastro do contato sincronizado entre sistemas
+- Detectar quando um responsável muda para reatribuir na sua ferramenta
+- Reagir à adição de tags específicas (ex: tag `qualificado` adicionada → criar negócio no seu sistema)
+- Atualizar segmentos de e-mail marketing quando o perfil muda
+
+## Payload completo
+
+```json
+{
+  "id": "evt_01jx9la4n5o6p7q8r9s0t1u2v",
+  "event": "contact.updated",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "created_at": "2026-06-10T16:30:00.000Z",
+  "data": {
+    "id": "664f1a2b3c4d5e6f78901234",
+    "name": "João Silva",
+    "email": "joao.silva@empresa.com.br",
+    "phone": "+5511999999999",
+    "whatsapp_jid": "5511999999999@s.whatsapp.net",
+    "instagram_username": null,
+    "source": "whatsapp",
+    "assigned_to": {
+      "id": "664a1b2c3d4e5f6789012345",
+      "name": "Maria Santos"
+    },
+    "company": {
+      "id": "664b1c2d3e4f5a6789012346",
+      "name": "Empresa ABC"
+    },
+    "tags": ["cliente", "qualificado"],
+    "custom_fields": {
+      "origem_lead": "Site"
+    },
+    "notes_count": 1,
+    "deals_count": 2,
+    "created_at": "2026-06-10T15:00:00.000Z",
+    "updated_at": "2026-06-10T16:30:00.000Z"
+  }
+}
+```
+
+## Referência de campos
+
+O payload de `contact.updated` contém o **estado completo e atual do contato** após a atualização — não apenas os campos que mudaram.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `data.id` | string | ID do contato |
+| `data.assigned_to` | object\|null | Responsável atual após a atualização |
+| `data.tags` | string[] | Lista completa de tags atual |
+| `data.custom_fields` | object | Todos os campos personalizados com valores atuais |
+| `data.updated_at` | string | Timestamp da última atualização |
+
+<Note>
+O evento não indica quais campos específicos mudaram — contém o objeto completo. Compare com o estado que você armazenou anteriormente para identificar as diferenças.
+</Note>
+
+## Exemplo de handler
+
+```javascript
+if (event === 'contact.updated') {
+  const stored = await db.contacts.findOne({ externalId: data.id });
+  
+  // Detectar mudança de responsável
+  if (stored?.assignedTo !== data.assigned_to?.id) {
+    await notifyTeam(`Contato ${data.name} reatribuído para ${data.assigned_to?.name}`);
+  }
+
+  // Detectar adição de tag específica
+  const wasQualified = stored?.tags?.includes('qualificado');
+  const isNowQualified = data.tags.includes('qualificado');
+  if (!wasQualified && isNowQualified) {
+    await createDealInCRM(data);
+  }
+
+  // Atualizar estado local
+  await db.contacts.upsert({ externalId: data.id, ...data });
+}
+```

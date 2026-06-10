@@ -34,19 +34,53 @@
             "group": "Introdução",
             "pages": [
               "index",
-              "api-reference/quickstart",
-              "api-reference/authentication",
-              "api-reference/errors",
-              "api-reference/pagination"
+              "api-reference/quickstart"
             ]
           },
           {
-            "group": "Guias",
+            "group": "Fundamentos",
             "pages": [
-              "api-reference/rate-limits",
-              "api-reference/webhooks-guide",
+              "api-reference/authentication",
+              "api-reference/scopes",
+              "api-reference/errors",
+              "api-reference/pagination",
               "api-reference/idempotency",
-              "api-reference/scopes"
+              "api-reference/rate-limits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Webhooks",
+        "groups": [
+          {
+            "group": "Visão geral",
+            "pages": [
+              "webhooks/introduction",
+              "webhooks/security",
+              "webhooks/delivery"
+            ]
+          },
+          {
+            "group": "Eventos",
+            "pages": [
+              "webhooks/events/contact-created",
+              "webhooks/events/contact-updated",
+              "webhooks/events/deal-created",
+              "webhooks/events/deal-stage-changed",
+              "webhooks/events/deal-won",
+              "webhooks/events/deal-lost",
+              "webhooks/events/message-received"
+            ]
+          },
+          {
+            "group": "Gerenciar assinaturas",
+            "pages": [
+              "api-reference/webhooks/list",
+              "api-reference/webhooks/get",
+              "api-reference/webhooks/create",
+              "api-reference/webhooks/update",
+              "api-reference/webhooks/delete"
             ]
           }
         ]
@@ -182,16 +216,6 @@
               "api-reference/message-credits/ledger",
               "api-reference/message-credits/auto-topup",
               "api-reference/message-credits/purchase"
-            ]
-          },
-          {
-            "group": "Webhooks",
-            "pages": [
-              "api-reference/webhooks/list",
-              "api-reference/webhooks/get",
-              "api-reference/webhooks/create",
-              "api-reference/webhooks/update",
-              "api-reference/webhooks/delete"
             ]
           },
           {
