@@ -1,0 +1,1886 @@
+---
+title: "Referência de eventos"
+description: "Todos os eventos que a SocialSell entrega, com o payload exato de cada um."
+---
+
+<Info>
+  Esta página é **gerada a partir do catálogo de eventos do servidor**: cada payload abaixo sai da
+  mesma função que monta a entrega em produção. O que está aqui é o que chega no seu endpoint.
+</Info>
+
+Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.won",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": "{ … }"
+}
+```
+
+| Campo | Tipo | Descrição |
+| --- | --- | --- |
+| `id` | string | Identificador único da entrega. Use para deduplicar — a entrega é *at-least-once*. |
+| `type` | string | Nome do evento (ex.: `deal.won`). |
+| `created_at` | string | ISO 8601 do momento em que o evento ocorreu. |
+| `organization_id` | string | Organização dona do evento. |
+| `data` | object | Conteúdo específico do evento — as seções abaixo. |
+
+## Índice
+
+| Evento | O que é |
+| --- | --- |
+| `contact.created` | Contato criado |
+| `contact.updated` | Contato atualizado |
+| `contact.deleted` | Contato excluído |
+| `contact.tag.added` | Etiqueta adicionada ao contato |
+| `contact.tag.removed` | Etiqueta removida do contato |
+| `contact.note.added` | Nota adicionada ao contato |
+| `company.created` | Empresa criada |
+| `company.updated` | Empresa atualizada |
+| `company.deleted` | Empresa excluída |
+| `company.note.added` | Nota adicionada à empresa |
+| `deal.created` | Negócio criado |
+| `deal.stage.changed` | Negócio mudou de etapa |
+| `deal.won` | Negócio ganho |
+| `deal.lost` | Negócio perdido |
+| `deal.assigned` | Negócio atribuído |
+| `deal.pipeline.transferred` | Negócio transferido de funil |
+| `deal.deleted` | Negócio excluído |
+| `deal.note.added` | Nota adicionada ao negócio |
+| `proposal.created` | Proposta criada |
+| `proposal.viewed` | Proposta visualizada |
+| `proposal.accepted` | Proposta aceita |
+| `proposal.rejected` | Proposta recusada |
+| `task.created` | Tarefa criada |
+| `task.completed` | Tarefa concluída |
+| `task.due_soon` | Tarefa vencendo |
+| `task.overdue` | Tarefa atrasada |
+| `conversation.started` | Conversa iniciada |
+| `conversation.reopened` | Conversa reaberta |
+| `conversation.assigned` | Conversa atribuída |
+| `conversation.closed` | Conversa encerrada |
+| `message.received` | Mensagem recebida |
+| `message.sent` | Mensagem enviada |
+| `message.edited` | Mensagem editada |
+| `channel.connected` | Canal conectado |
+| `channel.disconnected` | Canal desconectado |
+| `ai_agent.handoff` | IA passou para humano |
+| `broadcast.completed` | Disparo concluído |
+| `broadcast.failed` | Disparo interrompido |
+| `import.completed` | Importação concluída |
+| `import.failed` | Importação falhou |
+| `team.member.joined` | Membro entrou na equipe |
+| `team.member.left` | Membro saiu da equipe |
+| `credits.low` | Créditos acabando |
+| `credits.depleted` | Créditos esgotados |
+| `billing.payment.confirmed` | Pagamento confirmado |
+| `billing.payment.failed` | Pagamento falhou |
+| `billing.plan.changed` | Plano alterado |
+
+## Contatos
+
+### `contact.created`
+
+Um contato foi criado — pelo painel, pela API, por importação ou pela primeira mensagem recebida.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.created",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": "qualificado",
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `contact.updated`
+
+Um campo do contato mudou. `changed_fields` lista quais.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.updated",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": "qualificado",
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "changed_fields": [
+      "phone",
+      "funnelStage"
+    ]
+  }
+}
+```
+
+### `contact.deleted`
+
+Um contato foi excluído. O payload traz o último estado conhecido, já que o registro não existe mais.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.deleted",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": "qualificado",
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `contact.tag.added`
+
+Uma etiqueta foi aplicada ao contato.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.tag.added",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": "qualificado",
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "tag": "enterprise"
+  }
+}
+```
+
+### `contact.tag.removed`
+
+Uma etiqueta foi retirada do contato.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.tag.removed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": "qualificado",
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "tag": "enterprise"
+  }
+}
+```
+
+### `contact.note.added`
+
+Alguém registrou uma nota no histórico do contato.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.note.added",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": "qualificado",
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "note": {
+      "id": "664b4c5d6e7f8a901234520c",
+      "content": "Cliente pediu para revisar a cláusula de reajuste.",
+      "category": "general",
+      "is_pinned": false,
+      "created_by": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "created_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+## Empresas
+
+### `company.created`
+
+Uma empresa foi cadastrada.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "company.created",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "company": {
+      "id": "664b1c2d3e4f5a6789012346",
+      "name": "Empresa XYZ",
+      "email": "contato@empresaxyz.com.br",
+      "phone": "+551133334444",
+      "website": "https://empresaxyz.com.br",
+      "sector": "Tecnologia",
+      "size": "51-200",
+      "description": "Cliente enterprise da região Sudeste.",
+      "address": null,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "custom_fields": {},
+      "created_at": "2026-06-15T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `company.updated`
+
+Um campo da empresa mudou. `changed_fields` lista quais.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "company.updated",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "company": {
+      "id": "664b1c2d3e4f5a6789012346",
+      "name": "Empresa XYZ",
+      "email": "contato@empresaxyz.com.br",
+      "phone": "+551133334444",
+      "website": "https://empresaxyz.com.br",
+      "sector": "Tecnologia",
+      "size": "51-200",
+      "description": "Cliente enterprise da região Sudeste.",
+      "address": null,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "custom_fields": {},
+      "created_at": "2026-06-15T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "changed_fields": [
+      "phone",
+      "funnelStage"
+    ]
+  }
+}
+```
+
+### `company.deleted`
+
+Uma empresa foi excluída. O payload traz o último estado conhecido.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "company.deleted",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "company": {
+      "id": "664b1c2d3e4f5a6789012346",
+      "name": "Empresa XYZ",
+      "email": "contato@empresaxyz.com.br",
+      "phone": "+551133334444",
+      "website": "https://empresaxyz.com.br",
+      "sector": "Tecnologia",
+      "size": "51-200",
+      "description": "Cliente enterprise da região Sudeste.",
+      "address": null,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "custom_fields": {},
+      "created_at": "2026-06-15T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `company.note.added`
+
+Alguém registrou uma nota no histórico da empresa.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "company.note.added",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "company": {
+      "id": "664b1c2d3e4f5a6789012346",
+      "name": "Empresa XYZ",
+      "email": "contato@empresaxyz.com.br",
+      "phone": "+551133334444",
+      "website": "https://empresaxyz.com.br",
+      "sector": "Tecnologia",
+      "size": "51-200",
+      "description": "Cliente enterprise da região Sudeste.",
+      "address": null,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "custom_fields": {},
+      "created_at": "2026-06-15T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "note": {
+      "id": "664b4c5d6e7f8a901234520c",
+      "content": "Cliente pediu para revisar a cláusula de reajuste.",
+      "category": "general",
+      "is_pinned": false,
+      "created_by": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "created_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+## Negócios
+
+### `deal.created`
+
+Um negócio entrou em algum funil.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.created",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `deal.stage.changed`
+
+O negócio andou (ou voltou) no funil. Traz a etapa anterior e a nova.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.stage.changed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_stage": "Negociação",
+    "new_stage": "Fechamento"
+  }
+}
+```
+
+### `deal.won`
+
+O negócio foi marcado como ganho.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.won",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "reason": "Melhor custo-benefício"
+  }
+}
+```
+
+### `deal.lost`
+
+O negócio foi marcado como perdido.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.lost",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "lost",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": null,
+      "loss_reason": "Preço acima do orçamento",
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "reason": "Preço acima do orçamento"
+  }
+}
+```
+
+### `deal.assigned`
+
+O responsável pelo negócio mudou.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.assigned",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_assignee": {
+      "id": "664a00000000000000000010",
+      "name": "Carlos Lima"
+    },
+    "new_assignee": {
+      "id": "664a0000000000000000000f",
+      "name": "Maria Santos"
+    }
+  }
+}
+```
+
+### `deal.pipeline.transferred`
+
+O negócio saiu de um funil e entrou em outro.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.pipeline.transferred",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_pipeline": "664c1d2e3f4a5b6789012347",
+    "new_pipeline": "664c1d2e3f4a5b6789012399"
+  }
+}
+```
+
+### `deal.deleted`
+
+Um negócio foi excluído. O payload traz o último estado conhecido.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.deleted",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "open",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `deal.note.added`
+
+Alguém registrou uma nota no histórico do negócio.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.note.added",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "note": {
+      "id": "664b4c5d6e7f8a901234520c",
+      "content": "Cliente pediu para revisar a cláusula de reajuste.",
+      "category": "general",
+      "is_pinned": false,
+      "created_by": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "created_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+## Propostas
+
+### `proposal.created`
+
+Uma proposta foi gerada para um negócio.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "proposal.created",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "proposal": {
+      "id": "664a3b4c5d6e7f890123510b",
+      "title": "Proposta — Implantação Empresa XYZ",
+      "internal_code": "PROP-2026-0142",
+      "status": "sent",
+      "subtotal": 52000,
+      "discount_total": 4000,
+      "total": 48000,
+      "currency": "BRL",
+      "valid_until": "2026-09-05T00:00:00.000Z",
+      "payment_terms": "12x sem juros",
+      "public_url": "/p/implantacao-empresa-xyz",
+      "view_count": 3,
+      "sent_at": "2026-08-18T16:00:00.000Z",
+      "viewed_at": "2026-08-19T08:20:00.000Z",
+      "responded_at": null,
+      "created_at": "2026-08-18T15:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q"
+  }
+}
+```
+
+### `proposal.viewed`
+
+O cliente abriu a proposta pela primeira vez. Só dispara na primeira visualização.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "proposal.viewed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "proposal": {
+      "id": "664a3b4c5d6e7f890123510b",
+      "title": "Proposta — Implantação Empresa XYZ",
+      "internal_code": "PROP-2026-0142",
+      "status": "viewed",
+      "subtotal": 52000,
+      "discount_total": 4000,
+      "total": 48000,
+      "currency": "BRL",
+      "valid_until": "2026-09-05T00:00:00.000Z",
+      "payment_terms": "12x sem juros",
+      "public_url": "/p/implantacao-empresa-xyz",
+      "view_count": 3,
+      "sent_at": "2026-08-18T16:00:00.000Z",
+      "viewed_at": "2026-08-19T08:20:00.000Z",
+      "responded_at": null,
+      "created_at": "2026-08-18T15:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q"
+  }
+}
+```
+
+### `proposal.accepted`
+
+O cliente aceitou a proposta na página pública.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "proposal.accepted",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "proposal": {
+      "id": "664a3b4c5d6e7f890123510b",
+      "title": "Proposta — Implantação Empresa XYZ",
+      "internal_code": "PROP-2026-0142",
+      "status": "accepted",
+      "subtotal": 52000,
+      "discount_total": 4000,
+      "total": 48000,
+      "currency": "BRL",
+      "valid_until": "2026-09-05T00:00:00.000Z",
+      "payment_terms": "12x sem juros",
+      "public_url": "/p/implantacao-empresa-xyz",
+      "view_count": 3,
+      "sent_at": "2026-08-18T16:00:00.000Z",
+      "viewed_at": "2026-08-19T08:20:00.000Z",
+      "responded_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-08-18T15:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "responded_by": "João Silva",
+    "message": "Fechado! Pode emitir o contrato."
+  }
+}
+```
+
+### `proposal.rejected`
+
+O cliente recusou a proposta na página pública.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "proposal.rejected",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "proposal": {
+      "id": "664a3b4c5d6e7f890123510b",
+      "title": "Proposta — Implantação Empresa XYZ",
+      "internal_code": "PROP-2026-0142",
+      "status": "accepted",
+      "subtotal": 52000,
+      "discount_total": 4000,
+      "total": 48000,
+      "currency": "BRL",
+      "valid_until": "2026-09-05T00:00:00.000Z",
+      "payment_terms": "12x sem juros",
+      "public_url": "/p/implantacao-empresa-xyz",
+      "view_count": 3,
+      "sent_at": "2026-08-18T16:00:00.000Z",
+      "viewed_at": "2026-08-19T08:20:00.000Z",
+      "responded_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-08-18T15:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "responded_by": "João Silva",
+    "message": "Vamos ficar com outro fornecedor por ora."
+  }
+}
+```
+
+## Tarefas
+
+### `task.created`
+
+Uma tarefa foi criada.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "task.created",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "task": {
+      "id": "664f2a3b4c5d6e789012350a",
+      "title": "Ligar para o João",
+      "description": "Confirmar dados para emissão do contrato.",
+      "type": "call",
+      "priority": "high",
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "is_completed": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "deal": {
+        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "title": "Implantação — Empresa XYZ"
+      },
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "location": null,
+      "video_call_link": null,
+      "created_at": "2026-08-19T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `task.completed`
+
+Uma tarefa foi marcada como concluída.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "task.completed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "task": {
+      "id": "664f2a3b4c5d6e789012350a",
+      "title": "Ligar para o João",
+      "description": "Confirmar dados para emissão do contrato.",
+      "type": "call",
+      "priority": "high",
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "is_completed": true,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "deal": {
+        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "title": "Implantação — Empresa XYZ"
+      },
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "location": null,
+      "video_call_link": null,
+      "created_at": "2026-08-19T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `task.due_soon`
+
+Uma tarefa está perto do prazo. Dispara uma vez por tarefa.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "task.due_soon",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "task": {
+      "id": "664f2a3b4c5d6e789012350a",
+      "title": "Ligar para o João",
+      "description": "Confirmar dados para emissão do contrato.",
+      "type": "call",
+      "priority": "high",
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "is_completed": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "deal": {
+        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "title": "Implantação — Empresa XYZ"
+      },
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "location": null,
+      "video_call_link": null,
+      "created_at": "2026-08-19T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "days_until_due": 2
+  }
+}
+```
+
+### `task.overdue`
+
+Uma tarefa passou do prazo. Dispara uma vez por tarefa.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "task.overdue",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "task": {
+      "id": "664f2a3b4c5d6e789012350a",
+      "title": "Ligar para o João",
+      "description": "Confirmar dados para emissão do contrato.",
+      "type": "call",
+      "priority": "high",
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "is_completed": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "deal": {
+        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "title": "Implantação — Empresa XYZ"
+      },
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "location": null,
+      "video_call_link": null,
+      "created_at": "2026-08-19T09:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "days_overdue": 3
+  }
+}
+```
+
+## Conversas
+
+### `conversation.started`
+
+Uma conversa foi aberta em qualquer canal.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "conversation.started",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "is_closed": false,
+      "is_archived": false,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "source": "whatsapp"
+  }
+}
+```
+
+### `conversation.reopened`
+
+Uma conversa encerrada voltou a receber mensagem ou foi reaberta manualmente.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "conversation.reopened",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "is_closed": false,
+      "is_archived": false,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    }
+  }
+}
+```
+
+### `conversation.assigned`
+
+A conversa passou a ter (ou trocou de) responsável.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "conversation.assigned",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "is_closed": false,
+      "is_archived": false,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_assignee": {
+      "id": "664a00000000000000000010",
+      "name": "Carlos Lima"
+    },
+    "new_assignee": {
+      "id": "664a0000000000000000000f",
+      "name": "Maria Santos"
+    }
+  }
+}
+```
+
+### `conversation.closed`
+
+A conversa foi encerrada.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "conversation.closed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "is_closed": true,
+      "is_archived": false,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "closed_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "closed_by": {
+      "id": "664a0000000000000000000f",
+      "name": "Maria Santos"
+    },
+    "resolution": "resolvido"
+  }
+}
+```
+
+## Mensagens
+
+### `message.received`
+
+O contato mandou uma mensagem — WhatsApp, Instagram, Messenger ou chat do site.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "message.received",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "message": {
+      "id": "664e1f2a3b4c5d6789012349",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "content": "Perfeito, pode enviar o contrato.",
+      "type": "text",
+      "sender": "contact",
+      "sent_by": null,
+      "media": null,
+      "is_internal_note": false,
+      "reactions": [],
+      "sent_at": "2026-08-20T14:30:00.000Z",
+      "edited_at": null
+    },
+    "conversation_id": "664d1e2f3a4b5c6789012348",
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "channel": "whatsapp"
+  }
+}
+```
+
+### `message.sent`
+
+Saiu uma mensagem para o contato — por atendente, automação, agente de IA ou enviada direto do celular conectado. Assine junto com `message.received` para espelhar a conversa inteira.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "message.sent",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "message": {
+      "id": "664e1f2a3b4c5d6789012349",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "content": "Contrato enviado! Qualquer dúvida é só chamar.",
+      "type": "text",
+      "sender": "agent",
+      "sent_by": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "media": null,
+      "is_internal_note": false,
+      "reactions": [],
+      "sent_at": "2026-08-20T14:30:00.000Z",
+      "edited_at": null
+    },
+    "conversation_id": "664d1e2f3a4b5c6789012348",
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "channel": "whatsapp"
+  }
+}
+```
+
+### `message.edited`
+
+Uma mensagem de WhatsApp foi editada. Traz o conteúdo anterior.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "message.edited",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "message": {
+      "id": "664e1f2a3b4c5d6789012349",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "content": "Perfeito, pode enviar o contrato hoje.",
+      "type": "text",
+      "sender": "contact",
+      "sent_by": null,
+      "media": null,
+      "is_internal_note": false,
+      "reactions": [],
+      "sent_at": "2026-08-20T14:30:00.000Z",
+      "edited_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_content": "Perfeito, pode enviar o contrato.",
+    "conversation_id": "664d1e2f3a4b5c6789012348",
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "channel": "whatsapp"
+  }
+}
+```
+
+## Canais
+
+### `channel.connected`
+
+Um canal de atendimento entrou no ar. `channel` diz qual.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "channel.connected",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "channel": "whatsapp",
+    "connection": {
+      "id": "664c0000000000000000001a",
+      "name": "WhatsApp Comercial"
+    }
+  }
+}
+```
+
+### `channel.disconnected`
+
+Um canal de atendimento caiu. É o evento mais importante para monitoramento — enquanto ele estiver fora, nenhuma mensagem entra ou sai por esse canal.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "channel.disconnected",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "channel": "whatsapp",
+    "connection": {
+      "id": "664c0000000000000000001a",
+      "name": "WhatsApp Comercial"
+    },
+    "reason": "sessão encerrada no aparelho"
+  }
+}
+```
+
+## Inteligência artificial
+
+### `ai_agent.handoff`
+
+O agente autopilot decidiu (ou foi obrigado a) devolver a conversa para uma pessoa. É o gancho para acordar um sistema de atendimento externo.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "ai_agent.handoff",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "conversation_id": "664d1e2f3a4b5c6789012348",
+    "agent": {
+      "id": "664c0000000000000000002b",
+      "name": "Agente de Vendas"
+    },
+    "reason": "cliente pediu atendimento humano",
+    "assigned_to": {
+      "id": "664a0000000000000000000f",
+      "name": "Maria Santos"
+    },
+    "team_id": "664c0000000000000000003c"
+  }
+}
+```
+
+## Disparos
+
+### `broadcast.completed`
+
+Um disparo em massa terminou. Traz o consolidado de enviadas, entregues e falhas.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "broadcast.completed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "broadcast": {
+      "id": "664c0000000000000000004d",
+      "name": "Campanha Black Friday",
+      "status": "completed",
+      "stats": {
+        "total": 1200,
+        "sent": 1187,
+        "delivered": 1150,
+        "failed": 13
+      },
+      "duration_ms": 742000
+    }
+  }
+}
+```
+
+### `broadcast.failed`
+
+Um disparo em massa parou por erro ou por acionamento do disjuntor anti-ban.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "broadcast.failed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "broadcast": {
+      "id": "664c0000000000000000004d",
+      "name": "Campanha Black Friday",
+      "status": "failed",
+      "stats": {
+        "total": 1200,
+        "sent": 340,
+        "delivered": 310,
+        "failed": 30
+      }
+    },
+    "reason": "disjuntor anti-ban acionado"
+  }
+}
+```
+
+## Importações
+
+### `import.completed`
+
+Uma importação de contatos terminou.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "import.completed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "import": {
+      "id": "664c0000000000000000005e",
+      "platform": "csv",
+      "results": {
+        "created": 480,
+        "updated": 20,
+        "skipped": 3
+      }
+    }
+  }
+}
+```
+
+### `import.failed`
+
+Uma importação de contatos foi interrompida por erro.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "import.failed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "import": {
+      "id": "664c0000000000000000005e",
+      "platform": "csv"
+    },
+    "error": "Coluna obrigatória ausente: telefone"
+  }
+}
+```
+
+## Equipe
+
+### `team.member.joined`
+
+Alguém passou a fazer parte da organização.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "team.member.joined",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "member": {
+      "id": "664a00000000000000000010",
+      "name": "Carlos Lima",
+      "email": "carlos@empresaxyz.com.br"
+    }
+  }
+}
+```
+
+### `team.member.left`
+
+Alguém deixou de fazer parte da organização.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "team.member.left",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "member": {
+      "id": "664a00000000000000000010",
+      "name": "Carlos Lima",
+      "email": "carlos@empresaxyz.com.br"
+    }
+  }
+}
+```
+
+## Créditos e cobrança
+
+### `credits.low`
+
+O saldo de créditos de IA cruzou o limiar de alerta para baixo. Dispara uma vez por travessia, não a cada consumo.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "credits.low",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "balance": 850,
+    "threshold": 1000
+  }
+}
+```
+
+### `credits.depleted`
+
+O saldo de créditos de IA chegou a zero. Os agentes param de responder até haver recarga.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "credits.depleted",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "balance": 0
+  }
+}
+```
+
+### `billing.payment.confirmed`
+
+Uma cobrança da assinatura foi paga.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "billing.payment.confirmed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "amount": 497,
+    "payment_id": "pay_8fh2n3k4",
+    "plan": "growth"
+  }
+}
+```
+
+### `billing.payment.failed`
+
+Uma cobrança da assinatura venceu sem pagamento. A conta entra em período de tolerância.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "billing.payment.failed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "amount": 497,
+    "payment_id": "pay_8fh2n3k4",
+    "plan": "growth"
+  }
+}
+```
+
+### `billing.plan.changed`
+
+O plano da assinatura mudou.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "billing.plan.changed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "previous_plan": "starter",
+    "new_plan": "growth",
+    "billing_cycle": "monthly"
+  }
+}
+```

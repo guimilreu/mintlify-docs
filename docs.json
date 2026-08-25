@@ -64,13 +64,7 @@
           {
             "group": "Eventos",
             "pages": [
-              "webhooks/events/contact-created",
-              "webhooks/events/contact-updated",
-              "webhooks/events/deal-created",
-              "webhooks/events/deal-stage-changed",
-              "webhooks/events/deal-won",
-              "webhooks/events/deal-lost",
-              "webhooks/events/message-received"
+              "webhooks/events"
             ]
           },
           {
@@ -80,7 +74,11 @@
               "api-reference/webhooks/get",
               "api-reference/webhooks/create",
               "api-reference/webhooks/update",
-              "api-reference/webhooks/delete"
+              "api-reference/webhooks/delete",
+              "api-reference/webhooks/rotate-secret",
+              "api-reference/webhooks/test",
+              "api-reference/webhooks/deliveries",
+              "api-reference/webhooks/redeliver"
             ]
           }
         ]
@@ -258,5 +256,39 @@
     "socials": {
       "instagram": "https://instagram.com/socialsell.ai"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/api-reference/webhooks-guide",
+      "destination": "/webhooks/introduction"
+    },
+    {
+      "source": "/webhooks/events/contact-created",
+      "destination": "/webhooks/events"
+    },
+    {
+      "source": "/webhooks/events/contact-updated",
+      "destination": "/webhooks/events"
+    },
+    {
+      "source": "/webhooks/events/deal-created",
+      "destination": "/webhooks/events"
+    },
+    {
+      "source": "/webhooks/events/deal-stage-changed",
+      "destination": "/webhooks/events"
+    },
+    {
+      "source": "/webhooks/events/deal-won",
+      "destination": "/webhooks/events"
+    },
+    {
+      "source": "/webhooks/events/deal-lost",
+      "destination": "/webhooks/events"
+    },
+    {
+      "source": "/webhooks/events/message-received",
+      "destination": "/webhooks/events"
+    }
+  ]
 }

@@ -1,25 +1,36 @@
 ---
 title: "Segurança e verificação"
-description: "Como validar a assinatura HMAC de cada entrega para garantir que veio da SocialSell."
+description: "Como validar a assinatura HMAC de cada entrega para garantir que ela veio da SocialSell."
 ---
 
-Qualquer pessoa com acesso à URL do seu webhook pode simular uma entrega. Por isso, a SocialSell assina cada requisição com HMAC-SHA256 usando o `secret` da sua assinatura — e você **deve** validar essa assinatura antes de processar qualquer payload.
+Qualquer pessoa que descubra a URL do seu webhook pode simular uma entrega. Por isso a SocialSell assina cada requisição com HMAC-SHA256 usando o `secret` da assinatura — e você **deve** validar antes de processar qualquer payload.
 
-## O header de assinatura
+## Os headers de cada entrega
 
-Cada entrega inclui o header:
+| Header | Exemplo | Para que serve |
+| --- | --- | --- |
+| `X-Webhook-Signature` | `sha256=a1b2c3…` | A assinatura. É o que você valida. |
+| `X-Webhook-Timestamp` | `1755693000` | Epoch em **segundos**. Entra no cálculo da assinatura e permite recusar entregas antigas. |
+| `X-Webhook-Event` | `deal.won` | Nome do evento, para rotear sem parsear o corpo. |
+| `X-Webhook-Id` | `664f1a2b…` | Qual das suas assinaturas gerou esta entrega. |
+| `User-Agent` | `SocialSell-Webhooks/1.0` | Identifica o remetente. |
 
-```
-X-SocialSell-Signature: sha256=a1b2c3d4e5f6789...
-```
-
-O valor é `sha256=` seguido do HMAC-SHA256 do corpo bruto da requisição, usando o `secret` da assinatura como chave.
-
-## Como validar
+## O que é assinado
 
 <Warning>
-Sempre use o corpo **bruto** (raw bytes) da requisição, não o JSON parseado. Re-serializar o JSON pode alterar a assinatura.
+  A assinatura **não** é do corpo sozinho. É do timestamp e do corpo, unidos por um ponto:
+
+  ```
+  assinatura = HMAC_SHA256(secret, "{timestamp}.{corpo_bruto}")
+  ```
+
+  O valor do header vem prefixado por `sha256=`. Incluir o timestamp é o que permite recusar uma
+  entrega capturada e reenviada horas depois.
 </Warning>
+
+Use sempre o corpo **bruto** (bytes), nunca o JSON já parseado: reserializar reordena chaves e muda espaçamento, e a assinatura deixa de bater.
+
+## Como validar
 
 <CodeGroup>
 
@@ -28,37 +39,42 @@ const crypto = require('crypto');
 const express = require('express');
 const app = express();
 
-// Use express.raw() para receber o corpo como Buffer
+const TOLERANCIA_SEGUNDOS = 300; // 5 minutos
+
+// express.raw() entrega o corpo como Buffer, sem parsear
 app.post('/webhooks/socialsell', express.raw({ type: 'application/json' }), (req, res) => {
-  const signature = req.headers['x-socialsell-signature'];
+  const assinatura = req.headers['x-webhook-signature'];
+  const timestamp = req.headers['x-webhook-timestamp'];
   const secret = process.env.SOCIALSELL_WEBHOOK_SECRET;
 
-  if (!isValidSignature(req.body, signature, secret)) {
+  if (!assinaturaValida(req.body, timestamp, assinatura, secret)) {
     return res.status(401).json({ error: 'Assinatura inválida' });
   }
 
-  const event = JSON.parse(req.body);
-  console.log('Evento recebido:', event.event);
+  const evento = JSON.parse(req.body);
+  console.log('Evento recebido:', evento.type);
 
-  // processar evento...
+  // Responda rápido e processe depois
   res.status(200).send('OK');
 });
 
-function isValidSignature(body, signature, secret) {
-  const expected = 'sha256=' + crypto
+function assinaturaValida(corpoBruto, timestamp, assinatura, secret) {
+  if (!assinatura || !timestamp) return false;
+
+  // Rejeita entregas fora da janela — protege contra replay
+  const idade = Math.abs(Math.floor(Date.now() / 1000) - Number(timestamp));
+  if (!Number.isFinite(idade) || idade > TOLERANCIA_SEGUNDOS) return false;
+
+  const esperada = 'sha256=' + crypto
     .createHmac('sha256', secret)
-    .update(body)
+    .update(`${timestamp}.${corpoBruto}`)
     .digest('hex');
 
-  // timingSafeEqual previne timing attacks
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expected)
-    );
-  } catch {
-    return false;
-  }
+  const a = Buffer.from(assinatura);
+  const b = Buffer.from(esperada);
+  // Comparação em tempo constante: `===` vaza, pelo tempo de resposta,
+  // quanto do prefixo estava certo
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 ```
 
@@ -66,104 +82,179 @@ function isValidSignature(body, signature, secret) {
 import hmac
 import hashlib
 import os
+import time
 from flask import Flask, request, abort
 
 app = Flask(__name__)
+TOLERANCIA_SEGUNDOS = 300
 
 @app.route('/webhooks/socialsell', methods=['POST'])
 def webhook():
-    signature = request.headers.get('X-SocialSell-Signature', '')
+    assinatura = request.headers.get('X-Webhook-Signature', '')
+    timestamp = request.headers.get('X-Webhook-Timestamp', '')
     secret = os.environ['SOCIALSELL_WEBHOOK_SECRET'].encode()
 
-    if not is_valid_signature(request.data, signature, secret):
+    if not assinatura_valida(request.data, timestamp, assinatura, secret):
         abort(401)
 
-    event = request.json
-    print(f"Evento recebido: {event['event']}")
-
-    # processar evento...
+    evento = request.json
+    print(f"Evento recebido: {evento['type']}")
     return 'OK', 200
 
-def is_valid_signature(body, signature, secret):
-    expected = 'sha256=' + hmac.new(secret, body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(signature, expected)
+
+def assinatura_valida(corpo_bruto, timestamp, assinatura, secret):
+    if not assinatura or not timestamp:
+        return False
+
+    try:
+        idade = abs(int(time.time()) - int(timestamp))
+    except ValueError:
+        return False
+    if idade > TOLERANCIA_SEGUNDOS:
+        return False
+
+    base = f"{timestamp}.".encode() + corpo_bruto
+    esperada = 'sha256=' + hmac.new(secret, base, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(assinatura, esperada)
 ```
 
-```python Python (Django)
-import hmac
-import hashlib
-import os
-import json
-from django.http import HttpResponse, HttpResponseForbidden
-from django.views.decorators.csrf import csrf_exempt
+```php PHP
+<?php
+$tolerancia = 300;
 
-@csrf_exempt
-def webhook(request):
-    if request.method != 'POST':
-        return HttpResponseForbidden()
+$corpoBruto = file_get_contents('php://input');
+$assinatura = $_SERVER['HTTP_X_WEBHOOK_SIGNATURE'] ?? '';
+$timestamp  = $_SERVER['HTTP_X_WEBHOOK_TIMESTAMP'] ?? '';
+$secret     = getenv('SOCIALSELL_WEBHOOK_SECRET');
 
-    signature = request.headers.get('X-SocialSell-Signature', '')
-    secret = os.environ['SOCIALSELL_WEBHOOK_SECRET'].encode()
+if ($assinatura === '' || $timestamp === '' || abs(time() - (int) $timestamp) > $tolerancia) {
+    http_response_code(401);
+    exit('Assinatura inválida');
+}
 
-    expected = 'sha256=' + hmac.new(secret, request.body, hashlib.sha256).hexdigest()
+$esperada = 'sha256=' . hash_hmac('sha256', $timestamp . '.' . $corpoBruto, $secret);
 
-    if not hmac.compare_digest(signature, expected):
-        return HttpResponseForbidden('Assinatura inválida')
+if (!hash_equals($esperada, $assinatura)) {
+    http_response_code(401);
+    exit('Assinatura inválida');
+}
 
-    event = json.loads(request.body)
-    print(f"Evento recebido: {event['event']}")
+$evento = json_decode($corpoBruto, true);
+error_log('Evento recebido: ' . $evento['type']);
 
-    return HttpResponse('OK')
+http_response_code(200);
+echo 'OK';
 ```
 
-```typescript TypeScript (Fastify)
-import crypto from 'crypto';
-import Fastify from 'fastify';
+```go Go
+package main
 
-const fastify = Fastify();
+import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"io"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+)
 
-fastify.addContentTypeParser(
-  'application/json',
-  { parseAs: 'buffer' },
-  (req, body, done) => done(null, body)
-);
+const toleranciaSegundos = 300
 
-fastify.post('/webhooks/socialsell', (request, reply) => {
-  const signature = request.headers['x-socialsell-signature'] as string;
-  const secret = process.env.SOCIALSELL_WEBHOOK_SECRET!;
-  const body = request.body as Buffer;
+func handler(w http.ResponseWriter, r *http.Request) {
+	corpoBruto, _ := io.ReadAll(r.Body)
+	assinatura := r.Header.Get("X-Webhook-Signature")
+	timestamp := r.Header.Get("X-Webhook-Timestamp")
+	secret := os.Getenv("SOCIALSELL_WEBHOOK_SECRET")
 
-  const expected = 'sha256=' + crypto
-    .createHmac('sha256', secret)
-    .update(body)
-    .digest('hex');
+	ts, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil || abs(time.Now().Unix()-ts) > toleranciaSegundos {
+		http.Error(w, "Assinatura inválida", http.StatusUnauthorized)
+		return
+	}
 
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
-    return reply.status(401).send({ error: 'Assinatura inválida' });
-  }
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write([]byte(timestamp + "."))
+	mac.Write(corpoBruto)
+	esperada := "sha256=" + hex.EncodeToString(mac.Sum(nil))
 
-  const event = JSON.parse(body.toString());
-  console.log('Evento recebido:', event.event);
+	if !hmac.Equal([]byte(esperada), []byte(assinatura)) {
+		http.Error(w, "Assinatura inválida", http.StatusUnauthorized)
+		return
+	}
 
-  reply.status(200).send('OK');
-});
+	var evento struct {
+		Type string `json:"type"`
+	}
+	json.Unmarshal(corpoBruto, &evento)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
+func abs(n int64) int64 {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
 ```
 
 </CodeGroup>
 
+## Testando sua validação
+
+Chame `POST /v1/webhooks/{id}/test` (ou o botão **Testar** no painel) para receber uma entrega real assinada com o seu secret. O evento chega com `type: "webhook.test"` e é entregue **na hora**, sem retentativa — a resposta da chamada traz o status HTTP e o tempo do seu endpoint.
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234/test \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+<Note>
+  O teste só funciona em assinatura **ativa**. Endpoint pausado devolve `409 WEBHOOK_PAUSED` — um teste
+  verde num webhook pausado seria o resultado mais enganoso possível.
+</Note>
+
 ## Erros comuns de validação
 
-| Problema | Causa | Solução |
-|----------|-------|---------|
-| Assinatura sempre inválida | Corpo sendo parseado antes da validação | Use o corpo bruto (raw buffer) |
-| `timingSafeEqual` lançando erro | Strings de tamanho diferente | Confirme que o `secret` está correto |
-| Validação falhando em produção | `secret` com espaços ou quebra de linha | Verifique a variável de ambiente com `trim()` |
-| Funcionou local, falha em produção | Proxy modificando o corpo | Configure o proxy para não modificar o payload |
+| Sintoma | Causa | Correção |
+| --- | --- | --- |
+| Assinatura nunca bate | Assinando só o corpo | A base é `` `${timestamp}.${corpo}` ``, com o ponto |
+| Assinatura nunca bate | Corpo parseado antes de validar | Use os bytes brutos (`express.raw`, `request.data`, `php://input`) |
+| Assinatura nunca bate | Comparando sem o prefixo | O header inclui `sha256=` |
+| `timingSafeEqual` lança | Strings de tamanhos diferentes | Compare o tamanho antes; costuma ser secret errado |
+| Funciona local, falha em produção | Proxy reescrevendo o corpo | Configure o proxy para repassar o corpo intacto |
+| Passou a falhar de repente | Secret rotacionado | Atualize a variável de ambiente com o novo secret |
 
-## Boas práticas de segurança
+## Rotação de secret
 
-- **Sempre valide antes de processar** — nunca confie no payload sem verificar a assinatura
-- **Use `timingSafeEqual`** — previne timing attacks onde um atacante mede o tempo de comparação para adivinhar a assinatura
-- **Armazene o `secret` como variável de ambiente** — nunca no código ou em repositórios
-- **Rejeite com `401`** — não com `200`. Responder com sucesso a payloads inválidos pode confundir sistemas de monitoramento
-- **Rotacione o secret se comprometido** — delete a assinatura e crie uma nova com `POST /v1/webhooks`
+Se o secret vazou, gere um novo sem recriar a assinatura nem perder o histórico:
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234/rotate-secret \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+<Warning>
+  A rotação vale **na hora**: a próxima entrega já vai assinada com o secret novo. Atualize o seu
+  backend antes de rotacionar, ou aceite uma janela curta de entregas rejeitadas — elas serão
+  reentregues pelo mecanismo de retentativa.
+</Warning>
+
+## Como o secret é guardado
+
+Do nosso lado, o `secret` fica **cifrado em repouso** (AES-256-GCM) e nunca é devolvido por nenhum endpoint de leitura — só na criação e na rotação. Nem a listagem nem o detalhe da assinatura trazem o valor.
+
+Do seu lado, trate-o como credencial: variável de ambiente, fora do repositório, e rotacione se houver qualquer suspeita.
+
+## Boas práticas
+
+- **Valide antes de processar.** Nunca confie no payload sem conferir a assinatura.
+- **Use comparação em tempo constante.** `hmac.compare_digest`, `crypto.timingSafeEqual`, `hash_equals`, `hmac.Equal`.
+- **Rejeite entregas velhas.** Uma janela de 5 minutos sobre o `X-Webhook-Timestamp` mata replay.
+- **Responda `401`, não `200`.** Responder sucesso a payload inválido confunde seu próprio monitoramento.
+- **Guarde o secret como variável de ambiente.** Nunca no código nem no repositório.
+- **A URL precisa ser HTTPS pública.** Endereços de rede privada, `localhost` e faixas reservadas são recusados no cadastro e novamente no momento da entrega. Redirects não são seguidos.

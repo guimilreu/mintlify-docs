@@ -1,43 +1,35 @@
 ---
 title: "Introdução aos Webhooks"
-description: "Receba notificações automáticas da SocialSell sempre que algo importante acontecer no seu CRM."
+description: "Receba um POST no seu sistema no instante em que algo acontece na SocialSell."
 ---
 
-Webhooks são a forma mais eficiente de integrar a SocialSell com sistemas externos. Em vez de a sua aplicação ficar perguntando para a API a cada segundo se algo mudou, a SocialSell avisa você imediatamente quando um evento ocorre.
+Em vez de a sua aplicação perguntar de tempos em tempos se algo mudou, a SocialSell avisa: quando o evento acontece, sai um `POST` assinado para a URL que você cadastrou.
 
-> "Pense nos webhooks como mensagens enviadas pela SocialSell para o seu sistema, sem que você precise ficar consultando a API o tempo todo."
+Com isso dá para:
 
-## Por que usar webhooks?
+- Espelhar conversas inteiras em um sistema externo (assinando `message.received` **e** `message.sent`)
+- Sincronizar contatos, empresas e negócios com o ERP ou o CRM interno
+- Ser avisado no instante em que **um canal de atendimento cai** (`channel.disconnected`)
+- Acordar um sistema de atendimento quando a IA devolve a conversa para uma pessoa (`ai_agent.handoff`)
+- Apagar o registro do outro lado quando algo é excluído aqui (`contact.deleted`, `deal.deleted`)
+- Disparar cobrança, contrato ou onboarding em `deal.won` e `proposal.accepted`
+- Monitorar saldo de créditos e status de pagamento antes de virar problema
 
-Sem webhooks, a sua aplicação precisaria fazer **polling** constante:
-
-> "Esse contato foi atualizado?" — não.
-> "E agora?" — não.
-> "E agora?" — sim.
-
-Isso é lento, caro em requisições e ainda assim pode perder eventos. Com webhooks, a SocialSell avisa você **imediatamente** assim que o evento acontece.
-
-Com isso você pode:
-- Sincronizar contatos criados na SocialSell com seu ERP ou CRM interno
-- Atualizar um negócio no seu sistema quando ele é ganho ou perdido
-- Disparar automações (e-mail, Slack, sistemas internos) quando uma mensagem é recebida
-- Registrar movimentações de funil em ferramentas de analytics
-- Acionar integrações via Zapier, n8n, Make ou código próprio
-
-## Como funciona na prática
+## Como funciona
 
 <Steps>
-  <Step title="Crie uma assinatura">
-    Registre um endpoint HTTPS público no seu sistema via `POST /v1/webhooks`, informando os eventos que deseja receber.
+  <Step title="Cadastre um endpoint">
+    Registre uma URL HTTPS pública em `POST /v1/webhooks`, escolhendo os eventos que quer receber.
   </Step>
-  <Step title="A SocialSell envia o evento">
-    Quando o evento ocorrer, a SocialSell faz um `POST` para a sua URL com o payload do evento em JSON.
+  <Step title="Guarde o secret">
+    A resposta da criação traz o `secret`. Ele só aparece nesse momento.
   </Step>
-  <Step title="Você valida e processa">
-    Valide a assinatura HMAC para confirmar que o evento veio da SocialSell, processe o payload e responda com `200 OK`.
+  <Step title="Valide a assinatura">
+    Cada entrega vem assinada em `X-Webhook-Signature`. Confira antes de processar — veja
+    [Segurança e verificação](/webhooks/security).
   </Step>
-  <Step title="Retentativas automáticas">
-    Se seu endpoint não responder ou retornar erro, a SocialSell tentará novamente com backoff exponencial.
+  <Step title="Responda 2xx rápido">
+    Você tem 10 segundos. Responda e processe em background; falhas são retentadas com backoff.
   </Step>
 </Steps>
 
@@ -52,11 +44,9 @@ curl -X POST https://api.socialsell.ai/v1/webhooks \
   -d '{
     "name": "Integração ERP",
     "url": "https://meusistema.com/webhooks/socialsell",
-    "events": ["contact.created", "deal.won", "deal.stage.changed"]
+    "events": ["deal.won", "proposal.accepted", "channel.disconnected"]
   }'
 ```
-
-A resposta inclui o campo `secret` — armazene-o com segurança, pois ele não será exibido novamente:
 
 ```json
 {
@@ -64,64 +54,102 @@ A resposta inclui o campo `secret` — armazene-o com segurança, pois ele não 
     "id": "664f1a2b3c4d5e6f78901234",
     "name": "Integração ERP",
     "url": "https://meusistema.com/webhooks/socialsell",
-    "events": ["contact.created", "deal.won", "deal.stage.changed"],
+    "events": ["deal.won", "proposal.accepted", "channel.disconnected"],
     "status": "active",
     "secret": "whsec_a1b2c3d4e5f6...",
-    "created_at": "2026-06-10T15:00:00.000Z"
+    "last_delivery_at": null,
+    "last_failure_at": null,
+    "consecutive_failures": 0,
+    "created_at": "2026-08-20T14:30:00.000Z",
+    "updated_at": "2026-08-20T14:30:00.000Z"
   }
 }
 ```
 
 <Warning>
-O campo `secret` é retornado **apenas na criação** e não pode ser recuperado depois. Armazene-o imediatamente como variável de ambiente no seu sistema.
+  O `secret` só é devolvido **na criação** e na rotação. Guarde como variável de ambiente na hora. Se
+  perder, use [`POST /v1/webhooks/{id}/rotate-secret`](/api-reference/webhooks/rotate-secret) para
+  gerar outro.
 </Warning>
 
-## Formato do payload
+A URL precisa ser **HTTPS** e resolver para um endereço público — `localhost`, redes privadas e faixas reservadas são recusadas, tanto no cadastro quanto no momento de cada entrega.
 
-Todo evento tem o mesmo envelope:
+## O envelope
+
+Todo evento chega no mesmo formato:
 
 ```json
 {
-  "id": "evt_01jx8kz3m4n5p6q7r8s9t0u1v",
-  "event": "deal.won",
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.won",
+  "created_at": "2026-08-20T14:30:00.000Z",
   "organization_id": "664a1b2c3d4e5f6789012345",
-  "created_at": "2026-06-10T15:30:00.000Z",
   "data": {
-    ...
+    "deal": { "id": "664g2h3i...", "title": "Implantação — Empresa XYZ", "value": 48000, "status": "won" },
+    "reason": "Melhor custo-benefício"
   }
 }
 ```
 
 | Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | string | ID único do evento — use para deduplicação |
-| `event` | string | Nome do evento (ex: `deal.won`) |
-| `organization_id` | string | ID da organização |
-| `created_at` | string | Timestamp ISO 8601 do momento do evento |
-| `data` | object | Payload específico do evento |
+| --- | --- | --- |
+| `id` | string | Identificador único da entrega. Use para deduplicar. |
+| `type` | string | Nome do evento. |
+| `created_at` | string | ISO 8601 do momento do evento. |
+| `organization_id` | string | Organização dona do evento. |
+| `data` | object | Conteúdo específico do evento. |
+
+<Note>
+  Dentro de `data`, o recurso vem **nomeado** (`data.deal`, `data.contact`, `data.task`) e no mesmo
+  formato que a API v1 devolve nos endpoints de leitura. Quem já consome a API não precisa aprender um
+  segundo formato.
+</Note>
 
 ## Eventos disponíveis
 
-| Evento | Descrição |
-|--------|-----------|
-| [`contact.created`](/webhooks/events/contact-created) | Um novo contato foi criado |
-| [`contact.updated`](/webhooks/events/contact-updated) | Um contato foi atualizado |
-| [`deal.created`](/webhooks/events/deal-created) | Um novo negócio foi criado |
-| [`deal.stage.changed`](/webhooks/events/deal-stage-changed) | Um negócio mudou de etapa no funil |
-| [`deal.won`](/webhooks/events/deal-won) | Um negócio foi marcado como ganho |
-| [`deal.lost`](/webhooks/events/deal-lost) | Um negócio foi marcado como perdido |
-| [`message.received`](/webhooks/events/message-received) | Uma mensagem foi recebida de um contato |
+São **47 eventos**, em 13 grupos. A [referência de eventos](/webhooks/events) traz o payload exato de cada um.
+
+| Grupo | Cobre |
+| --- | --- |
+| Contatos | criação, atualização, exclusão, etiquetas e notas |
+| Empresas | criação, atualização, exclusão e notas |
+| Negócios | criação, etapa, ganho, perdido, responsável, funil, exclusão e notas |
+| Propostas | criada, visualizada, aceita e recusada |
+| Tarefas | criada, concluída, vencendo e atrasada |
+| Conversas | iniciada, reaberta, atribuída e encerrada |
+| Mensagens | recebida, enviada e editada |
+| Canais | conectado e desconectado (WhatsApp, Instagram, Messenger) |
+| Inteligência artificial | handoff do agente para humano |
+| Disparos | concluído e interrompido |
+| Importações | concluída e falhou |
+| Equipe | membro entrou e saiu |
+| Créditos e cobrança | saldo baixo, saldo zerado, pagamento e troca de plano |
+
+## Limites por plano
+
+| Plano | Endpoints |
+| --- | --- |
+| Starter | — (webhooks não disponíveis) |
+| Growth | 3 |
+| Scale | 10 |
+| Enterprise | 25 |
+
+Cada endpoint pode assinar quantos eventos quiser. Se a organização passar para um plano sem webhooks, os endpoints são pausados e a organização é avisada no painel.
+
+## Gerenciando pelo painel
+
+Tudo o que a API faz também está em **Configurações → Desenvolvedores → Webhooks**: criar, editar, pausar, rotacionar secret, disparar evento de teste, ver o log de entregas e reenviar. Precisa da permissão `manage_api_keys`.
 
 ## Próximos passos
 
 <CardGroup cols={3}>
+  <Card title="Referência de eventos" icon="list" href="/webhooks/events">
+    Os 47 eventos com o payload exato de cada um.
+  </Card>
   <Card title="Segurança" icon="shield" href="/webhooks/security">
-    Como validar a assinatura HMAC de cada entrega.
+    Validar a assinatura HMAC em Node, Python, PHP e Go.
   </Card>
-  <Card title="Política de entregas" icon="refresh-cw" href="/webhooks/delivery">
-    Timeouts, retentativas e desativação automática.
-  </Card>
-  <Card title="Gerenciar assinaturas" icon="settings" href="/api-reference/webhooks/list">
-    Endpoints CRUD para gerenciar suas assinaturas.
+  <Card title="Política de entregas" icon="rotate-cw" href="/webhooks/delivery">
+    Timeout, retentativas, pausa automática e reenvio.
   </Card>
 </CardGroup>

@@ -1,0 +1,81 @@
+---
+title: "Listar entregas"
+description: "Histórico das entregas de uma assinatura, com cada tentativa e o payload enviado."
+---
+
+## Endpoint
+
+```
+GET /v1/webhooks/{id}/deliveries
+```
+
+**Escopo necessário:** `read:webhooks`
+
+Devolve as entregas mais recentes primeiro. O histórico é mantido por **15 dias**.
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Padrão | Descrição |
+| --- | --- | --- | --- |
+| `limit` | integer | `50` | Quantas entregas retornar (1 a 200) |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234/deliveries?limit=20" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664e1a2b3c4d5e6f78901299",
+      "event_id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+      "event_type": "deal.won",
+      "status": "failed",
+      "url": "https://meusistema.com/webhooks/socialsell",
+      "attempts": [
+        { "at": "2026-08-20T14:30:00.000Z", "status_code": 502, "error": "HTTP 502", "duration_ms": 431 },
+        { "at": "2026-08-20T14:31:02.000Z", "status_code": null, "error": "Timeout após 10s", "duration_ms": 10004 }
+      ],
+      "attempts_count": 2,
+      "last_attempt_at": "2026-08-20T14:31:02.000Z",
+      "redelivery_of": null,
+      "created_at": "2026-08-20T14:30:00.000Z"
+    }
+  ],
+  "meta": {
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+## Objeto entrega
+
+| Campo | Tipo | Descrição |
+| --- | --- | --- |
+| `id` | string | ID da entrega — use no [reenvio](/api-reference/webhooks/redeliver) |
+| `event_id` | string | O `id` do evento que foi entregue. É o mesmo em todas as tentativas e no reenvio. |
+| `event_type` | string | Nome do evento |
+| `status` | string | `pending`, `success` ou `failed` |
+| `url` | string | URL usada naquela entrega |
+| `attempts` | array | Uma linha por tentativa, com status HTTP, erro e duração |
+| `attempts_count` | integer | Número de tentativas feitas |
+| `last_attempt_at` | string | Momento da última tentativa |
+| `redelivery_of` | string \| null | ID da entrega original, quando este registro é um reenvio |
+| `created_at` | string | Quando o evento foi despachado |
+
+<Note>
+  O payload completo enviado fica guardado junto com o registro e é apagado com ele, após 15 dias.
+</Note>
+
+## Erros
+
+| Status | Código | Quando acontece |
+| --- | --- | --- |
+| `400` | `INVALID_ID` | O `id` não é um identificador válido |
+| `404` | `NOT_FOUND` | A assinatura não existe nesta organização |

@@ -9,7 +9,7 @@ description: "Retorna todas as assinaturas de webhook da organização."
 GET /v1/webhooks
 ```
 
-**Escopo necessário:** `read:webhooks` — disponível nos planos **Growth e Scale**
+**Escopo necessário:** `read:webhooks` — disponível a partir do plano **Growth**
 
 ## Exemplo de requisição
 
@@ -27,7 +27,7 @@ curl "https://api.socialsell.ai/v1/webhooks" \
       "id": "664m8n9o0p1q2r3s4t5u6v7w",
       "name": "Notificações ERP",
       "url": "https://meusistema.com/webhook/socialsell",
-      "events": ["contact.created", "deal.won", "deal.stage.changed"],
+      "events": ["deal.won", "deal.stage.changed", "channel.disconnected"],
       "status": "active",
       "last_delivery_at": "2026-06-10T15:50:00.000Z",
       "last_failure_at": null,

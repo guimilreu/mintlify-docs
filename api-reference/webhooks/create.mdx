@@ -21,15 +21,13 @@ POST /v1/webhooks
 
 ### Eventos disponíveis
 
-| Evento | Descrição |
-|--------|-----------|
-| `contact.created` | Novo contato criado |
-| `contact.updated` | Contato atualizado |
-| `deal.created` | Novo negócio criado |
-| `deal.stage.changed` | Negócio mudou de etapa |
-| `deal.won` | Negócio marcado como ganho |
-| `deal.lost` | Negócio marcado como perdido |
-| `message.received` | Nova mensagem recebida de contato |
+São 47 eventos, em 13 grupos. A [referência de eventos](/webhooks/events) lista todos com o payload
+exato de cada um. Um evento fora da lista faz a requisição falhar com `validation_error`.
+
+<Note>
+  A URL precisa ser **HTTPS** e resolver para um endereço público. `localhost`, redes privadas e faixas
+  reservadas são recusadas com `422 SSRF_BLOCKED`, tanto aqui quanto no momento de cada entrega.
+</Note>
 
 ## Exemplo de requisição
 
@@ -40,7 +38,7 @@ curl -X POST https://api.socialsell.ai/v1/webhooks \
   -d '{
     "name": "Integração CRM Interno",
     "url": "https://meusistema.com/webhook/socialsell",
-    "events": ["contact.created", "contact.updated", "deal.won"]
+    "events": ["deal.won", "proposal.accepted", "channel.disconnected"]
   }'
 ```
 
@@ -52,7 +50,7 @@ curl -X POST https://api.socialsell.ai/v1/webhooks \
     "id": "664m8n9o0p1q2r3s4t5u6v7w",
     "name": "Integração CRM Interno",
     "url": "https://meusistema.com/webhook/socialsell",
-    "events": ["contact.created", "contact.updated", "deal.won"],
+    "events": ["deal.won", "proposal.accepted", "channel.disconnected"],
     "status": "active",
     "secret": "whsec_a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
     "last_delivery_at": null,
@@ -72,4 +70,12 @@ O campo `secret` é exibido **apenas nesta resposta**. Armazene-o imediatamente 
 
 ## Validando entregas
 
-Use o `secret` para verificar a autenticidade de cada requisição recebida. Veja o [Guia de Webhooks](/api-reference/webhooks-guide#validando-a-assinatura) para exemplos de código.
+Use o `secret` para conferir a assinatura de cada requisição recebida. Os exemplos em Node, Python, PHP e Go estão em [Segurança e verificação](/webhooks/security).
+
+## Erros
+
+| Status | Código | Quando acontece |
+| --- | --- | --- |
+| `400` | — | `name`, `url` ou `events` ausente ou inválido; evento fora do catálogo |
+| `403` | `WEBHOOK_LIMIT_REACHED` | Limite de endpoints do plano atingido, ou plano sem direito a webhooks |
+| `422` | `SSRF_BLOCKED` | URL não-HTTPS, com credenciais embutidas, ou apontando para rede privada |

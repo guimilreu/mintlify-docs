@@ -1,0 +1,77 @@
+---
+title: "Enviar evento de teste"
+description: "Dispara uma entrega real assinada para conferir seu endpoint antes de depender dele."
+---
+
+## Endpoint
+
+```
+POST /v1/webhooks/{id}/test
+```
+
+**Escopo necessário:** `write:webhooks`
+
+Envia um evento `webhook.test` para a URL da assinatura, com a **mesma assinatura HMAC** das entregas reais. A chamada é síncrona e sem retentativa: a resposta traz o status HTTP e o tempo do seu endpoint na hora.
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234/test \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Resposta quando o endpoint respondeu
+
+```json
+{
+  "data": {
+    "success": true,
+    "status_code": 200,
+    "duration_ms": 187,
+    "event_id": "evt_3c1a7b4e8d0c3a5b6f7e8192"
+  }
+}
+```
+
+## Resposta quando o endpoint falhou
+
+O endpoint devolve `200` mesmo assim — a falha é do seu servidor, não da chamada:
+
+```json
+{
+  "data": {
+    "success": false,
+    "status_code": 401,
+    "duration_ms": 92,
+    "error": "HTTP 401",
+    "event_id": "evt_3c1a7b4e8d0c3a5b6f7e8192"
+  }
+}
+```
+
+## O que chega no seu endpoint
+
+```json
+{
+  "id": "evt_3c1a7b4e8d0c3a5b6f7e8192",
+  "type": "webhook.test",
+  "created_at": "2026-08-20T15:10:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "message": "Evento de teste enviado pelo SocialSell. Se você recebeu este POST com assinatura válida, seu endpoint está pronto."
+  }
+}
+```
+
+<Note>
+  `webhook.test` não é assinável: ele nunca chega sozinho e só sai por esta chamada. A entrega fica
+  registrada no [log de entregas](/api-reference/webhooks/deliveries) como qualquer outra.
+</Note>
+
+## Erros
+
+| Status | Código | Quando acontece |
+| --- | --- | --- |
+| `400` | `INVALID_ID` | O `id` não é um identificador válido |
+| `404` | `NOT_FOUND` | A assinatura não existe nesta organização |
+| `409` | `WEBHOOK_PAUSED` | A assinatura está pausada — reative antes de testar |

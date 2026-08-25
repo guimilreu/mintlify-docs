@@ -1,115 +1,188 @@
 ---
 title: "Política de entregas"
-description: "Como a SocialSell entrega eventos, lida com falhas e gerencia retentativas."
+description: "Timeouts, retentativas, pausa automática e o log de entregas."
 ---
 
-## Garantias de entrega
+## Garantia de entrega
 
-A SocialSell garante entrega **at-least-once** — o mesmo evento pode ser entregue mais de uma vez em situações de falha de rede ou timeout. Seu sistema deve ser idempotente: use o campo `id` do evento para descartar duplicatas.
+A entrega é **at-least-once**: o mesmo evento pode chegar mais de uma vez em falha de rede, timeout ou reenvio manual. Seu sistema precisa ser idempotente — use o campo `id` do evento para descartar duplicatas.
 
 ```javascript
-const processedEvents = new Set();
+async function processar(evento) {
+  // `id` é único por entrega e se repete nas retentativas do MESMO evento
+  const novo = await db.eventos.insertIfAbsent(evento.id);
+  if (!novo) return; // já processado
 
-function handleEvent(event) {
-  if (processedEvents.has(event.id)) {
-    console.log('Evento duplicado ignorado:', event.id);
-    return;
-  }
-
-  processedEvents.add(event.id);
-  // processar...
+  // ...
 }
 ```
 
 <Note>
-Em produção, armazene os IDs processados em um banco de dados persistente (Redis, PostgreSQL, etc.) — um Set em memória é perdido ao reiniciar a aplicação.
+  Guarde os ids em armazenamento persistente (Redis, Postgres). Um `Set` em memória some no restart e
+  a deduplicação vai junto.
 </Note>
 
 ## Timeout e resposta esperada
 
-A SocialSell aguarda **10 segundos** pela resposta do seu endpoint. Se não receber resposta em tempo hábil, considera a entrega como falha e agenda uma retentativa.
+A SocialSell aguarda **10 segundos**. Passou disso, a entrega conta como falha e entra na fila de retentativa.
 
-**Resposta esperada:** qualquer status `2xx` (200, 201, 202, 204).
-
-**Resposta de falha:** qualquer outro status HTTP, timeout ou erro de conexão.
+- **Sucesso:** qualquer `2xx` (200, 201, 202, 204).
+- **Falha:** qualquer outro status, timeout ou erro de conexão.
+- **Redirects não são seguidos.** Um `3xx` conta como falha — um 302 apontando para IP interno seria um caminho de SSRF, então a requisição para ali.
 
 <Tip>
-Responda com `200 OK` o mais rápido possível e processe o evento de forma assíncrona (em uma fila como BullMQ, Celery, RabbitMQ). Isso evita timeouts causados por processamento lento ou chamadas a APIs externas dentro do handler.
+  Responda `200` imediatamente e processe em background (BullMQ, Celery, SQS). Processar antes de
+  responder é a causa nº 1 de timeout em integração de webhook.
 </Tip>
 
 ```javascript
-// ✅ Correto: responde imediatamente, processa depois
+// ✅ responde primeiro, processa depois
 app.post('/webhooks/socialsell', (req, res) => {
-  res.status(200).send('OK'); // responde imediatamente
-  queue.add('process-event', req.body); // processa em background
+  res.status(200).send('OK');
+  fila.add('processar-evento', req.body);
 });
 
-// ❌ Evitar: processa antes de responder (risco de timeout)
+// ❌ pode estourar os 10 segundos
 app.post('/webhooks/socialsell', async (req, res) => {
-  await syncContactToERP(req.body.data); // pode demorar > 10s
+  await sincronizarComErp(req.body.data);
   res.status(200).send('OK');
 });
 ```
 
-## Política de retentativas
+## Retentativas
 
-Quando uma entrega falha, a SocialSell tenta novamente com **backoff exponencial**:
+Cada entrega tem até **5 tentativas**, com backoff exponencial de base 60 segundos:
 
-| Tentativa | Aguarda |
-|-----------|---------|
-| 1ª | Imediato |
-| 2ª | 5 minutos |
-| 3ª | 30 minutos |
-| 4ª | 2 horas |
-| 5ª | 8 horas |
+| Tentativa | Espera desde a falha anterior | Tempo acumulado |
+| --- | --- | --- |
+| 1ª | imediata | 0 |
+| 2ª | ~1 minuto | ~1 min |
+| 3ª | ~2 minutos | ~3 min |
+| 4ª | ~4 minutos | ~7 min |
+| 5ª | ~8 minutos | ~15 min |
 
-Após 5 falhas consecutivas, a assinatura é automaticamente pausada (`status: paused`) para proteger o seu sistema de requisições desnecessárias.
+Depois da 5ª, a entrega é marcada como `failed` e conta **uma** falha para a assinatura.
 
-## Monitorando falhas
+<Warning>
+  A janela total de recuperação automática é de cerca de **15 minutos**. Se o seu endpoint fica fora
+  por mais tempo que isso, use o [reenvio manual](#reenvio-manual) depois de restabelecer o serviço —
+  o log guarda as entregas dos últimos 15 dias.
+</Warning>
 
-O objeto da assinatura inclui um contador de falhas:
+## Cadência por organização
 
-```json
-{
-  "id": "664f1a2b...",
-  "status": "active",
-  "consecutive_failures": 2,
-  "last_failure_at": "2026-06-10T14:00:00.000Z",
-  "last_failure_reason": "Connection timeout"
-}
-```
+Para que um volume grande de uma organização não atrase as entregas das outras, cada organização tem uma cadência própria: **100 entregas por minuto**.
 
-| Campo | Descrição |
-|-------|-----------|
-| `consecutive_failures` | Falhas consecutivas sem sucesso |
-| `last_failure_at` | Timestamp da última falha |
-| `last_failure_reason` | Motivo da falha (timeout, status HTTP, etc.) |
+O que passa disso **não é descartado** — ganha um atraso e sai em seguida, na ordem. Uma importação de 5.000 contatos, por exemplo, é entregue ao longo de cerca de 50 minutos, e nesse meio-tempo os webhooks de outras organizações seguem saindo normalmente.
 
-## Reativando uma assinatura pausada
+<Note>
+  Reenvio manual e evento de teste **não** entram nessa cadência: são ações pontuais e saem na hora.
+</Note>
 
-Após corrigir o problema no seu endpoint, reative a assinatura:
+## Pausa automática
+
+Depois de **10 falhas consecutivas** (10 entregas que esgotaram as 5 tentativas), a assinatura é pausada automaticamente e a organização recebe uma notificação no painel. Uma entrega bem-sucedida zera o contador.
+
+A assinatura também é pausada se o plano da organização deixar de incluir webhooks — webhooks exigem plano **Growth ou superior**.
+
+Para reativar, corrija o endpoint e mande:
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/webhooks/664f1a2b... \
+curl -X PATCH https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234 \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"status": "active"}'
 ```
 
-## Ordem de entrega
+Reativar zera o contador de falhas.
 
-Eventos são entregues na ordem em que ocorrem, mas a ordem de entrega não é garantida em caso de retentativas. Por exemplo, se `contact.updated` falhou e está sendo retentado, `contact.updated` mais recente pode ser entregue antes da retentativa.
+## Acompanhando a saúde
 
-Projete seu sistema para lidar com eventos fora de ordem usando os campos `created_at` do evento.
+O objeto da assinatura traz o estado atual:
 
-## Ambientes e testes
-
-Durante desenvolvimento, use ferramentas como **ngrok**, **localtunnel** ou **webhook.site** para receber eventos localmente:
-
-```bash
-# ngrok expõe localhost:3000 publicamente
-ngrok http 3000
-# Use a URL gerada como endpoint da assinatura
+```json
+{
+  "id": "664f1a2b3c4d5e6f78901234",
+  "name": "Integração ERP",
+  "url": "https://meusistema.com/webhooks/socialsell",
+  "events": ["deal.won", "channel.disconnected"],
+  "status": "active",
+  "last_delivery_at": "2026-08-20T14:30:00.000Z",
+  "last_failure_at": null,
+  "consecutive_failures": 0,
+  "created_at": "2026-07-01T10:00:00.000Z",
+  "updated_at": "2026-08-20T14:30:00.000Z"
+}
 ```
 
-Para testar sem um endpoint público, use o endpoint `/v1/webhooks/:id/test` (disponível no painel) para disparar um evento de exemplo com o payload real.
+| Campo | Descrição |
+| --- | --- |
+| `status` | `active` ou `paused` |
+| `consecutive_failures` | Falhas seguidas sem nenhum sucesso. Chegou a 10, pausa. |
+| `last_delivery_at` | Última entrega bem-sucedida |
+| `last_failure_at` | Última falha final |
+
+## Log de entregas
+
+Toda entrega fica registrada por **15 dias**, com o payload enviado e cada tentativa:
+
+```bash
+curl https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234/deliveries?limit=50 \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+```json
+{
+  "data": [
+    {
+      "id": "664e1a2b3c4d5e6f78901299",
+      "event_id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+      "event_type": "deal.won",
+      "status": "failed",
+      "url": "https://meusistema.com/webhooks/socialsell",
+      "attempts": [
+        { "at": "2026-08-20T14:30:00.000Z", "status_code": 502, "error": "HTTP 502", "duration_ms": 431 },
+        { "at": "2026-08-20T14:31:02.000Z", "status_code": null, "error": "Timeout após 10s", "duration_ms": 10004 }
+      ],
+      "attempts_count": 2,
+      "last_attempt_at": "2026-08-20T14:31:02.000Z",
+      "redelivery_of": null,
+      "created_at": "2026-08-20T14:30:00.000Z"
+    }
+  ]
+}
+```
+
+<Note>
+  O log guarda o payload completo, que inclui dados pessoais do contato. Ele é apagado
+  automaticamente após 15 dias.
+</Note>
+
+## Reenvio manual
+
+Qualquer entrega do log pode ser reenviada. O reenvio cria um novo ciclo — com as 5 tentativas — usando **o payload original**, e aponta para a entrega de origem em `redelivery_of`:
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks/deliveries/664e1a2b3c4d5e6f78901299/redeliver \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+O `id` do evento é preservado — do seu lado, a deduplicação por `id` continua funcionando e um reenvio não vira registro duplicado.
+
+<Note>
+  Reenvio exige assinatura ativa. Endpoint pausado devolve `409 WEBHOOK_PAUSED`.
+</Note>
+
+## Ordem de entrega
+
+Eventos são despachados na ordem em que acontecem, mas **a ordem de chegada não é garantida** — retentativas e concorrência entre entregas reordenam. Não assuma sequência: use o `created_at` do evento para reconstruir a linha do tempo e descarte atualizações mais velhas que o estado que você já tem.
+
+## Testando durante o desenvolvimento
+
+A URL precisa ser HTTPS pública. Para receber localmente, exponha sua máquina com um túnel:
+
+```bash
+ngrok http 3000
+```
+
+Use a URL gerada como endpoint da assinatura. Para conferir a validação sem escrever código, o endpoint `POST /v1/webhooks/{id}/test` dispara uma entrega assinada de verdade e devolve na hora o status HTTP e a duração do seu endpoint.

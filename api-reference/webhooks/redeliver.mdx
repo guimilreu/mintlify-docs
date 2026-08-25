@@ -1,0 +1,57 @@
+---
+title: "Reenviar entrega"
+description: "Reenvia uma entrega do histórico com o payload original."
+---
+
+## Endpoint
+
+```
+POST /v1/webhooks/deliveries/{deliveryId}/redeliver
+```
+
+**Escopo necessário:** `write:webhooks`
+
+Cria um novo ciclo de entrega — com as 5 tentativas e o mesmo backoff — usando **o payload original**. Serve para recuperar eventos perdidos enquanto seu endpoint estava fora do ar por mais tempo que a janela de retentativa automática (~15 minutos).
+
+## Exemplo de requisição
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks/deliveries/664e1a2b3c4d5e6f78901299/redeliver \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+Retorna `HTTP 202` — o reenvio foi agendado, não concluído:
+
+```json
+{
+  "data": {
+    "id": "664e1a2b3c4d5e6f7890129a",
+    "event_id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+    "event_type": "deal.won",
+    "status": "pending",
+    "url": "https://meusistema.com/webhooks/socialsell",
+    "attempts": [],
+    "attempts_count": 0,
+    "last_attempt_at": null,
+    "redelivery_of": "664e1a2b3c4d5e6f78901299",
+    "created_at": "2026-08-20T15:20:00.000Z"
+  }
+}
+```
+
+<Note>
+  O `event_id` é preservado. Se você deduplica por `event_id` — e deve —, um reenvio não vira registro
+  duplicado do seu lado.
+</Note>
+
+O reenvio usa a **URL atual** da assinatura, não a URL do momento da entrega original. Se você trocou o endereço, o reenvio vai para o novo endereço.
+
+## Erros
+
+| Status | Código | Quando acontece |
+| --- | --- | --- |
+| `400` | `INVALID_ID` | O `deliveryId` não é um identificador válido |
+| `404` | `NOT_FOUND` | A entrega ou a assinatura não existe nesta organização |
+| `409` | `WEBHOOK_PAUSED` | A assinatura está pausada — reative antes de reenviar |
