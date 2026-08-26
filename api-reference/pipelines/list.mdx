@@ -37,7 +37,9 @@ curl "https://api.socialsell.ai/v1/pipelines" \
           "color": "#6366F1",
           "win_probability": 10,
           "stalling_enabled": false,
-          "stalling_days": null
+          "stalling_days": null,
+          "deals_count": 12,
+          "deals_value": 24000
         },
         {
           "id": "664e1a2b3c4d5e6f78901231",
@@ -67,10 +69,8 @@ curl "https://api.socialsell.ai/v1/pipelines" \
           "stalling_days": 3
         }
       ],
-      "deals_count": 45,
-      "won_count": 12,
-      "after_won": null,
-      "after_lost": null,
+      "total_deals": 45,
+      "total_value": 128000,
       "created_at": "2026-01-01T00:00:00.000Z",
       "updated_at": "2026-05-01T00:00:00.000Z"
     }
@@ -92,10 +92,10 @@ curl "https://api.socialsell.ai/v1/pipelines" \
 | `is_default` | boolean | Se é o funil padrão |
 | `is_active` | boolean | Se está ativo |
 | `stages` | array | Lista de etapas ordenadas |
-| `deals_count` | integer | Total de negócios |
-| `won_count` | integer | Negócios ganhos |
-| `after_won` | object\|null | Ação após ganhar negócio |
-| `after_lost` | object\|null | Ação após perder negócio |
+| `total_deals` | integer | Negócios **abertos** no funil |
+| `total_value` | number | Soma do valor dos negócios **abertos** |
+| `created_at` | string | Criação |
+| `updated_at` | string | Última atualização |
 
 ## Objeto stage
 
@@ -108,3 +108,24 @@ curl "https://api.socialsell.ai/v1/pipelines" \
 | `win_probability` | integer | Probabilidade de fechamento (0–100) |
 | `stalling_enabled` | boolean | Se alerta de estagnação está ativo |
 | `stalling_days` | integer\|null | Dias sem movimentação para alertar |
+| `deals_count` | integer | Negócios **abertos** nesta etapa |
+| `deals_value` | number | Soma do valor dos negócios **abertos** nesta etapa |
+
+<Note>
+  Todas as métricas — `total_deals`, `total_value` e as por etapa — contam **apenas negócios abertos**
+  (`status: "open"`). Ganhos e perdidos ficam de fora. Para totais que incluam fechados, use
+  `GET /v1/deals?pipeline_id=...&status=won`.
+</Note>
+
+<Note>
+  As ações automáticas `after_won` e `after_lost` são **aceitas na escrita** mas não voltam na leitura —
+  não há como conferir a configuração atual pela API. Consulte pelo painel.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

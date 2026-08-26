@@ -24,7 +24,7 @@ curl "https://api.socialsell.ai/v1/instagram-accounts" \
 {
   "data": [
     {
-      "id": "664j5k6l7m8n9o0p1q2r3s4t",
+      "id": "664c7d6322882046cece02f6",
       "instagram_id": "987654321098765",
       "username": "empresa_abc",
       "name": "Empresa ABC",
@@ -55,3 +55,15 @@ curl "https://api.socialsell.ai/v1/instagram-accounts" \
 | `last_sync_at` | string\|null | Última sincronização com o Instagram |
 | `created_at` | string | Timestamp de criação |
 | `updated_at` | string | Timestamp de atualização |
+
+<Note>
+A listagem traz apenas contas **ativas** na organização. Contas desconectadas não aparecem.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

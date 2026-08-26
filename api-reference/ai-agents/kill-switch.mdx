@@ -46,3 +46,22 @@ curl -X POST https://api.socialsell.ai/v1/ai-agents/kill-switch \
 <Warning>
 Use com cautela. Ao ativar o kill switch, **nenhum agente responderá** a conversas novas até que seja desativado.
 </Warning>
+
+## Campos da resposta
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `kill_switch.enabled` | boolean | Se o kill switch está ativo |
+| `kill_switch.enabled_at` | string \| null | Quando foi acionado |
+| `kill_switch.reason` | string \| null | Motivo registrado |
+
+## Como a restauração funciona
+
+Ao ativar, a plataforma guarda quais agentes estavam `active` e pausa todos. Ao desativar, **só esses** voltam a `active` — um agente que já estava pausado antes continua pausado, e um criado no intervalo não é ativado sozinho.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | `enabled` ausente, ou `reason` acima de 500 caracteres |
+| `NOT_FOUND` | `404` | Organização não encontrada |

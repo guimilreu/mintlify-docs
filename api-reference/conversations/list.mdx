@@ -18,7 +18,7 @@ GET /v1/conversations
 | `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
 | `cursor` | string | Token de paginação |
 | `status` | string | `open` ou `closed` (arquivada) |
-| `channel` | string | `whatsapp`, `instagram`, `messenger` |
+| `channel` | string | `whatsapp`, `instagram`, `messenger`, `web_chat` (chat do site) ou `other` |
 | `assigned_to` | string | ID do membro responsável |
 | `contact_id` | string | ID do contato |
 | `unread` | boolean | `true` — apenas conversas não lidas |
@@ -42,7 +42,7 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
 {
   "data": [
     {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "contact": {
         "id": "664f1a2b3c4d5e6f78901234",
         "name": "João Silva",
@@ -50,7 +50,7 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
       },
       "channel": "whatsapp",
       "whatsapp_instance": {
-        "id": "664h3i4j5k6l7m8n9o0p1q2r",
+        "id": "6643cb19da1774a51495b603",
         "name": "WhatsApp Principal",
         "phone": "+5511333344445"
       },
@@ -87,17 +87,36 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `id` | string | ID da conversa |
-| `contact` | object | Contato `{id, name, phone}` |
-| `channel` | string | `whatsapp`, `instagram`, `messenger` |
+| `contact` | object \| null | Contato `{id, name, phone}` |
+| `channel` | string | `whatsapp`, `instagram`, `messenger`, `web_chat` ou `other` |
+| `channel` | string | `whatsapp`, `instagram`, `messenger`, `web_chat` (chat do site) ou `other` |
 | `whatsapp_instance` | object\|null | Instância WhatsApp `{id, name, phone}` |
 | `messenger_page` | object\|null | Página Messenger `{id, page_id, page_name}` |
 | `instagram_account` | object\|null | Conta Instagram `{id, username}` |
 | `status` | string | `open` ou `closed` |
 | `assigned_to` | object\|null | Responsável `{id, name}` |
 | `objective` | string\|null | `sales` ou `support` |
-| `ai_agent` | object\|null | Agente ativo `{id, name, paused, activated_at}` |
+| `ai_agent` | object\|null | Agente ativo `{id, name, paused, activated_at}`. Ver nota sobre `paused` |
 | `unread_count` | integer | Mensagens não lidas |
 | `last_message` | object\|null | Última mensagem `{content, sent_at, sender}` |
 | `tags` | string[] | Tags da conversa |
 | `created_at` | string | Timestamp de criação |
 | `updated_at` | string | Timestamp de atualização |
+
+<Note>
+  A listagem devolve apenas conversas de atendimento (`type: "direct"`). O chat interno da equipe nunca
+  aparece aqui.
+</Note>
+
+<Note>
+  `ai_agent.paused` é legado: ele **não** reflete uma pausa daquela conversa, e sim se o atendimento
+  automático da organização está desligado. O nome foi mantido para não quebrar integrações existentes.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

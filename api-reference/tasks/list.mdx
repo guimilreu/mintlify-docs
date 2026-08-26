@@ -9,7 +9,7 @@ description: "Retorna uma lista paginada de tarefas da organização."
 GET /v1/tasks
 ```
 
-**Escopo necessário:** `read:tasks` — disponível nos planos **Growth e Scale**
+**Escopo necessário:** `read:tasks` — disponível nos plano **Growth ou superior**
 
 ## Parâmetros de query
 
@@ -98,3 +98,11 @@ curl "https://api.socialsell.ai/v1/tasks?status=overdue&priority=high" \
 | `completed` | `isCompleted = true` |
 | `overdue` | `isCompleted = false` e `dueDate < agora` |
 | `pending` | `isCompleted = false` e `dueDate >= agora` |
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

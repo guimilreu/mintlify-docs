@@ -70,3 +70,10 @@ curl "https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346" \
 |-------|------|-----------|
 | `contacts` | array | Contatos vinculados (até 50) com `id`, `name`, `email`, `phone` |
 | `deals` | array | Negócios vinculados (até 50) com `id`, `title`, `value`, `status`, `stage` |
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Empresa não encontrada |

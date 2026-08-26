@@ -57,6 +57,14 @@ Retorna o contato atualizado sem a tag removida.
 Para **substituir todas** as tags de um contato, use `PATCH /v1/contacts/:id` com o campo `tags`.
 </Tip>
 
+<Note>
+  Tag informada pelo **nome** que ainda não existe na organização é **criada** ao adicionar. Já na
+  remoção, um nome desconhecido não cria nada — simplesmente não há o que remover.
+</Note>
+
+<Note>
+Adicionar e remover tag disparam os webhooks `contact.tag.added` e `contact.tag.removed`.
+</Note>
 ## Erros
 
 | Código | Status | Descrição |

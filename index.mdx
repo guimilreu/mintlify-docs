@@ -32,13 +32,19 @@ curl https://api.socialsell.ai/v1/contacts \
     Todos os endpoints seguem o padrão REST. Verbos HTTP representam ações: `GET` lê, `POST` cria, `PATCH` atualiza, `DELETE` remove.
   </Card>
   <Card title="JSON em tudo" icon="code">
-    Corpo das requisições e respostas sempre em `application/json`. Timestamps em ISO 8601. Valores monetários em centavos.
+    Corpo das requisições e respostas sempre em `application/json`. Timestamps em ISO 8601 (UTC). Valores monetários em reais.
   </Card>
   <Card title="Paginação por cursor" icon="list">
     Listas retornam `data[]` + `meta.next_cursor`. Passe o cursor na próxima requisição para avançar páginas — sem offset, sem saltos.
   </Card>
   <Card title="Eventos em tempo real" icon="zap">
     Configure webhooks para receber notificações instantâneas de criação de contatos, movimentação de negócios, mensagens recebidas e mais.
+  </Card>
+  <Card title="Retentativa segura" icon="rotate-cw">
+    Criação de contatos, negócios e envio de mensagens aceitam `Idempotency-Key` — repetir depois de um timeout não duplica nada.
+  </Card>
+  <Card title="Rastreável" icon="fingerprint">
+    Toda resposta traz `X-Request-Id`, repetido em `meta.request_id`. É o identificador que o suporte usa.
   </Card>
 </CardGroup>
 
@@ -56,7 +62,7 @@ Todas as requisições devem usar **HTTPS**. Requisições HTTP são rejeitadas.
 Authorization: Bearer sk_live_sua_chave_aqui
 ```
 
-Gere uma API Key em **Configurações → Developers** no painel. Cada chave possui escopos de permissão granulares — conceda apenas o acesso que sua integração precisa.
+Gere uma API Key em **Configurações → Desenvolvedores** no painel. Cada chave possui escopos de permissão granulares — conceda apenas o acesso que sua integração precisa.
 
 ## Recursos disponíveis
 
@@ -74,7 +80,7 @@ Gere uma API Key em **Configurações → Developers** no painel. Cada chave pos
     Crie e configure funis com etapas e probabilidades de fechamento.
   </Card>
   <Card title="Conversas" icon="comments" href="/api-reference/conversations/list">
-    Inbox multi-canal: WhatsApp, Messenger e Instagram.
+    Inbox multi-canal: WhatsApp, Instagram, Messenger e chat do site.
   </Card>
   <Card title="Mensagens" icon="paper-plane" href="/api-reference/messages/send">
     Envie mensagens de texto, mídia e templates via WhatsApp ou Messenger.
@@ -95,9 +101,23 @@ Gere uma API Key em **Configurações → Developers** no painel. Cada chave pos
     Receba eventos em tempo real no seu sistema.
   </Card>
   <Card title="Créditos de mensagem" icon="coins" href="/api-reference/message-credits/wallet">
-    Saldo, extrato e recarga de créditos para WhatsApp Cloud API.
+    Descontinuado — as mensagens do WhatsApp Oficial são cobradas pela Meta.
   </Card>
 </CardGroup>
+
+## Spec OpenAPI
+
+A API inteira está descrita em um arquivo OpenAPI 3.1 — **68 caminhos, 97 operações, 17 schemas**:
+
+```
+https://api.socialsell.ai/api/docs/openapi.json
+```
+
+Serve para gerar cliente na sua linguagem, importar no Postman ou no Insomnia, e validar payloads antes de enviar. O arquivo é montado a partir do próprio código do servidor, e um teste quebra o build se alguma rota ficar de fora.
+
+<Tip>
+No Postman: **Import → Link** e cole a URL acima. Vem com todos os endpoints, parâmetros e schemas de resposta prontos.
+</Tip>
 
 ## Formato padrão de resposta
 
@@ -107,7 +127,7 @@ Toda resposta bem-sucedida segue o mesmo padrão:
 {
   "data": { ... },
   "meta": {
-    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```

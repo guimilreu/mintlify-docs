@@ -1,0 +1,110 @@
+---
+title: "Limites e cotas"
+description: "Todos os tetos da API pública em um lugar só."
+---
+
+Esta página junta os limites que estão espalhados pela referência. Nenhum deles é configurável por endpoint — os de requisição variam por plano, os de conteúdo são fixos.
+
+## Requisição
+
+| Limite | Valor |
+|--------|-------|
+| Tamanho do corpo | **1 MB** |
+| Itens por página | `25` padrão, `100` máximo — exceto mensagens de conversa (`50` padrão) e entregas de webhook (`50` padrão, `200` máximo) |
+| Métodos aceitos | `GET`, `POST`, `PATCH`, `DELETE` |
+
+<Note>
+`PUT` é usado em uma única rota — [atualizar agente de IA](/api-reference/ai-agents/update) — e não consta da lista de métodos liberados para navegador. Chamadas server-to-server funcionam normalmente.
+</Note>
+
+## Requisições por plano
+
+| Plano | Por minuto | Burst (10s) | Por dia |
+|-------|-----------|-------------|---------|
+| Starter | 60 | 20 | 10.000 |
+| Growth | 120 | 40 | 50.000 |
+| Scale | 300 | 100 | 200.000 |
+| Enterprise | 600 | 200 | 500.000 |
+
+Detalhes e tratamento em [Limites de requisição](/api-reference/rate-limits).
+
+## Envio de mensagens
+
+| Limite | Valor |
+|--------|-------|
+| Por número do WhatsApp | 30 mensagens/minuto |
+| Por página do Messenger | 30 mensagens/minuto |
+
+Independentes do plano e cumulativos com os limites acima.
+
+## Conteúdo
+
+| Campo | Limite |
+|-------|--------|
+| Nome de contato | 200 caracteres |
+| Telefone | 40 caracteres |
+| Username do Instagram | 200 caracteres |
+| PSID do Messenger | 64 caracteres |
+| Origem (`source`) | 50 caracteres |
+| Nota de contato ou negócio | 1000 caracteres |
+| Motivo de ganho ou perda | 200 caracteres — **cortado**, não recusado |
+| Nome de funil | 100 caracteres |
+| Descrição de funil | 500 caracteres |
+| Nome de etapa | 100 caracteres |
+| `key` de campo personalizado | 50 caracteres |
+| Rótulo de campo personalizado | 100 caracteres |
+| Nome de webhook | 100 caracteres |
+| Nome de disparo | 3 a 200 caracteres |
+| Descrição de disparo | 1000 caracteres |
+| Texto de disparo | 5000 caracteres |
+
+## Agentes de IA
+
+| Limite | Valor |
+|--------|-------|
+| Nome do agente | 3 a 100 caracteres |
+| Instruções | 6000 caracteres |
+| Estilo de escrita | 2000 caracteres |
+| Restrições (`guardrails`) | 1500 caracteres |
+| Exemplos de estilo | 5 itens, 600 caracteres cada |
+| Objeções mapeadas | 15 pares |
+| Memórias | 50 itens, 2000 caracteres cada |
+| Regras de ação | 30 itens |
+| Mensagens por conversa por dia | `1`–`200`, padrão `50` |
+| Orçamento diário de créditos | padrão `5000` |
+| Agentes ativos por organização | definido por organização, padrão `10` |
+
+Atingir o teto de agentes ativos devolve `403 AGENT_LIMIT_REACHED`.
+
+## Disparos
+
+| Limite | Valor |
+|--------|-------|
+| Números por disparo | 20 |
+| Variáveis por modelo | 50 |
+| Pausas por janela de envio | 10 |
+
+## Webhooks
+
+| Plano | Endpoints |
+|-------|-----------|
+| Starter | — (indisponível) |
+| Growth | 3 |
+| Scale | 10 |
+| Enterprise | 25 |
+
+| Limite | Valor |
+|--------|-------|
+| Timeout de entrega | 10 segundos |
+| Tentativas por entrega | 5, com backoff exponencial base 60s |
+| Pausa automática | após 10 falhas finais consecutivas |
+| Cadência por organização | 100 entregas/minuto |
+| Retenção do log | 15 dias |
+
+## Idempotência
+
+| Limite | Valor |
+|--------|-------|
+| Validade da chave | 24 horas |
+| Escopo | Por organização |
+| Rotas cobertas | 4 — ver [Idempotência](/api-reference/idempotency) |

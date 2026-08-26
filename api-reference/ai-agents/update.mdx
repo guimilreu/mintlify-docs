@@ -1,6 +1,6 @@
 ---
 title: "Atualizar agente de IA"
-description: "Atualiza configurações de um agente de IA existente."
+description: "Atualiza a configuração de um agente de IA existente."
 ---
 
 ## Endpoint
@@ -9,17 +9,32 @@ description: "Atualiza configurações de um agente de IA existente."
 PATCH /v1/ai-agents/:id
 ```
 
+Também disponível como `PUT /v1/ai-agents/:id` — mesmo handler, mantido por compatibilidade.
+
 **Escopo necessário:** `write:ai_agents`
 
-Envie apenas os campos que deseja alterar. Campos não enviados permanecem inalterados.
+## Semântica da atualização
 
-## Exemplo de requisição
+O corpo aceita os mesmos campos de [Criar agente](/api-reference/ai-agents/create), todos opcionais — e em **camelCase**.
+
+| Nível | Comportamento |
+|-------|---------------|
+| Campos de primeiro nível | Só os enviados mudam. Os demais permanecem |
+| Objetos aninhados (`scope`, `behavior`, `aiConfig`, `limits`…) | **Substituídos por inteiro**, não mesclados |
+
+<Warning>
+  Enviar `aiConfig: { "persona": { "name": "Alice" } }` **descarta** todo o resto do `aiConfig` —
+  instruções, memórias, regras de ação. Leia o agente com
+  [`GET /v1/ai-agents/:id`](/api-reference/ai-agents/get), altere o objeto completo e devolva inteiro.
+</Warning>
+
+## Exemplo — alterar nome e prioridade
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z \
+curl -X PATCH https://api.socialsell.ai/v1/ai-agents/66445c483fa9572a0b2496cb \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
-  -d '{"name": "Qualificador de Leads v2", "priority": 2}'
+  -d '{"name": "Qualificador de Leads v2", "priority": 20}'
 ```
 
 ## Resposta
@@ -27,5 +42,13 @@ curl -X PATCH https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z \
 Retorna `HTTP 200` com o agente atualizado.
 
 <Warning>
-Atualizar um agente `active` aplica as mudanças imediatamente nas próximas execuções. Para testar alterações sem impacto em produção, pause o agente antes de atualizar.
+Atualizar um agente `active` vale **imediatamente** para as próximas execuções. Para testar mudanças sem impacto em produção, pause o agente antes, ou trabalhe numa [cópia](/api-reference/ai-agents/duplicate).
 </Warning>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Agente não encontrado |

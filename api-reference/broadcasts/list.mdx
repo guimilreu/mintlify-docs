@@ -1,6 +1,6 @@
 ---
 title: "Listar disparos"
-description: "Retorna todos os disparos em massa da organização."
+description: "Retorna os disparos em massa da organização, com estatísticas atualizadas."
 ---
 
 ## Endpoint
@@ -9,12 +9,36 @@ description: "Retorna todos os disparos em massa da organização."
 GET /v1/broadcasts
 ```
 
-**Escopo necessário:** `read:broadcasts` — disponível nos planos **Growth e Scale**.
+**Escopo necessário:** `read:broadcasts` — disponível no plano **Growth ou superior**
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
+| `cursor` | string | Token de paginação |
+| `status` | string | Filtra por status. Use `all` (ou omita) para todos |
+| `instance_id` | string | Filtra por número do WhatsApp usado no disparo |
+| `search` | string | Busca por nome da campanha, case-insensitive |
+
+## Status possíveis
+
+| Status | Significa |
+|--------|-----------|
+| `draft` | Rascunho. Nada foi enviado |
+| `scheduled` | Agendado para uma data futura |
+| `processing` | Lançado; resolvendo a audiência e enfileirando os envios |
+| `sending` | Mensagens saindo |
+| `paused` | Pausado — manualmente ou pelo disjuntor anti-ban. Ver `pause_reason` e `pause_code` |
+| `completed` | Terminou sem falhas relevantes |
+| `completed_with_errors` | Terminou, mas parte das mensagens falhou |
+| `cancelled` | Cancelado antes de terminar |
+| `failed` | Interrompido por erro. Ver `failure_reason` |
 
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/broadcasts" \
+curl "https://api.socialsell.ai/v1/broadcasts?status=sending&limit=10" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
@@ -24,24 +48,61 @@ curl "https://api.socialsell.ai/v1/broadcasts" \
 {
   "data": [
     {
-      "id": "664t3s4t5u6v7w8x9y0z1a2b",
+      "id": "6648aefe065dd4c1a34780a1",
       "name": "Black Friday 2026",
-      "status": "running",
+      "description": "Campanha de novembro",
+      "status": "sending",
       "whatsapp_instances": [
-        { "id": "664h...", "name": "WhatsApp Principal", "phone": "+5511333344445", "status": "connected" }
+        {
+          "id": "6643cb19da1774a51495b603",
+          "name": "WhatsApp Principal",
+          "phone": "+5511333344445",
+          "status": "connected",
+          "channel": "qrcode"
+        }
       ],
-      "audience": { "type": "tags", "tags": ["cliente"], "estimatedCount": 1250 },
+      "cloud_template": null,
+      "audience": {
+        "type": "tags",
+        "filters": { "tags": ["cliente"], "tagsOperator": "or", "hasWhatsapp": true },
+        "manualContactIds": [],
+        "exclusions": { "recentBroadcastHours": 24, "blockedContacts": true },
+        "estimatedCount": 1250
+      },
       "message": { "type": "text", "text": "🔥 Black Friday! 50% OFF..." },
-      "send_config": { "profile": "balanced" },
-      "stats": { "sent": 800, "delivered": 760, "read": 520, "failed": 12 },
+      "send_config": { "profile": "moderate" },
+      "stats": {
+        "totalRecipients": 1250,
+        "sent": 800,
+        "delivered": 760,
+        "read": 520,
+        "failed": 12,
+        "skipped": 3
+      },
       "started_at": "2026-06-10T09:00:00.000Z",
       "completed_at": null,
-      "created_at": "2026-06-09T18:00:00.000Z"
+      "paused_at": null,
+      "pause_reason": null,
+      "pause_code": null,
+      "cancelled_at": null,
+      "estimated_duration_ms": 5400000,
+      "failure_reason": null,
+      "created_at": "2026-06-09T18:00:00.000Z",
+      "updated_at": "2026-06-10T11:20:00.000Z"
     }
   ],
-  "meta": { "total": 8, "has_more": false }
+  "meta": {
+    "total": 8,
+    "has_more": false,
+    "request_id": "req_a1b2c3d4e5f6a7b8"
+  }
 }
 ```
+
+<Note>
+  As estatísticas são recalculadas a cada leitura, não lidas paradas do banco. Em um disparo em
+  andamento, duas chamadas seguidas devolvem números diferentes — é o esperado.
+</Note>
 
 ## Objeto disparo
 
@@ -49,10 +110,69 @@ curl "https://api.socialsell.ai/v1/broadcasts" \
 |-------|------|-----------|
 | `id` | string | ID do disparo |
 | `name` | string | Nome da campanha |
-| `status` | string | `draft`, `scheduled`, `running`, `paused`, `completed`, `cancelled` |
-| `whatsapp_instances` | array | Instâncias usadas no envio |
-| `audience` | object | Segmentação da audiência |
+| `description` | string \| null | Descrição |
+| `status` | string | Ver tabela de status acima |
+| `whatsapp_instances` | array | Números usados. Ver objeto abaixo |
+| `cloud_template` | object \| null | Modelo do WhatsApp Oficial, quando houver |
+| `audience` | object | Segmentação, no mesmo formato aceito em [Criar disparo](/api-reference/broadcasts/create). As tags voltam como **nomes** |
 | `message` | object | Conteúdo da mensagem |
-| `send_config` | object | Perfil e configuração de envio |
-| `stats` | object | Métricas: `sent`, `delivered`, `read`, `failed` |
-| `started_at` / `completed_at` / `paused_at` / `cancelled_at` | string\|null | Timestamps do ciclo |
+| `send_config` | object | Perfil, janela de envio e agendamento |
+| `stats` | object | Métricas. Ver objeto abaixo |
+| `started_at` | string \| null | Quando o envio começou |
+| `completed_at` | string \| null | Quando terminou |
+| `paused_at` | string \| null | Quando foi pausado |
+| `pause_reason` | string \| null | Motivo da pausa, legível |
+| `pause_code` | string \| null | Código da pausa, para tratamento programático |
+| `cancelled_at` | string \| null | Quando foi cancelado |
+| `estimated_duration_ms` | integer \| null | Duração estimada do envio |
+| `failure_reason` | string \| null | Motivo da falha, quando `status` é `failed` |
+| `created_at` | string | Criação |
+| `updated_at` | string | Última atualização |
+
+### Objeto número do WhatsApp
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do número |
+| `name` | string \| null | Nome de exibição |
+| `phone` | string \| null | Telefone |
+| `status` | string | `connected` ou o estado bruto quando desconectado |
+| `channel` | string | `official` (WhatsApp Oficial, cobrado por mensagem pela Meta) ou `qrcode` |
+
+### Objeto `cloud_template`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do modelo |
+| `name` | string \| null | Nome do modelo na Meta |
+| `category` | string \| null | Categoria (define o custo da mensagem) |
+| `status` | string \| null | Status de aprovação na Meta |
+| `language` | string \| null | Idioma usado no disparo |
+| `variables_count` | integer | Quantas variáveis estão mapeadas |
+
+### Objeto `stats`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `totalRecipients` | integer | Destinatários resolvidos |
+| `sent` | integer | Mensagens enviadas |
+| `delivered` | integer | Entregues |
+| `read` | integer | Lidas |
+| `failed` | integer | Falhas |
+| `skipped` | integer | Puladas pelas regras de exclusão |
+| `byProvider` | object | Os mesmos contadores, separados por canal |
+| `errorsByType` | object | Falhas agrupadas por código de erro: `{count, label, message}` |
+
+<Note>
+  Dentro de `byProvider`, as chaves são `evolution` (números por QR Code) e `cloud` (WhatsApp Oficial).
+  O nome `evolution` é legado do provedor original e permanece por compatibilidade — na interface e no
+  resto da API o canal se chama **QR Code**.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

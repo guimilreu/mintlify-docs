@@ -1,6 +1,6 @@
 ---
 title: "Estatísticas de agentes"
-description: "Métricas agregadas de execuções, handoffs, tokens e custo por período."
+description: "Métricas agregadas de execuções, transferências, tokens e custo por período."
 ---
 
 ## Endpoint
@@ -11,14 +11,22 @@ GET /v1/ai-agents/stats
 
 **Escopo necessário:** `read:ai_agents`
 
+Consolida as execuções de todos os agentes da organização — ou de um agente específico — dentro de uma janela de tempo.
+
 ## Parâmetros de query
 
 | Parâmetro | Tipo | Descrição |
 |-----------|------|-----------|
-| `agentId` | string | Filtra por agente específico |
+| `agentId` | string | Restringe a um agente. Omitido, agrega todos |
+| `periodDays` | integer | Janela em dias contados a partir de agora. De `1` a `365`. Padrão: `30` |
 | `startDate` | string | ISO 8601 — início do período |
 | `endDate` | string | ISO 8601 — fim do período |
-| `periodDays` | integer | Janela em dias. Padrão: `30` |
+
+<Note>
+  `startDate` e `endDate` só valem **juntos**: informando os dois, `periodDays` é ignorado e a resposta
+  traz `kpi_period_days: null`. Informando apenas um deles, a janela dos KPIs continua sendo
+  `periodDays`.
+</Note>
 
 ## Exemplo de requisição
 
@@ -27,4 +35,93 @@ curl "https://api.socialsell.ai/v1/ai-agents/stats?periodDays=30" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
-Retorna métricas agregadas de execuções, handoffs, tokens consumidos e custo no período selecionado.
+## Exemplo de resposta
+
+```json
+{
+  "data": {
+    "total_runs": 1842,
+    "completed_runs": 1710,
+    "failed_runs": 34,
+    "handoff_runs": 298,
+    "avg_duration_ms": 4210.5,
+    "total_tokens": 4820133,
+    "total_cost_usd": 18.42,
+    "avg_messages_per_run": 2.7,
+    "resolution_rate": 76.6,
+    "handoff_rate": 16.2,
+    "error_rate": 1.8,
+    "avg_cost_per_conversation": 0.0100,
+    "active_agents_count": 3,
+    "messages_sent_by_ai": 4973,
+    "conversations_where_ai_responded": 1204,
+    "conversations_with_ai_active_now": 87,
+    "conversations_passed_to_team": 262,
+    "kpi_period_days": 30,
+    "kpi_from": "2026-07-27T14:30:00.000Z",
+    "kpi_to": "2026-08-26T14:30:00.000Z"
+  },
+  "meta": {
+    "request_id": "req_a1b2c3d4e5f6a7b8"
+  }
+}
+```
+
+## Campos da resposta
+
+### Execuções
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `total_runs` | integer | Execuções no período |
+| `completed_runs` | integer | Execuções concluídas |
+| `failed_runs` | integer | Execuções que falharam |
+| `handoff_runs` | integer | Execuções que terminaram transferindo para uma pessoa |
+| `avg_duration_ms` | number | Duração média de uma execução |
+| `avg_messages_per_run` | number | Mensagens enviadas por execução, em média |
+
+### Taxas
+
+| Campo | Tipo | Como é calculada |
+|-------|------|------------------|
+| `resolution_rate` | number | `(completed_runs − handoff_runs) / total_runs`, em % com uma casa. O que a IA resolveu sozinha |
+| `handoff_rate` | number | `handoff_runs / total_runs`, em % |
+| `error_rate` | number | `failed_runs / total_runs`, em % |
+
+### Custo
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `total_tokens` | integer | Tokens consumidos no período |
+| `total_cost_usd` | number | Custo estimado em dólares |
+| `avg_cost_per_conversation` | number | `total_cost_usd / total_runs` |
+
+### Alcance
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `active_agents_count` | integer | Agentes em `active` **agora** — não é filtrado pelo período |
+| `messages_sent_by_ai` | integer | Mensagens enviadas por agentes no período |
+| `conversations_where_ai_responded` | integer | Conversas distintas em que a IA respondeu |
+| `conversations_with_ai_active_now` | integer | Conversas com agente ativo **neste momento** — não é filtrado pelo período |
+| `conversations_passed_to_team` | integer | Conversas distintas transferidas para uma pessoa |
+
+### Janela
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `kpi_period_days` | integer \| null | Janela usada. `null` quando você informou `startDate` **e** `endDate` |
+| `kpi_from` | string | Início efetivo do período, ISO 8601 |
+| `kpi_to` | string | Fim efetivo do período, ISO 8601 |
+
+<Note>
+  `total_runs` e derivados respeitam `startDate`/`endDate` quando informados. Já `active_agents_count` e
+  `conversations_with_ai_active_now` são fotografias do **agora** — use-os para monitoramento, não para
+  comparar períodos.
+</Note>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Parâmetro fora do formato — por exemplo `periodDays` acima de `365` |

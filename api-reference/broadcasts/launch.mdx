@@ -1,6 +1,6 @@
 ---
 title: "Lançar disparo"
-description: "Inicia o envio de um disparo em rascunho ou agendado."
+description: "Coloca um disparo em rascunho na fila de envio — ou o agenda, se houver data futura."
 ---
 
 ## Endpoint
@@ -11,32 +11,80 @@ POST /v1/broadcasts/:id/launch
 
 **Escopo necessário:** `write:broadcasts`
 
-Transições de status permitidas: `draft` → `running` | `scheduled` → `running`
+## O que acontece
+
+O lançamento passa pela **mesma porta de validação do painel** — as regras não são duplicadas aqui. O caminho depende do `sendConfig.scheduledFor` do disparo:
+
+| Situação | Novo status | O que acontece |
+|----------|-------------|----------------|
+| Sem `scheduledFor`, ou com data no passado | `processing` | Vai para a fila do orquestrador na hora. O status avança para `sending` quando os envios começam a sair |
+| Com `scheduledFor` no futuro | `scheduled` | Nada é enfileirado agora; o disparo sai sozinho na hora marcada |
+
+<Note>
+Não existe o status `running`. Um disparo em andamento passa por `processing` (resolvendo a audiência e enfileirando) e depois `sending` (mensagens saindo). Veja o enum completo em [Listar disparos](/api-reference/broadcasts/list).
+</Note>
 
 ## Corpo da requisição
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `confirmWarmupOverride` | boolean | Não | Força o envio mesmo acima do limite de warm-up da instância |
+| `confirmWarmupOverride` | boolean | Não | Força o envio mesmo acima do limite de warm-up do número. Padrão: `false` |
 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/launch \
+curl -X POST https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/launch \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{}'
 ```
 
-## Erros de lançamento
+## Resposta
+
+Retorna `HTTP 200` com o objeto disparo, já com o novo `status` e o `started_at` preenchido (no caminho imediato).
+
+## Erros de validação
+
+Todos chegam como `422`, exceto onde indicado. A mensagem sempre explica o que falta.
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `INVALID_STATUS` | `422` | Disparo não pode ser lançado neste status |
-| `MIXED_PROVIDERS` | `400` | Não misture instâncias Evolution e Cloud no mesmo disparo |
-| `MISSING_MESSAGE` | `400` | Configure a mensagem antes de lançar |
-| `MISSING_CLOUD_TEMPLATE` | `400` | Disparos Cloud exigem template HSM aprovado |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `INVALID_STATUS` | `422` | O disparo não pode ser lançado a partir do status atual |
+| `MIXED_PROVIDERS` | `422` | Números por QR Code e do WhatsApp Oficial no mesmo disparo |
+| `MISSING_MESSAGE` | `422` | Mensagem não configurada |
+| `MISSING_CLOUD_TEMPLATE` | `422` | Disparo pelo WhatsApp Oficial exige modelo aprovado |
+| `TEMPLATE_ON_QRCODE_BROADCAST` | `422` | Modelo informado num disparo por QR Code |
+| `TEMPLATE_NOT_FOUND` | `422` | O modelo não existe nesta organização |
+| `TEMPLATE_NOT_APPROVED` | `422` | O modelo existe mas não está aprovado pela Meta |
+| `SEND_WINDOW_NEVER_OPENS` | `422` | A janela de envio configurada nunca abre |
+| `UNSUPPORTED_PROFILE` | `422` | Perfil de envio não suportado na API pública |
+| `MISSING_AUTHOR` | `422` | A API Key não tem usuário criador associado |
+| — | `409` | Conflito: já existe disparo em andamento usando o mesmo número |
+
+## Erros de infraestrutura
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `QUEUE_UNAVAILABLE` | `503` | A fila de disparos está indisponível. O disparo fica em `failed` com `failure_reason` preenchido |
+| `QUEUE_ENQUEUE_ERROR` | `500` | Falha ao enfileirar. O corpo traz `failure_reason` com o motivo |
 
 <Warning>
-Se o volume exceder o limite de warm-up de uma instância, o lançamento é bloqueado. Reenvie com `confirmWarmupOverride: true` para forçar o envio.
+Nos dois casos acima o disparo é gravado como `failed` com o motivo em `failure_reason` — ele **não** fica pendurado em `processing`. Corrija a causa e lance de novo.
+</Warning>
+
+## Warm-up
+
+Se o volume exceder o limite de aquecimento de um dos números, o lançamento é bloqueado com `422`. Para assumir o risco e enviar assim mesmo:
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/launch \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"confirmWarmupOverride": true}'
+```
+
+<Warning>
+O limite de warm-up existe para proteger o número de bloqueio pelo WhatsApp. Forçar o envio em um número novo é a forma mais rápida de perdê-lo.
 </Warning>

@@ -28,7 +28,7 @@ PATCH /v1/custom-fields/:id
 ## Exemplo de requisição
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/custom-fields/664n9o0p1q2r3s4t5u6v7w8x \
+curl -X PATCH https://api.socialsell.ai/v1/custom-fields/6646c52790822ff5f59c68cb \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"required": true, "label": "CPF do cliente"}'
@@ -37,3 +37,20 @@ curl -X PATCH https://api.socialsell.ai/v1/custom-fields/664n9o0p1q2r3s4t5u6v7w8
 ## Resposta
 
 Retorna `HTTP 200` com o campo atualizado.
+
+<Note>
+  **Não existe exclusão de campo personalizado na v1.** Para tirar um campo de circulação, envie
+  `is_active: false` — o histórico dos registros que já usam o campo é preservado.
+</Note>
+
+<Note>
+A `key`, o `type` e a `entity` são imutáveis. Só `label`, `options`, `default_value`, `required` e `is_active` podem mudar.
+</Note>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido, ou nenhum campo enviado |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Campo não encontrado |

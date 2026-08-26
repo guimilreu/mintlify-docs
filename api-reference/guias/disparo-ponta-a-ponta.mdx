@@ -1,0 +1,133 @@
+---
+title: "Disparar uma campanha ponta a ponta"
+description: "Do rascunho ao relatório, com os pontos onde uma campanha costuma sair errada."
+---
+
+**Escopos necessários:** `read:broadcasts`, `write:broadcasts` e `read:whatsapp_instances`.
+
+## 1. Escolha o número
+
+```bash
+curl "https://api.socialsell.ai/v1/whatsapp-instances" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+Guarde o `id` de um número com `status: "connected"`.
+
+<Warning>
+  Esta resposta ainda não informa se o número é do **WhatsApp Oficial** ou por **QR Code** — e isso muda
+  tudo: o Oficial exige modelo aprovado. Se você não souber, confira no painel ou olhe o campo `channel`
+  em um disparo existente.
+</Warning>
+
+## 2. Estime antes de criar
+
+Este passo não é opcional. É o que separa “mandei para 1.250 clientes” de “mandei para a base inteira”.
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts/audience/estimate \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "audience": {
+      "type": "tags",
+      "filters": { "tags": ["cliente"], "tagsOperator": "or", "hasWhatsapp": true },
+      "exclusions": { "recentBroadcastHours": 48 }
+    }
+  }'
+```
+
+<Warning>
+  Os filtros ficam em **`audience.filters`**. Se você colocá-los na raiz de `audience`, a requisição é
+  aceita e a estimativa volta com **toda a base** — esse é o sinal de que o aninhamento está errado.
+</Warning>
+
+Confira `estimated_count` e o detalhamento em `skipped_by_reason` antes de seguir.
+
+## 3. Crie o rascunho
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Aviso de manutenção",
+    "whatsappInstances": ["6643cb19da1774a51495b603"],
+    "audience": {
+      "type": "tags",
+      "filters": { "tags": ["cliente"], "tagsOperator": "or", "hasWhatsapp": true },
+      "exclusions": { "recentBroadcastHours": 48 }
+    },
+    "message": { "type": "text", "text": "Olá {{nome_cliente}}! Manutenção programada em 15/06." },
+    "sendConfig": {
+      "profile": "conservative",
+      "sendWindow": { "startHour": 9, "endHour": 18, "timezone": "America/Sao_Paulo", "daysOfWeek": [1,2,3,4,5] }
+    },
+    "cloudTemplate": null
+  }'
+```
+
+Os perfis são `conservative`, `moderate` e `aggressive`. Comece devagar em número novo.
+
+## 4. Lance
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts/664t.../launch \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" -d '{}'
+```
+
+O status vai para `processing` — **não** `running`, que não existe. Com `scheduledFor` no futuro, vai para `scheduled` e sai sozinho na hora marcada.
+
+Se um número estiver acima do limite de aquecimento, o lançamento é barrado com `422`. Reenvie com `confirmWarmupOverride: true` só se você aceita o risco de bloqueio.
+
+## 5. Acompanhe
+
+```bash
+curl "https://api.socialsell.ai/v1/broadcasts/664t..." \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+| Status | Significa |
+|--------|-----------|
+| `processing` | Resolvendo audiência e enfileirando |
+| `sending` | Mensagens saindo |
+| `paused` | Pausado — veja `pause_reason` e `pause_code` |
+| `completed` / `completed_with_errors` | Terminou |
+| `failed` | Interrompido — veja `failure_reason` |
+
+<Tip>
+Em vez de fazer polling, assine `broadcast.completed` e `broadcast.failed` nos webhooks. O payload traz o consolidado.
+</Tip>
+
+## 6. Ajuste sem recomeçar
+
+Percebeu que está rápido demais? Não cancele:
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/broadcasts/664t.../send-config \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{"profile": "conservative"}'
+```
+
+Funciona com o disparo em `sending` ou `paused`.
+
+## 7. Audite o resultado
+
+O consolidado está em `stats` do próprio disparo — incluindo `errorsByType`, que agrupa as falhas por causa. Para o detalhe contato a contato:
+
+```bash
+curl "https://api.socialsell.ai/v1/broadcasts/664t.../messages?limit=100" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Checklist
+
+- [ ] Estimativa conferida **antes** de criar
+- [ ] Filtros dentro de `audience.filters`
+- [ ] Perfil válido (`conservative` / `moderate` / `aggressive`)
+- [ ] Janela de envio respeitando horário comercial
+- [ ] Modelo aprovado, se o número for do WhatsApp Oficial
+- [ ] Polling por `processing`/`sending`, nunca por `running`
+- [ ] `broadcast.completed` e `broadcast.failed` assinados

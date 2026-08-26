@@ -14,8 +14,21 @@ GET /v1/broadcasts/:id
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b" \
+curl "https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 Retorna o objeto disparo completo, incluindo configuração de `audience`, `message`, `send_config` e estatísticas em tempo real.
+
+O formato é o mesmo descrito em [Listar disparos](/api-reference/broadcasts/list).
+
+<Note>
+Neste endpoint as estatísticas são **sincronizadas** antes de responder, não apenas hidratadas. Para acompanhar um disparo em andamento, é aqui que os números são mais fiéis.
+</Note>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |

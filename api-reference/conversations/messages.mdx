@@ -22,7 +22,7 @@ GET /v1/conversations/:id/messages
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q/messages?limit=20&order=asc" \
+curl "https://api.socialsell.ai/v1/conversations/664632f1260b42723a5ed4ed/messages?limit=20&order=asc" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
@@ -32,8 +32,8 @@ curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q/messag
 {
   "data": [
     {
-      "id": "664i4j5k6l7m8n9o0p1q2r3s",
-      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664314fda3abe63975abff27",
+      "conversation_id": "664632f1260b42723a5ed4ed",
       "content": "Olá! Gostaria de saber mais sobre os planos.",
       "type": "text",
       "sender": "contact",
@@ -44,8 +44,8 @@ curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q/messag
       "sent_at": "2026-06-10T10:05:00.000Z"
     },
     {
-      "id": "664j5k6l7m8n9o0p1q2r3s4t",
-      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664c7d6322882046cece02f6",
+      "conversation_id": "664632f1260b42723a5ed4ed",
       "content": "Olá! Com prazer! Temos planos Starter, Growth e Scale. Qual melhor se encaixa na sua necessidade?",
       "type": "text",
       "sender": "agent",
@@ -61,8 +61,8 @@ curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q/messag
       "sent_at": "2026-06-10T10:07:00.000Z"
     },
     {
-      "id": "664k6l7m8n9o0p1q2r3s4t5u",
-      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "66468f896da3f6445c391e5f",
+      "conversation_id": "664632f1260b42723a5ed4ed",
       "content": null,
       "type": "image",
       "sender": "contact",
@@ -100,3 +100,16 @@ curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q/messag
 | `is_internal_note` | boolean | Se é comentário interno (não visível ao contato) |
 | `reactions` | array | Reações: `[{emoji, sender}]` |
 | `sent_at` | string | Timestamp de envio |
+| `edited_at` | string \| null | Quando a mensagem foi editada, se foi |
+
+<Note>
+  `meta.total` vem de um contador denormalizado da conversa e pode divergir levemente da contagem real
+  das mensagens. Use `has_more` como condição de parada da paginação, não o `total`.
+</Note>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Conversa não encontrada |

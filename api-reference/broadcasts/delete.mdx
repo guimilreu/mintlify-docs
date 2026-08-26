@@ -1,6 +1,6 @@
 ---
 title: "Excluir disparo"
-description: "Remove permanentemente um disparo em rascunho ou cancelado."
+description: "Remove um disparo permanentemente."
 ---
 
 ## Endpoint
@@ -11,13 +11,34 @@ DELETE /v1/broadcasts/:id
 
 **Escopo necessário:** `write:broadcasts`
 
+<Warning>
+A exclusão é **permanente** — não é soft delete. Cancele antes se o disparo estiver em andamento.
+</Warning>
+
+## O que é apagado, e o que não é
+
+| | |
+|---|---|
+| **Apagado** | A campanha, sua configuração, os jobs pendentes na fila e as chaves de controle |
+| **Preservado** | As mensagens já entregues. Elas pertencem às conversas dos contatos e continuam no histórico |
+
+Excluir o disparo remove a campanha, não o que o cliente final recebeu — mesma semântica do painel.
+
 ## Exemplo de requisição
 
 ```bash
-curl -X DELETE https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b \
+curl -X DELETE https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1 \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
 Retorna `HTTP 204 No Content` em caso de sucesso.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `INVALID_STATUS` | `422` | O disparo está em `processing`, `sending` ou `paused`. Cancele antes de excluir |

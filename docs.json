@@ -45,7 +45,23 @@
               "api-reference/errors",
               "api-reference/pagination",
               "api-reference/idempotency",
-              "api-reference/rate-limits"
+              "api-reference/rate-limits",
+              "api-reference/limits"
+            ]
+          },
+          {
+            "group": "Guias",
+            "pages": [
+              "api-reference/guias/sincronizar-contatos",
+              "api-reference/guias/disparo-ponta-a-ponta",
+              "api-reference/guias/espelhar-inbox"
+            ]
+          },
+          {
+            "group": "Plataforma",
+            "pages": [
+              "api-reference/versioning",
+              "api-reference/changelog"
             ]
           }
         ]
@@ -141,13 +157,15 @@
               "api-reference/conversations/list",
               "api-reference/conversations/get",
               "api-reference/conversations/update",
-              "api-reference/conversations/messages"
+              "api-reference/conversations/messages",
+              "api-reference/conversations/send"
             ]
           },
           {
             "group": "Mensagens",
             "pages": [
-              "api-reference/messages/send"
+              "api-reference/messages/send",
+              "api-reference/whatsapp-templates"
             ]
           },
           {
@@ -210,10 +228,7 @@
           {
             "group": "Créditos de mensagem",
             "pages": [
-              "api-reference/message-credits/wallet",
-              "api-reference/message-credits/ledger",
-              "api-reference/message-credits/auto-topup",
-              "api-reference/message-credits/purchase"
+              "api-reference/message-credits/wallet"
             ]
           },
           {
@@ -250,7 +265,12 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
   },
   "footer": {
     "socials": {
@@ -289,6 +309,18 @@
     {
       "source": "/webhooks/events/message-received",
       "destination": "/webhooks/events"
+    },
+    {
+      "source": "/api-reference/message-credits/ledger",
+      "destination": "/api-reference/message-credits/wallet"
+    },
+    {
+      "source": "/api-reference/message-credits/auto-topup",
+      "destination": "/api-reference/message-credits/wallet"
+    },
+    {
+      "source": "/api-reference/message-credits/purchase",
+      "destination": "/api-reference/message-credits/wallet"
     }
   ]
 }

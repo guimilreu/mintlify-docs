@@ -1,0 +1,135 @@
+---
+title: "Sincronizar contatos com um sistema externo"
+description: "Um fluxo completo de sincronização bidirecional entre a SocialSell e o seu ERP ou CRM."
+---
+
+O caso mais comum de integração: manter a base de contatos da SocialSell alinhada com um sistema que já existe. Este guia cobre as duas direções e os pontos onde a maioria das integrações erra.
+
+**Escopos necessários:** `read:contacts`, `write:contacts` e — se você usar tags — `write:tags`.
+
+## 1. Carga inicial: leia tudo
+
+Pagine até o fim usando `has_more` como condição de parada.
+
+```javascript
+async function lerTodosOsContatos() {
+  const contatos = [];
+  let cursor = null;
+
+  do {
+    const params = new URLSearchParams({ limit: '100' });
+    if (cursor) params.set('cursor', cursor);
+
+    const res = await fetch(`https://api.socialsell.ai/v1/contacts?${params}`, {
+      headers: { Authorization: `Bearer ${process.env.SOCIALSELL_API_KEY}` },
+    });
+    const { data, meta } = await res.json();
+
+    contatos.push(...data);
+    cursor = meta.has_more ? meta.next_cursor : null;
+  } while (cursor);
+
+  return contatos;
+}
+```
+
+<Warning>
+  Use `meta.has_more`, não `meta.next_cursor === null`: o campo é **omitido** na última página. Testar
+  contra `null` gera um laço infinito ou uma parada precoce, conforme a linguagem.
+</Warning>
+
+## 2. Incremental: só o que mudou
+
+Guarde o horário da última sincronização e use `updated_after`:
+
+```bash
+curl "https://api.socialsell.ai/v1/contacts?updated_after=2026-08-25T00:00:00.000Z&limit=100" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+<Tip>
+Guarde o timestamp **de antes** de começar a varredura, não de depois. Um contato alterado durante a leitura seria perdido se você marcasse o fim.
+</Tip>
+
+## 3. Escrevendo de volta: trate a duplicata
+
+Criar contato com telefone ou email já existente devolve `409` — **com o ID do contato existente no corpo**. É a deixa para atualizar em vez de criar.
+
+```javascript
+async function criarOuAtualizar(contato) {
+  const res = await fetch('https://api.socialsell.ai/v1/contacts', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.SOCIALSELL_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': contato.idExterno, // um UUID estável por contato do seu lado
+    },
+    body: JSON.stringify(contato),
+  });
+
+  if (res.ok) return (await res.json()).data;
+
+  const { error } = await res.json();
+
+  if (error.code === 'DUPLICATE_CONTACT') {
+    const id = error.existing_contact.id;
+    const patch = await fetch(`https://api.socialsell.ai/v1/contacts/${id}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${process.env.SOCIALSELL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(contato),
+    });
+    return (await patch.json()).data;
+  }
+
+  throw new Error(`[${error.code}] ${error.message}`);
+}
+```
+
+## 4. Cuidados que evitam retrabalho
+
+<Warning>
+  **`tags` e `custom_fields` no `PATCH` substituem tudo.** Enviar `tags: ["novo"]` apaga as demais. Para
+  acrescentar sem perder, use [`POST /v1/contacts/:id/tags`](/api-reference/contacts/tags).
+</Warning>
+
+<Warning>
+  **Contato não tem responsável.** Não existe `assigned_to` em contato — a atribuição acontece por
+  conversa. Se o seu sistema tem “dono do cliente”, mapeie para um campo personalizado, ou espelhe via
+  `assigned_to` das conversas.
+</Warning>
+
+<Note>
+  **Excluir contato dispara `contact.deleted`** — assim como criar, atualizar, e adicionar ou remover
+  tag. Se a sua integração escreve pela API **e** assina esses eventos, ela recebe o eco da própria
+  ação: deduplique por `id` do evento.
+</Note>
+
+## 5. Tempo real: complemente com webhooks
+
+Para não varrer a base a cada minuto, assine os eventos e reserve a varredura para uma conferência diária:
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Sincronização ERP",
+    "url": "https://meusistema.com/webhooks/socialsell",
+    "events": ["contact.created", "contact.updated"]
+  }'
+```
+
+O payload de `data.contact` tem o **mesmo formato** que a API devolve — não é preciso um segundo parser.
+
+## Checklist
+
+- [ ] Paginação para em `has_more: false`
+- [ ] `updated_after` no incremental, com o timestamp de antes da varredura
+- [ ] `DUPLICATE_CONTACT` tratado como “atualizar”
+- [ ] `Idempotency-Key` estável por contato
+- [ ] Tags acrescentadas pelo endpoint dedicado, não pelo `PATCH`
+- [ ] Webhooks assinados e assinatura validada
+- [ ] Varredura de conferência agendada

@@ -1,0 +1,120 @@
+---
+title: "Modelos do WhatsApp Oficial"
+description: "Como funcionam os modelos aprovados (HSM) no envio avulso e nos disparos."
+---
+
+No **WhatsApp Oficial** (Cloud API da Meta), você não pode escrever qualquer texto para quem não falou com você recentemente. Fora da janela de 24 horas, só sai **modelo aprovado** — o que a Meta chama de *template* ou HSM.
+
+<Note>
+  Isto **não** se aplica a números conectados por QR Code, que enviam texto livre. Modelo é exigência
+  do canal Oficial.
+</Note>
+
+## Os dois canais
+
+| | WhatsApp por QR Code | WhatsApp Oficial |
+|---|---|---|
+| Texto livre | Sempre | Só dentro da janela de 24h |
+| Modelo aprovado | Não se aplica | Obrigatório fora da janela |
+| Cobrança da mensagem | Não há | **Pela Meta**, direto na conta do cliente |
+| Campo `channel` na API | `qrcode` | `official` |
+
+O `channel` aparece em [`whatsapp_instances` de um disparo](/api-reference/broadcasts/list). É a forma de descobrir, pela API, qual canal um número usa.
+
+<Warning>
+  Um disparo **não pode misturar** os dois canais: `422 MIXED_PROVIDERS`.
+</Warning>
+
+## Onde os modelos aparecem
+
+| Uso | Endpoint | Campo |
+|-----|----------|-------|
+| Envio avulso | [`POST /v1/messages/send`](/api-reference/messages/send) | `template_name`, `template_language`, `template_components` |
+| Disparo em massa | [`POST /v1/broadcasts`](/api-reference/broadcasts/create) | `cloudTemplate` |
+
+<Warning>
+  Os dois usam formatos **diferentes**. No envio avulso, `template_components` segue o formato bruto da
+  Meta. Nos disparos, `cloudTemplate.variables` é o mapeamento da SocialSell, que resolve o valor de cada
+  variável por contato.
+</Warning>
+
+## Pré-requisitos
+
+Para qualquer um dos dois caminhos, o modelo precisa:
+
+1. Existir na organização e estar vinculado **àquele número**
+2. Estar com status **`APPROVED`** na Meta
+3. Bater exatamente com o idioma informado
+
+Falhando qualquer um: `422 TEMPLATE_NOT_FOUND` (ou `TEMPLATE_NOT_APPROVED`, em disparos).
+
+<Note>
+  A criação e a submissão de modelos para aprovação acontecem no painel — não há endpoint público para
+  isso na v1. A API consome modelos já aprovados.
+</Note>
+
+## Variáveis em disparos
+
+Cada variável do modelo precisa resolver para algum texto, em todo contato da audiência.
+
+| Campo | Descrição |
+|-------|-----------|
+| `key` | Nome da variável no modelo |
+| `component` | `header`, `body` ou `button:N` — `N` é o índice do botão, para link dinâmico e cupom |
+| `sourceType` | `contact_field` (puxa do contato) ou `static` (texto fixo) |
+| `sourceKey` | Campo do contato, quando `contact_field` |
+| `fallback` | Texto alternativo quando o contato não tem o dado |
+| `value` | Texto fixo, quando `static` |
+
+<Warning>
+  Com `sourceType: "contact_field"`, **`fallback` é obrigatório**. Sem ele, um contato sem o dado
+  receberia a mensagem com um buraco: “Olá , temos uma novidade”. A validação recusa o disparo antes de
+  isso acontecer.
+</Warning>
+
+```json
+{
+  "cloudTemplate": {
+    "templateId": "66462c8e7962a7d357cdb272",
+    "language": "pt_BR",
+    "variables": [
+      { "key": "1", "component": "body", "sourceType": "contact_field", "sourceKey": "name", "fallback": "cliente" },
+      { "key": "2", "component": "body", "sourceType": "static", "value": "15%" },
+      { "key": "1", "component": "button:0", "sourceType": "static", "value": "PROMO15" }
+    ]
+  }
+}
+```
+
+## Categoria e custo
+
+A categoria do modelo (marketing, utilidade, autenticação) define o custo da mensagem na Meta **e** se vale a política de descadastro.
+
+<Warning>
+  Ao [estimar audiência](/api-reference/broadcasts/estimate), informe `cloudTemplate`. Sem ele, a
+  estimativa ignora a política de marketing e mostra **mais gente** do que o disparo vai atingir.
+</Warning>
+
+A categoria vem em `cloud_template.category` no objeto do disparo.
+
+## Cobrança
+
+As mensagens do canal Oficial são cobradas **pela Meta, direto na conta do cliente** — não passam pela SocialSell e não consomem créditos da plataforma.
+
+<Warning>
+  Sem moeda e forma de pagamento configuradas no portfólio de negócios da Meta, a Meta **aceita** o envio
+  e recusa todas as entregas depois (erro `131042`). A mensagem aparece como enviada e nunca chega.
+  Ver [o passo a passo](/api-reference/message-credits/wallet).
+</Warning>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `TEMPLATE_NOT_FOUND` | `422` | Modelo inexistente, ou não aprovado neste número e idioma |
+| `TEMPLATE_NOT_APPROVED` | `422` | O modelo existe mas não está aprovado |
+| `TEMPLATE_ON_QRCODE_BROADCAST` | `422` | Modelo informado num disparo por QR Code |
+| `MISSING_CLOUD_TEMPLATE` | `422` | Disparo pelo Oficial sem modelo |
+| `MIXED_PROVIDERS` | `422` | Canais misturados no mesmo disparo |
+| `TEMPLATE_SEND_ERROR` | `422` | A Meta recusou o envio |
+| `TEMPLATE_NOT_CONFIRMED` | `502` | A Meta não confirmou o envio |

@@ -5,13 +5,15 @@ description: "Limites de requisição por plano e como tratá-los."
 
 ## Visão geral
 
-A API aplica três camadas de rate limiting para garantir estabilidade do serviço:
+A API aplica **cinco** camadas de rate limiting. As três primeiras valem para qualquer requisição; as duas últimas só para envio de mensagem:
 
 | Camada | Descrição |
 |--------|-----------|
 | **Minuto** | Limite principal de requisições por minuto |
 | **Burst** | Limite de curto prazo (10 segundos) para picos |
 | **Diário** | Limite total de requisições por dia |
+| **Por número do WhatsApp** | 30 mensagens/minuto, independente do plano |
+| **Por página do Messenger** | 30 mensagens/minuto, independente do plano |
 
 ## Limites por plano
 
@@ -26,10 +28,12 @@ A API aplica três camadas de rate limiting para garantir estabilidade do servi�
 
 Independente do plano, o envio de mensagens tem limites adicionais por canal:
 
-| Canal | Limite |
-|-------|--------|
-| WhatsApp (por instância) | 30 mensagens/minuto |
-| Messenger (por página) | 30 mensagens/minuto |
+| Canal | Limite | Código do erro |
+|-------|--------|----------------|
+| WhatsApp — por número | 30 mensagens/minuto | `WHATSAPP_INSTANCE_RATE_LIMIT` |
+| Messenger — por página | 30 mensagens/minuto | `MESSENGER_PAGE_RATE_LIMIT` |
+
+Estes limites são **por canal e independentes do plano**: eles continuam valendo mesmo com folga no limite por minuto da sua chave. Um disparo grande para o mesmo número esbarra aqui antes de esbarrar no limite do plano.
 
 ## Headers de rate limit
 
@@ -60,7 +64,7 @@ Ao exceder qualquer limite, a API retorna `HTTP 429`:
     "retry_after": 15
   },
   "meta": {
-    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```

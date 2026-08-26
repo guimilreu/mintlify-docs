@@ -22,6 +22,14 @@ curl -X DELETE https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347 \
 
 Retorna `HTTP 204 No Content` em caso de sucesso.
 
+<Warning>
+  A exclusão é **permanente** — não é soft delete. As tarefas e notas do negócio vão junto.
+</Warning>
+
+<Note>
+A exclusão dispara o webhook `deal.deleted`, com o último estado conhecido do negócio no payload.
+</Note>
+
 ## Erros
 
 | Código | Status | Descrição |

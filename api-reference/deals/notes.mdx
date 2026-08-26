@@ -15,7 +15,7 @@ POST /v1/deals/:id/notes
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `content` | string | Sim | Conteúdo da nota |
+| `content` | string | Sim | Conteúdo da nota. Até **1000 caracteres** |
 | `color` | string | Não | `yellow` (padrão), `blue`, `green`, `pink`, `orange`, `purple`, `red`, `gray` |
 | `category` | string | Não | `general` (padrão), `follow_up`, `important`, `reminder`, `meeting`, `objection`, `success` |
 
@@ -37,15 +37,32 @@ curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/notes \
 ```json
 {
   "data": {
-    "id": "664f9z8y7x6w5v4u3t2s1r0b",
+    "id": "664044e0f9183c8fb5a7e45f",
     "content": "Cliente confirmou aprovação do contrato. Aguardando assinatura.",
     "color": "green",
     "category": "success",
-    "created_at": "2026-06-10T16:00:00.000Z"
-  }
+    "is_pinned": false,
+    "created_by": { "id": "664a1b2c3d4e5f6789012345", "name": "API (Integração ERP)" },
+    "created_at": "2026-06-10T16:00:00.000Z",
+    "updated_at": "2026-06-10T16:00:00.000Z"
+  },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
 }
 ```
 
-Retorna `HTTP 201`.
+Retorna `HTTP 201`. É o mesmo objeto nota devolvido em [notas de contato](/api-reference/contacts/notes) — um formato só para os dois recursos.
 
-A criação da nota dispara o evento `deal.note.added` internamente.
+## Autoria
+
+A API Key não representa uma pessoa. A nota é atribuída ao **usuário que criou a chave** e aparece no painel como `API (nome da chave)`.
+
+A criação da nota dispara o webhook `deal.note.added`.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `MISSING_CONTENT` | `400` | Campo `content` ausente |
+| `CONTENT_TOO_LONG` | `400` | Nota acima de 1000 caracteres |
+| `NOT_FOUND` | `404` | Negócio não encontrado |

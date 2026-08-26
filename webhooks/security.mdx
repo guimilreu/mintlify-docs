@@ -208,6 +208,10 @@ func abs(n int64) int64 {
 
 Chame `POST /v1/webhooks/{id}/test` (ou o botão **Testar** no painel) para receber uma entrega real assinada com o seu secret. O evento chega com `type: "webhook.test"` e é entregue **na hora**, sem retentativa — a resposta da chamada traz o status HTTP e o tempo do seu endpoint.
 
+<Note>
+`webhook.test` **não é um evento assinável** — ele não aparece na [referência de eventos](/webhooks/events) e não precisa (nem pode) ser incluído em `events` ao criar a assinatura. Ele chega apenas quando você aciona o teste. Trate-o como um caso à parte no seu roteador de eventos.
+</Note>
+
 ```bash
 curl -X POST https://api.socialsell.ai/v1/webhooks/664f1a2b3c4d5e6f78901234/test \
   -H "Authorization: Bearer sk_live_..."

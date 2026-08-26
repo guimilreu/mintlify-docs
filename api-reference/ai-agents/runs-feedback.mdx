@@ -17,7 +17,7 @@ O feedback humano é usado para monitorar a qualidade dos agentes e identificar 
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `rating` | number | Sim | Avaliação da execução (ex: 1–5) |
+| `rating` | number | Sim | Avaliação de `1` a `5`. Fora da faixa devolve `400` |
 | `issues` | string[] | Não | Problemas identificados |
 | `comment` | string | Não | Comentário livre |
 
@@ -35,7 +35,7 @@ O feedback humano é usado para monitorar a qualidade dos agentes e identificar 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/ai-agents/runs/664q2r3s4t5u6v7w8x9y0z1a/feedback \
+curl -X POST https://api.socialsell.ai/v1/ai-agents/runs/664831860ee9b03de1982629/feedback \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"rating": 2, "issues": ["premature_handoff"], "comment": "Transferiu cedo demais, poderia ter resolvido."}'
@@ -44,3 +44,13 @@ curl -X POST https://api.socialsell.ai/v1/ai-agents/runs/664q2r3s4t5u6v7w8x9y0z1
 ## Resposta
 
 Retorna `HTTP 200` com o feedback registrado.
+
+O corpo devolvido é a execução completa, já com `evaluation.humanFeedback` preenchido — mesmo objeto de [Listar execuções](/api-reference/ai-agents/runs-list).
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | `rating` fora de `1`–`5`, `issue` fora da lista, ou `comment` acima de 1000 caracteres |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Execução não encontrada |

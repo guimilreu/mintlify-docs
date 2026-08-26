@@ -62,6 +62,18 @@ curl "https://api.socialsell.ai/v1/members" \
 | `email` | string | Email |
 | `role` | string | Cargo na organização |
 | `is_owner` | boolean | Se é o dono da organização |
-| `is_active` | boolean | Se está ativo |
+| `is_active` | boolean | ⚠️ Sempre `true` — não reflete estado real |
 | `last_active_at` | string\|null | Última vez ativo no painel |
 | `avatar_url` | string\|null | URL do avatar |
+
+<Note>
+  `is_active` devolve `true` para todo membro listado; ele não distingue quem está inativo. Use
+  `last_active_at` para inferir atividade recente.
+</Note>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `NOT_FOUND` | `404` | Organização não encontrada |
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

@@ -14,7 +14,7 @@ GET /v1/ai-agents/:id
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z" \
+curl "https://api.socialsell.ai/v1/ai-agents/66445c483fa9572a0b2496cb" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
@@ -23,3 +23,12 @@ Retorna o objeto agente completo, incluindo toda a configuração de `scope`, `t
 <Tip>
 Use este endpoint como referência para montar o corpo ao criar ou atualizar agentes — a estrutura dos objetos aninhados é idêntica.
 </Tip>
+
+O formato é o mesmo descrito em [Listar agentes](/api-reference/ai-agents/list).
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Agente não encontrado |

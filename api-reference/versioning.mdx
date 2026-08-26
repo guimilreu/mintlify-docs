@@ -1,0 +1,64 @@
+---
+title: "Versionamento"
+description: "O que pode mudar na API sem aviso, o que exige uma versão nova, e como avisamos."
+---
+
+A API pública é `v1`. Integrações construídas hoje continuam funcionando — este documento diz exatamente o que isso significa.
+
+## O compromisso
+
+<Note>
+  **Campo de resposta que já existe nunca sai, nunca é renomeado e nunca muda de tipo dentro da `v1`.**
+  É a garantia que permite construir em cima da API sem revalidar a cada release.
+</Note>
+
+## Mudanças compatíveis
+
+Acontecem sem aviso prévio e **não** são quebra de contrato. Sua integração precisa tolerá-las:
+
+- **Campo novo** em um objeto de resposta
+- **Endpoint novo**
+- **Parâmetro de query opcional** novo
+- **Valor novo em um enum** — por exemplo, um status de disparo ou um canal de conversa
+- **Código de erro novo** dentro de um `error.type` que já existe
+- **Evento de webhook novo** no catálogo
+- Mudança no texto de `error.message` — a mensagem é para humanos; para lógica, use `error.code`
+
+<Warning>
+  Trate enums como **abertos**. Um `switch` sem `default` sobre `status` quebra no dia em que um valor
+  novo aparece. Sempre tenha um caminho para o valor desconhecido.
+</Warning>
+
+## Mudanças que exigem versão nova
+
+Nunca acontecem dentro da `v1`:
+
+- Remover ou renomear campo de resposta
+- Mudar o tipo de um campo
+- Remover endpoint ou mudar sua URL
+- Tornar obrigatório um parâmetro que era opcional
+- Mudar o significado de um campo existente
+
+## Descontinuação
+
+Quando uma funcionalidade deixa de fazer sentido, o endpoint **não é removido** — ele passa a responder explicando o motivo. É o caso de [Créditos de mensagem](/api-reference/message-credits/wallet), que responde `410` com o caminho da nova configuração em vez de `404`.
+
+Devolver `404` trocaria uma explicação por um erro mudo, e quebraria chaves de API em uso.
+
+## Spec OpenAPI
+
+O contrato em forma legível por máquina fica em `https://api.socialsell.ai/api/docs/openapi.json`. É gerado do código, e um teste impede que uma rota exista sem estar declarada nele.
+
+Se você gera cliente a partir do spec, regenere depois de cada entrada no changelog.
+
+## Como acompanhar
+
+Toda mudança relevante entra no [Changelog](/api-reference/changelog). Assine o feed da página ou confira antes de subir uma integração nova.
+
+## Boas práticas de resiliência
+
+- **Ignore campos que você não conhece** em vez de falhar na desserialização
+- **Não valide o formato de IDs** — trate como string opaca
+- **Não dependa da ordem** das chaves de um objeto nem dos itens de um array, exceto onde a doc diz que há ordenação
+- **Guarde o `meta.request_id`** dos erros: é o que o suporte usa para localizar a requisição
+- **Prefira `error.code` a `error.message`** para tomar decisão em código

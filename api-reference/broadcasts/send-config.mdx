@@ -1,6 +1,6 @@
 ---
 title: "Configurar envio"
-description: "Ajusta o perfil de velocidade de envio e agendamento de um disparo."
+description: "Ajusta o perfil de velocidade e a janela de envio de um disparo em andamento."
 ---
 
 ## Endpoint
@@ -11,27 +11,76 @@ PATCH /v1/broadcasts/:id/send-config
 
 **Escopo necessário:** `write:broadcasts`
 
-## Exemplo de requisição
+Este endpoint existe para corrigir o ritmo de um disparo **que já começou** — sem cancelar e recomeçar. A mudança é aplicada à fila em execução.
+
+<Note>
+Só funciona com o disparo em `sending` ou `paused`. Em qualquer outro status a resposta é `422 INVALID_STATUS`. Para configurar o ritmo antes de lançar, use `PATCH /v1/broadcasts/:id` com o campo `sendConfig`.
+</Note>
+
+## Corpo da requisição
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `profile` | string | Não | Perfil de velocidade. Ver tabela abaixo |
+| `sendWindow` | object | Não | Janela de envio. Mesclada com a atual, campo a campo |
+
+### Perfis de envio
+
+| Perfil | Ritmo | Indicado para |
+|--------|-------|---------------|
+| `conservative` | Mais lento, pausas mais longas | Números novos, em warm-up, ou com histórico de bloqueio |
+| `moderate` | Intermediário | Uso geral |
+| `aggressive` | Mais rápido | Números consolidados, com histórico longo e volume estável |
+| `custom` | — | **Exclusivo do painel web.** Recusado aqui com `400 UNSUPPORTED_PROFILE` |
+
+### Objeto `sendWindow`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `startHour` | integer | Hora de início, `0`–`23` |
+| `endHour` | integer | Hora de término, `0`–`23`. Precisa ser maior que `startHour` |
+| `timezone` | string | Fuso horário da janela (ex: `America/Sao_Paulo`) |
+| `daysOfWeek` | integer[] | Dias em que o disparo pode sair. `0` = domingo, `6` = sábado |
+| `pauseWindows` | array | Até 10 pausas dentro da janela, cada uma `{startHour, endHour}` |
+
+O `sendWindow` enviado é **mesclado** com o atual — campos omitidos permanecem. Se a combinação resultante nunca abrir (por exemplo, uma pausa cobrindo a janela inteira), a resposta é `422 SEND_WINDOW_NEVER_OPENS` e nada é gravado.
+
+## Exemplo — desacelerar um disparo em andamento
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/send-config \
+curl -X PATCH https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/send-config \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
-  -d '{"profile": "slow"}'
+  -d '{"profile": "conservative"}'
 ```
 
-### Perfis de envio disponíveis
+## Exemplo — restringir ao horário comercial
 
-| Perfil | Velocidade | Indicado para |
-|--------|-----------|---------------|
-| `slow` | Lenta | Instâncias novas, warm-up |
-| `balanced` | Moderada | Uso geral (recomendado) |
-| `fast` | Rápida | Instâncias consolidadas com histórico |
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/send-config \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sendWindow": {
+      "startHour": 9,
+      "endHour": 18,
+      "timezone": "America/Sao_Paulo",
+      "daysOfWeek": [1, 2, 3, 4, 5],
+      "pauseWindows": [{"startHour": 12, "endHour": 13}]
+    }
+  }'
+```
 
 ## Resposta
 
-Retorna `HTTP 200` com o disparo atualizado.
+Retorna `HTTP 200` com o objeto disparo completo e o `send_config` já atualizado.
 
-<Warning>
-O perfil `custom` é exclusivo do painel web e não é aceito neste endpoint.
-</Warning>
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `UNSUPPORTED_PROFILE` | `400` | O perfil `custom` não é aceito na API pública |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `INVALID_STATUS` | `422` | Disparo não está em `sending` nem em `paused` |
+| `SEND_WINDOW_NEVER_OPENS` | `422` | A janela resultante nunca abre |

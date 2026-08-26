@@ -33,3 +33,12 @@ curl -X PATCH https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456 \
     "due_date": "2026-06-11T10:00:00.000Z"
   }'
 ```
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `INVALID_TYPE` | `400` | Tipo de tarefa inválido |
+| `INVALID_PRIORITY` | `400` | Prioridade inválida |
+| `NOT_FOUND` | `404` | Tarefa não encontrada |

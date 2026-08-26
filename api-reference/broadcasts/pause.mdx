@@ -11,15 +11,34 @@ POST /v1/broadcasts/:id/pause
 
 **Escopo necessário:** `write:broadcasts`
 
-Transição de status: `running` → `paused`
+Transições aceitas: `processing` → `paused` e `sending` → `paused`.
+
+<Note>
+`processing` também pausa. Enquanto o orquestrador resolve a audiência e enfileira os envios, quem percebeu o engano teria como única saída cancelar e perder a campanha inteira.
+</Note>
 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/pause \
+curl -X POST https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/pause \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
-Retorna `HTTP 200` com o disparo no status `paused`.
+Retorna `HTTP 200` com uma confirmação enxuta — **não** o objeto disparo completo:
+
+```json
+{
+  "data": { "id": "6648aefe065dd4c1a34780a1", "status": "paused" },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
+}
+```
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `INVALID_STATUS` | `422` | O disparo não está em `processing` nem em `sending` |

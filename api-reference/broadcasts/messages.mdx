@@ -1,6 +1,6 @@
 ---
 title: "Mensagens do disparo"
-description: "Lista as mensagens individuais enviadas em um disparo, com status por contato."
+description: "Lista as mensagens individuais de um disparo, com o status de entrega por contato."
 ---
 
 ## Endpoint
@@ -11,13 +11,79 @@ GET /v1/broadcasts/:id/messages
 
 **Escopo necessário:** `read:broadcasts`
 
-Use para auditar o status de entrega por contato — identifique quais mensagens foram entregues, lidas ou falharam.
+Use para auditar entrega contato a contato — quem recebeu, quem falhou e com qual identificador na Meta.
+
+## Parâmetros de query
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `limit` | integer | Itens por página. Padrão: `50`. Máximo: `100` |
+| `cursor` | string | Token de paginação. Ordenação fixa: mais recentes primeiro |
 
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/messages" \
+curl "https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/messages?limit=50" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
-Retorna a lista paginada de mensagens individuais com status de entrega (`sent`, `delivered`, `read`, `failed`) por contato.
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "664594d0b4d779007329e5ef",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": "+5511999999999"
+      },
+      "content": "🔥 Black Friday! 50% OFF...",
+      "status": "delivered",
+      "external_id": "wamid.HBgNNTUxMTk5OTk5OTk5ORUCABEYEjhGN0...",
+      "sent_at": "2026-06-10T09:14:22.000Z"
+    },
+    {
+      "id": "66428c56d42b40463881987b",
+      "contact": {
+        "id": "664f2b3c4d5e6f7890123456",
+        "name": "Ana Costa",
+        "phone": "+5521988888888"
+      },
+      "content": "🔥 Black Friday! 50% OFF...",
+      "status": "failed",
+      "external_id": null,
+      "sent_at": "2026-06-10T09:14:48.000Z"
+    }
+  ],
+  "meta": {
+    "total": 1250,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NHc2eDd5OHo5YTBiMWMyZDNlNGY1ZyIsImNhIjoiMjAyNi0wNi0xMFQwOToxNDo0OC4wMDBaIn0",
+    "request_id": "req_a1b2c3d4e5f6a7b8"
+  }
+}
+```
+
+## Objeto mensagem do disparo
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID da mensagem |
+| `contact` | object \| null | Destinatário `{id, name, phone}` |
+| `content` | string \| null | Texto enviado, já com as variáveis resolvidas |
+| `status` | string | `pending` (criada, ainda não enviada), `sent`, `delivered`, `read` ou `failed` |
+| `external_id` | string \| null | Identificador da mensagem no WhatsApp. `null` quando o envio falhou antes de sair |
+| `sent_at` | string | Quando a mensagem foi criada |
+
+<Tip>
+Para o consolidado por motivo de falha, em vez de percorrer esta lista, use `stats.errorsByType` no [objeto disparo](/api-reference/broadcasts/list).
+</Tip>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |

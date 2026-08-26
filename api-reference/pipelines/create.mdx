@@ -26,7 +26,8 @@ POST /v1/pipelines
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `name` | string | Sim | Nome da etapa |
+| `id` | string | Não | ID de uma etapa existente. Só faz sentido em [Atualizar](/api-reference/pipelines/update), para preservar a etapa |
+| `name` | string | Sim | Nome da etapa. Até 100 caracteres |
 | `order` | integer | Não | Posição (0 = primeira) |
 | `color` | string | Não | Cor hexadecimal |
 | `win_probability` | integer | Não | 0–100 |
@@ -62,4 +63,18 @@ curl -X POST https://api.socialsell.ai/v1/pipelines \
 
 ## Resposta
 
-Retorna `HTTP 201` com o objeto funil de venda criado (com IDs de etapas gerados).
+Retorna `HTTP 201` com o objeto funil criado, já com os IDs das etapas gerados.
+
+<Note>
+  A resposta da **criação** não traz estatísticas: `total_deals`, `total_value` e os contadores por etapa
+  aparecem só em [Listar](/api-reference/pipelines/list) e [Buscar](/api-reference/pipelines/get). Faz
+  sentido — um funil recém-criado não tem negócios —, mas o formato do objeto difere.
+</Note>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo |
+| `NAME_REQUIRED` | `400` | Nome do funil ausente |
+| `STAGES_REQUIRED` | `400` | É preciso ao menos uma etapa |

@@ -54,4 +54,13 @@ Retorna `HTTP 201` com o objeto empresa criado.
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `MISSING_REQUIRED_FIELD` | `400` | Campo `name` ausente |
+| `INVALID_ID` | `400` | ID com formato inválido |
 | `DUPLICATE` | `409` | Empresa duplicada |
+
+<Note>
+Criar, atualizar e excluir empresa disparam `company.created`, `company.updated` e `company.deleted`.
+</Note>
+<Note>
+  Não há endpoint de **notas de empresa** na v1 — só em contatos e negócios. O evento
+  `company.note.added` só dispara por ação no painel.
+</Note>

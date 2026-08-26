@@ -11,64 +11,191 @@ POST /v1/broadcasts
 
 **Escopo necessário:** `write:broadcasts`
 
-<Note>
-O perfil de envio `custom` é exclusivo do painel web e **não** é aceito na API. Use os perfis pré-definidos (`slow`, `balanced`, `fast`).
-</Note>
+O disparo nasce em `draft`. Nada é enviado até você chamar [Lançar disparo](/api-reference/broadcasts/launch).
+
+<Warning>
+  Os filtros de audiência ficam dentro de **`audience.filters`**, não na raiz de `audience`. Como
+  `filters` tem valor padrão vazio, um corpo com os filtros no lugar errado é aceito com `201` — e o
+  disparo sai para **toda a base**. Confira o aninhamento antes de lançar, e use
+  [Estimar audiência](/api-reference/broadcasts/estimate) para conferir o alcance.
+</Warning>
 
 ## Corpo da requisição
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `name` | string | Sim | Nome da campanha |
-| `whatsappInstances` | string[] | Sim | IDs das instâncias WhatsApp |
-| `audience` | object | Sim | Segmentação da audiência (ver abaixo) |
-| `message` | object | Sim | Mensagem a enviar (ver abaixo) |
-| `sendConfig` | object | Não | Perfil de envio e agendamento |
-| `description` | string | Não | Descrição |
+| `name` | string | Sim | Nome da campanha. De 3 a 200 caracteres |
+| `whatsappInstances` | string[] | Sim | IDs dos números do WhatsApp. De 1 a 20 |
+| `audience` | object | Sim | Segmentação. Ver abaixo |
+| `message` | object | Sim | Conteúdo a enviar. Ver abaixo |
+| `sendConfig` | object | Não | Ritmo, janela de envio e agendamento |
+| `cloudTemplate` | object \| null | Não | Modelo aprovado, obrigatório em disparos pelo WhatsApp Oficial. Envie `null` em disparos por QR Code |
+| `description` | string | Não | Descrição. Até 1000 caracteres |
 
-### Objeto `audience`
+<Note>
+Todos os números do disparo precisam ser do **mesmo canal**: ou todos por QR Code, ou todos do WhatsApp Oficial. Misturar devolve `422 MIXED_PROVIDERS`.
+</Note>
+
+---
+
+## Objeto `audience`
+
+| Campo | Tipo | Padrão | Descrição |
+|-------|------|--------|-----------|
+| `type` | string | `filtered` | `all_contacts`, `filtered`, `tags`, `manual` ou `import` |
+| `filters` | object | `{}` | **Onde vivem os filtros.** Ver tabela abaixo |
+| `manualContactIds` | string[] | `[]` | IDs específicos de contatos |
+| `exclusions` | object | ver abaixo | Quem fica de fora |
+| `estimatedCount` | number | — | Alcance estimado, se você já calculou |
+
+### `audience.filters`
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `type` | string | Tipo de audiência |
-| `tags` | string[] | Tags-alvo |
-| `tagsOperator` | string | `and` ou `or` |
-| `hasWhatsapp` | boolean | Apenas contatos com WhatsApp |
+| `tags` | string[] | Nomes **ou** IDs de tags. Nome desconhecido não cria tag — apenas não casa com ninguém |
+| `tagsOperator` | string | `or` (padrão) ou `and` |
+| `hasWhatsapp` | boolean | Apenas contatos com WhatsApp vinculado |
 | `hasOptIn` | boolean | Apenas contatos com opt-in |
-| `manualContactIds` | string[] | IDs específicos de contatos |
-| `exclusions` | object | Exclusões (bloqueados, contatados recentemente) |
+| `createdAfter` | string | ISO 8601 — contatos criados após esta data |
+| `createdBefore` | string | ISO 8601 — contatos criados antes desta data |
+| `dealFilter` | object | Filtro por negócios abertos. Ver abaixo |
 
-### Objeto `message`
+### `audience.filters.dealFilter`
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `type` | string | `text`, `media`, `document`, `audio` |
-| `text` | string | Texto (suporta variáveis como `{{nome_cliente}}`) |
-| `media` | object | `{url, mimetype, filename, caption}` para mídia |
+| `mode` | string | `none` (padrão), `exclude_active` ou `include_active` |
+| `pipelineId` | string | Restringe a um funil. Obrigatório se você informar `stageId` |
+| `stageId` | string | Restringe a uma etapa |
 
-## Exemplo de requisição
+### `audience.exclusions`
+
+| Campo | Tipo | Padrão | Descrição |
+|-------|------|--------|-----------|
+| `recentBroadcastHours` | number | `24` | Pula quem já recebeu disparo nas últimas N horas |
+| `blockedContacts` | boolean | `true` | Pula contatos bloqueados |
+| `contactIds` | string[] | — | IDs a excluir explicitamente |
+
+---
+
+## Objeto `message`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `type` | string | `text` (padrão), `media`, `document` ou `audio` |
+| `text` | string | Texto da mensagem, até 5000 caracteres. Aceita variáveis do contato |
+| `media` | object | `{url, mimetype, filename, caption}` para os tipos não-texto |
+
+---
+
+## Objeto `sendConfig`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `profile` | string | `conservative`, `moderate` ou `aggressive`. O perfil `custom` é exclusivo do painel web e devolve `400 UNSUPPORTED_PROFILE` |
+| `sendWindow` | object | `{startHour, endHour, timezone, daysOfWeek, pauseWindows}` — ver [Configurar envio](/api-reference/broadcasts/send-config) |
+| `scheduledFor` | string \| null | ISO 8601. Com data futura, o lançamento apenas agenda em vez de disparar |
+
+---
+
+## Objeto `cloudTemplate`
+
+Obrigatório quando os números do disparo são do **WhatsApp Oficial**. Em disparos por QR Code, envie `null` (ou omita) — mandar um modelo devolve `422 TEMPLATE_ON_QRCODE_BROADCAST`.
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `templateId` | string | Sim | ID de um modelo **aprovado** da própria organização |
+| `language` | string | Não | Idioma do modelo. Se omitido, usa o do próprio modelo |
+| `variables` | array | Não | Mapeamento das variáveis. Até 50 |
+
+### Objeto `variables[]`
+
+| Campo | Tipo | Padrão | Descrição |
+|-------|------|--------|-----------|
+| `key` | string | — | Nome da variável no modelo. Até 60 caracteres |
+| `component` | string | `body` | `header`, `body` ou `button:N` (`N` = índice do botão, para link dinâmico e cupom) |
+| `sourceType` | string | `contact_field` | `contact_field` (puxa do contato) ou `static` (texto fixo) |
+| `sourceKey` | string | — | Campo do contato, quando `sourceType` é `contact_field` |
+| `fallback` | string | — | Texto alternativo quando o contato não tem o dado |
+| `value` | string | — | Texto fixo, quando `sourceType` é `static` |
+
+<Warning>
+  Toda variável precisa resolver para algum texto: com `sourceType: "static"`, o `value` é obrigatório;
+  com `contact_field`, **`sourceKey` e `fallback` são os dois obrigatórios**. Sem texto alternativo, quem
+  não tiver o dado receberia a mensagem com um buraco — “Olá , temos uma novidade”.
+</Warning>
+
+---
+
+## Exemplo — disparo por QR Code, segmentado por tag
 
 ```bash
 curl -X POST https://api.socialsell.ai/v1/broadcasts \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Aviso de Manutenção",
-    "whatsappInstances": ["664h3i4j5k6l7m8n9o0p1q2r"],
+    "name": "Aviso de manutenção",
+    "whatsappInstances": ["6643cb19da1774a51495b603"],
     "audience": {
       "type": "tags",
-      "tags": ["cliente"],
-      "tagsOperator": "or",
-      "hasWhatsapp": true
+      "filters": {
+        "tags": ["cliente"],
+        "tagsOperator": "or",
+        "hasWhatsapp": true
+      },
+      "exclusions": { "recentBroadcastHours": 48 }
     },
     "message": {
       "type": "text",
       "text": "Olá {{nome_cliente}}! Informamos manutenção programada no dia 15/06."
     },
-    "sendConfig": { "profile": "balanced" }
+    "sendConfig": { "profile": "moderate" },
+    "cloudTemplate": null
+  }'
+```
+
+## Exemplo — disparo pelo WhatsApp Oficial com modelo
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/broadcasts \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Retomada de carrinho",
+    "whatsappInstances": ["6643cb19da1774a51495b603"],
+    "audience": {
+      "type": "filtered",
+      "filters": {
+        "hasWhatsapp": true,
+        "dealFilter": { "mode": "include_active", "pipelineId": "664a1b2c3d4e5f6789012345" }
+      }
+    },
+    "message": { "type": "text", "text": "" },
+    "cloudTemplate": {
+      "templateId": "66462c8e7962a7d357cdb272",
+      "language": "pt_BR",
+      "variables": [
+        { "key": "1", "component": "body", "sourceType": "contact_field", "sourceKey": "name", "fallback": "cliente" },
+        { "key": "2", "component": "body", "sourceType": "static", "value": "15%" }
+      ]
+    },
+    "sendConfig": { "profile": "conservative" }
   }'
 ```
 
 ## Resposta
 
-Retorna `HTTP 201` com o disparo em `status: draft`. Para lançá-lo, use [Lançar disparo](/api-reference/broadcasts/launch).
+Retorna `HTTP 201` com o disparo em `status: draft`. O objeto devolvido é o mesmo descrito em [Listar disparos](/api-reference/broadcasts/list).
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo |
+| `INVALID_WHATSAPP_INSTANCE` | `400` | Um ou mais números não pertencem à organização |
+| `UNSUPPORTED_PROFILE` | `400` | O perfil `custom` não é aceito na API pública |
+| `MIXED_PROVIDERS` | `422` | Números por QR Code e do WhatsApp Oficial no mesmo disparo |
+| `MISSING_CLOUD_TEMPLATE` | `422` | Disparo pelo WhatsApp Oficial sem modelo aprovado |
+| `TEMPLATE_ON_QRCODE_BROADCAST` | `422` | Modelo informado num disparo por QR Code |
+| `TEMPLATE_NOT_FOUND` | `422` | O modelo não existe nesta organização |
+| `MISSING_AUTHOR` | `422` | A API Key não tem usuário criador associado |

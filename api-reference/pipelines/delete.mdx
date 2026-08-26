@@ -23,5 +23,30 @@ curl -X DELETE https://api.socialsell.ai/v1/pipelines/664a1b2c3d4e5f6789012345 \
 Retorna `HTTP 204 No Content` em caso de sucesso.
 
 <Warning>
-Negócios existentes no funil não são excluídos automaticamente. Mova-os antes de excluir o funil de venda.
+  Um funil **com negócios não pode ser excluído**. A resposta é `422 PIPELINE_HAS_DEALS`, com a
+  quantidade no corpo:
+
+  ```json
+  {
+    "error": {
+      "type": "unprocessable_entity",
+      "message": "Não é possível excluir o pipeline. Existem 45 negócio(s) associado(s).",
+      "code": "PIPELINE_HAS_DEALS",
+      "deals_count": 45
+    },
+    "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
+  }
+  ```
+
+  Mova os negócios com [`POST /v1/deals/:id/move`](/api-reference/deals/move) antes de excluir. Como
+  alternativa, desative o funil com `PATCH /v1/pipelines/:id` e `is_active: false` — ele para de aceitar
+  negócios novos sem perder o histórico.
 </Warning>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Funil não encontrado |
+| `PIPELINE_HAS_DEALS` | `422` | O funil tem negócios. O corpo traz `deals_count` |

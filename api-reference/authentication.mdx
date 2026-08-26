@@ -9,7 +9,7 @@ A API SocialSell usa **API Keys** para autenticação. Cada chave é vinculada a
 
 ## Gerando uma API Key
 
-1. Acesse **Configurações → Developers** no painel da SocialSell
+1. Acesse **Configurações → Desenvolvedores** no painel da SocialSell
 2. Clique em **Nova API Key**
 3. Dê um nome descritivo (ex: `Integração ERP`, `Zapier`)
 4. Selecione os escopos necessários
@@ -42,8 +42,8 @@ curl https://api.socialsell.ai/v1/contacts \
 | `401` | `MISSING_API_KEY` | Header `Authorization` ausente |
 | `401` | `INVALID_API_KEY_FORMAT` | Chave não começa com `sk_live_` |
 | `401` | `INVALID_API_KEY` | Chave inválida, expirada ou revogada |
-| `403` | `INSUFFICIENT_SCOPE` | A chave não tem o escopo necessário |
-| `403` | `PLAN_RESTRICTION` | Recurso não disponível no seu plano |
+| `403` | `INSUFFICIENT_SCOPES` | A chave não tem o escopo necessário. O corpo traz `required_scopes`, `missing_scopes` e `your_scopes` |
+| `403` | `PLAN_RESTRICTION` | Recurso não disponível no plano atual. O corpo traz `required_plan` e `current_plan` |
 
 ### Exemplo de erro
 
@@ -55,7 +55,7 @@ curl https://api.socialsell.ai/v1/contacts \
     "code": "INVALID_API_KEY"
   },
   "meta": {
-    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```

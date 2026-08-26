@@ -125,6 +125,36 @@ São **47 eventos**, em 13 grupos. A [referência de eventos](/webhooks/events) 
 | Equipe | membro entrou e saiu |
 | Créditos e cobrança | saldo baixo, saldo zerado, pagamento e troca de plano |
 
+## Eventos e a API v1
+
+Escrever pela API v1 dispara **21 dos 47 eventos** do catálogo:
+
+| Ação pela API v1 | Evento |
+|---|---|
+| Criar, atualizar ou excluir contato | `contact.created` · `contact.updated` · `contact.deleted` |
+| Adicionar ou remover tag de contato | `contact.tag.added` · `contact.tag.removed` |
+| Criar nota em contato | `contact.note.added` |
+| Criar, atualizar ou excluir empresa | `company.created` · `company.updated` · `company.deleted` |
+| Criar, mover, ganhar, perder ou excluir negócio | `deal.created` · `deal.stage.changed` · `deal.won` · `deal.lost` · `deal.deleted` |
+| Trocar responsável do negócio | `deal.assigned` |
+| Mover negócio para outro funil | `deal.pipeline.transferred` |
+| Criar nota em negócio | `deal.note.added` |
+| Criar ou concluir tarefa | `task.created` · `task.completed` |
+| Atribuir ou fechar conversa | `conversation.assigned` · `conversation.closed` |
+
+Os 26 restantes existem porque nascem **fora** da API: mensagens recebidas e enviadas, conexão e queda de canal, handoff de agente de IA, propostas, disparos, importações, entrada e saída de membros, créditos e cobrança. Eles chegam normalmente, venham de onde vierem.
+
+<Note>
+  Como a escrita pela API dispara o webhook, uma integração que escreve **e** ouve recebe o eco da
+  própria ação. Deduplique por `id` do evento e, se precisar distinguir, o payload de eventos originados
+  pela API traz o contexto da chamada.
+</Note>
+
+<Warning>
+  **Não existe endpoint de notas de empresa na v1.** O evento `company.note.added` só dispara por ação no
+  painel.
+</Warning>
+
 ## Limites por plano
 
 | Plano | Endpoints |

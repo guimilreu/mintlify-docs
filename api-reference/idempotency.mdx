@@ -1,15 +1,34 @@
 ---
 title: "Idempotência"
-description: "Como usar Idempotency Keys para evitar duplicatas em requisições POST."
+description: "Como usar Idempotency-Key para evitar duplicatas em retentativas."
 ---
 
-## O que é idempotência?
+## O problema
 
-Uma requisição idempotente pode ser enviada múltiplas vezes com o mesmo resultado — sem criar duplicatas ou causar efeitos colaterais indesejados. Isso é essencial para lidar com falhas de rede, timeouts e retentativas.
+A rede cai depois que o servidor processou, mas antes da resposta chegar. Você não sabe se o contato foi criado ou não. Repetir a requisição arrisca duplicar; não repetir arrisca perder.
+
+A `Idempotency-Key` resolve isso: a segunda chamada com a mesma chave devolve **a resposta original em cache**, sem executar nada de novo.
+
+## Onde funciona
+
+<Warning>
+  A idempotência vale em **quatro rotas**, não em todo `POST`. Nas demais, o header é aceito e
+  **ignorado em silêncio** — a requisição é processada normalmente e uma retentativa cria um segundo
+  recurso.
+</Warning>
+
+| Rota | Idempotente |
+|------|-------------|
+| `POST /v1/contacts` | ✅ |
+| `POST /v1/deals` | ✅ |
+| `POST /v1/messages/send` | ✅ |
+| `POST /v1/conversations/send` | ✅ |
+| Qualquer outro `POST` | ❌ header ignorado |
+| `GET`, `PATCH`, `PUT`, `DELETE` | ❌ header ignorado |
 
 ## Como usar
 
-Inclua o header `Idempotency-Key` em requisições `POST` com um UUID v4 único gerado pelo seu sistema:
+Gere um UUID v4 por operação lógica e envie no header `Idempotency-Key`:
 
 ```bash
 curl -X POST https://api.socialsell.ai/v1/contacts \
@@ -19,57 +38,91 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
   -d '{"name": "João Silva", "phone": "+5511999999999"}'
 ```
 
-Se você enviar a mesma requisição com a mesma `Idempotency-Key` novamente, a API retorna a resposta original em cache — **sem criar um novo recurso**.
+Na repetição, a resposta vem idêntica à original — mesmo status, mesmo corpo — acrescida de um header:
 
-## Comportamento
+```
+Idempotency-Replayed: true
+```
 
-| Cenário | Comportamento |
-|---------|---------------|
-| Primeira requisição com a chave | Processa normalmente e armazena a resposta |
-| Repetição com a mesma chave | Retorna a resposta em cache (idêntica à original) |
-| Chave diferente, mesmo corpo | Processa como uma nova requisição independente |
-| Requisição `GET` com chave | A chave é ignorada (GET já é idempotente por natureza) |
+<Tip>
+Use `Idempotency-Replayed` para distinguir “criei agora” de “já existia”. Sem ele, um `201` de replay é indistinguível de um `201` de criação real.
+</Tip>
 
-## Prazo de validade
+## Comportamento exato
 
-As chaves de idempotência têm validade de **24 horas**. Após esse período, a mesma chave pode ser reutilizada para uma nova operação.
+| Cenário | O que acontece |
+|---------|----------------|
+| Primeira chamada, resposta `2xx` | Processa e **guarda** a resposta por 24 horas |
+| Primeira chamada, resposta de erro | Processa e **não guarda**. A mesma chave pode ser reusada |
+| Repetição com a mesma chave | Devolve a resposta em cache + `Idempotency-Replayed: true` |
+| Mesma chave, **corpo diferente** | Devolve a resposta em cache do corpo **original**. O corpo novo é ignorado |
+| Chave nova, mesmo corpo | Processa como operação independente — cria um segundo recurso |
+| Rota não idempotente | Header ignorado |
 
-## Exemplo: criação segura de contato
+<Warning>
+  **Só respostas `2xx` entram no cache.** Se a primeira tentativa falhou com `500`, repetir com a mesma
+  chave executa de verdade — que é o comportamento desejado numa retentativa.
+
+  **Não há verificação do corpo.** Reutilizar uma chave com um payload diferente não gera erro: devolve
+  silenciosamente o resultado da primeira operação. Uma chave por operação lógica, sempre.
+</Warning>
+
+## Escopo e validade
+
+| | |
+|---|---|
+| **Validade** | 24 horas. Depois disso a mesma chave pode ser reutilizada para uma nova operação |
+| **Escopo** | Por **organização** — não por API Key. Duas chaves da mesma organização compartilham o mesmo espaço de idempotência |
+
+<Note>
+  A idempotência depende do cache distribuído. Se ele estiver indisponível, a requisição é processada
+  normalmente **sem** proteção contra duplicata — não há erro nem aviso na resposta. Para operações
+  críticas, mantenha também a sua própria checagem no destino.
+</Note>
+
+## Exemplo — criação segura com retentativa
 
 ```javascript
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
-async function createContactSafely(contactData) {
-  const idempotencyKey = uuidv4(); // gere uma vez e armazene
-  
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const response = await fetch('https://api.socialsell.ai/v1/contacts', {
-        method: 'POST',
-        headers: {
-          'Authorization': 'Bearer sk_live_...',
-          'Content-Type': 'application/json',
-          'Idempotency-Key': idempotencyKey // mesma chave em todas as tentativas
-        },
-        body: JSON.stringify(contactData)
-      });
-      
-      if (response.ok) return await response.json();
-      
-      // se falhar com erro não-transiente, parar
-      if (response.status < 500) throw new Error('Erro não recuperável');
-      
-    } catch (err) {
-      if (attempt === 2) throw err;
-      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+async function criarContatoComSeguranca(dados) {
+  // A chave é gerada UMA vez, fora do laço, e reusada em toda tentativa.
+  const idempotencyKey = randomUUID();
+
+  for (let tentativa = 0; tentativa < 3; tentativa++) {
+    const response = await fetch('https://api.socialsell.ai/v1/contacts', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.SOCIALSELL_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Idempotency-Key': idempotencyKey,
+      },
+      body: JSON.stringify(dados),
+    });
+
+    if (response.ok) {
+      const jaExistia = response.headers.get('Idempotency-Replayed') === 'true';
+      return { contato: (await response.json()).data, jaExistia };
     }
+
+    // Erro do cliente: repetir não vai ajudar
+    if (response.status < 500) {
+      const { error } = await response.json();
+      throw new Error(`[${error.code}] ${error.message}`);
+    }
+
+    // Erro do servidor: espera e tenta de novo com a MESMA chave
+    await new Promise((r) => setTimeout(r, 1000 * 2 ** tentativa));
   }
+
+  throw new Error('Máximo de tentativas atingido');
 }
 ```
 
 ## Boas práticas
 
-- **Gere a chave antes de iniciar a operação** — não após uma falha
-- **Armazene a chave junto com a operação** — para poder reutilizá-la em retentativas
-- **Use UUID v4** — evite chaves previsíveis ou sequenciais
-- **Uma chave por operação lógica** — não reutilize a mesma chave para operações diferentes
+- **Gere a chave antes de enviar**, não depois de falhar — uma chave criada na retentativa não protege nada.
+- **Persista a chave junto com a operação**, para reusá-la se o processo reiniciar no meio.
+- **Uma chave por operação lógica.** Nunca reaproveite entre operações diferentes: como o corpo não é verificado, o resultado seria a resposta errada, sem erro nenhum.
+- **UUID v4.** Evite chaves sequenciais ou previsíveis.
+- **Para as rotas não idempotentes**, use uma checagem própria antes de repetir — por exemplo, buscar pelo identificador externo antes de criar de novo.

@@ -1,6 +1,6 @@
 ---
 title: "Listar execuções"
-description: "Lista execuções (runs) de agentes de IA com filtros e paginação."
+description: "Lista as execuções (runs) dos agentes de IA, com filtros e paginação."
 ---
 
 ## Endpoint
@@ -11,7 +11,7 @@ GET /v1/ai-agents/runs
 
 **Escopo necessário:** `read:ai_agents`
 
-Cada vez que um agente atua em uma conversa, gera um **run**. Use este endpoint para auditar execuções, identificar problemas e acompanhar o desempenho.
+Cada vez que um agente atua em uma conversa, gera um **run**. É por aqui que se audita o que a IA fez, por que transferiu e quanto custou.
 
 ## Parâmetros de query
 
@@ -19,15 +19,15 @@ Cada vez que um agente atua em uma conversa, gera um **run**. Use este endpoint 
 |-----------|------|-----------|
 | `agent_id` | string | Filtra por agente |
 | `conversation_id` | string | Filtra por conversa |
-| `status` | string | Filtra por status do run |
-| `started_after` | string | ISO 8601 — filtra runs iniciados após esta data |
-| `limit` | integer | Padrão `25`, máx `100` |
-| `cursor` | string | Cursor de paginação |
+| `status` | string | `running`, `completed`, `failed`, `cancelled` ou `skipped` |
+| `started_after` | string | ISO 8601 — execuções iniciadas depois desta data |
+| `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
+| `cursor` | string | Token de paginação. Ordenação fixa: mais recentes primeiro, por `started_at` |
 
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=664p1q2r3s4t5u6v7w8x9y0z&limit=10" \
+curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=66445c483fa9572a0b2496cb&status=completed&limit=10" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
@@ -37,27 +37,54 @@ curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=664p1q2r3s4t5u6v7w8x9
 {
   "data": [
     {
-      "id": "664q2r3s4t5u6v7w8x9y0z1a",
-      "agent": { "id": "664p1q2r3s4t5u6v7w8x9y0z", "name": "Qualificador de Leads", "type": "sales" },
-      "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664831860ee9b03de1982629",
+      "agent": { "id": "66445c483fa9572a0b2496cb", "name": "Qualificador de Leads", "type": "sales" },
+      "conversation_id": "664632f1260b42723a5ed4ed",
       "trigger_event": "message.received.from_contact",
       "status": "completed",
       "skip_reason": null,
+      "error_message": null,
       "messages_sent": [
-        { "message_id": "664r...", "content": "Olá! Como posso ajudar?", "sent_at": "2026-06-10T15:00:01.000Z", "delay_ms": 1200 }
+        {
+          "message_id": "664af137c2b978931df419c0",
+          "content": "Olá! Como posso ajudar?",
+          "sent_at": "2026-06-10T15:00:01.000Z",
+          "delay_ms": 1200
+        }
       ],
       "handoff": {
         "triggered": true,
         "reason": "customer_requested_human",
-        "summary": "Cliente pediu falar com humano sobre contrato."
+        "summary": "Cliente pediu falar com uma pessoa sobre o contrato.",
+        "handoff_to": "queue",
+        "resolved_type": "queue",
+        "assigned_to": null,
+        "team_id": "6648ca54f7dcd7ea87307690"
       },
-      "usage": { "tokens": 1850, "cost_cents": 3 },
+      "usage": {
+        "promptTokens": 1420,
+        "completionTokens": 430,
+        "totalTokens": 1850,
+        "model": "anthropic/claude-sonnet-4",
+        "estimatedCostUsd": 0.0071,
+        "realCostUsd": 0.0068,
+        "creditsCharged": 12
+      },
+      "humanization_stats": null,
+      "evaluation": null,
       "duration_ms": 4200,
       "started_at": "2026-06-10T15:00:00.000Z",
-      "completed_at": "2026-06-10T15:00:04.200Z"
+      "completed_at": "2026-06-10T15:00:04.200Z",
+      "created_at": "2026-06-10T15:00:00.000Z",
+      "updated_at": "2026-06-10T15:00:04.200Z"
     }
   ],
-  "meta": { "total": 142, "has_more": true, "next_cursor": "..." }
+  "meta": {
+    "total": 1842,
+    "has_more": true,
+    "next_cursor": "eyJpZCI6IjY2NHEycjNzNHQ1dTZ2N3c4eDl5MHoxYSIsImNhIjoiMjAyNi0wNi0xMFQxNTowMDowMC4wMDBaIn0",
+    "request_id": "req_a1b2c3d4e5f6a7b8"
+  }
 }
 ```
 
@@ -65,15 +92,60 @@ curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=664p1q2r3s4t5u6v7w8x9
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `id` | string | ID do run |
-| `agent` | object | Agente `{id, name, type}` |
-| `conversation_id` | string\|null | Conversa onde atuou |
-| `trigger_event` | string\|null | Evento disparador |
-| `status` | string | Status do run |
-| `skip_reason` | string\|null | Motivo de pulo (se não atuou) |
-| `error_message` | string\|null | Erro, se houver |
-| `messages_sent` | array | Mensagens enviadas pelo agente |
-| `handoff` | object\|null | Detalhes de transferência para humano |
-| `usage` | object\|null | Tokens consumidos e custo |
-| `duration_ms` | integer\|null | Duração da execução em milissegundos |
-| `started_at` / `completed_at` | string\|null | Timestamps |
+| `id` | string | ID da execução |
+| `agent` | object \| null | Agente `{id, name, type}` |
+| `conversation_id` | string \| null | Conversa onde atuou |
+| `trigger_event` | string \| null | Evento que acionou |
+| `status` | string | `running`, `completed`, `failed`, `cancelled` ou `skipped` |
+| `skip_reason` | string \| null | Por que não atuou, quando `status` é `skipped` |
+| `error_message` | string \| null | Erro, quando `status` é `failed` |
+| `messages_sent` | array | Mensagens enviadas. Ver abaixo |
+| `handoff` | object \| null | Transferência para pessoa. Ver abaixo |
+| `usage` | object \| null | Consumo do modelo. Ver abaixo |
+| `humanization_stats` | object \| null | Métricas do ritmo de resposta |
+| `evaluation` | object \| null | Avaliação automática e o feedback humano registrado |
+| `duration_ms` | integer \| null | Duração da execução |
+| `started_at` | string \| null | Início |
+| `completed_at` | string \| null | Fim |
+| `created_at` | string | Criação do registro |
+| `updated_at` | string | Última atualização |
+
+### `messages_sent[]`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `message_id` | string \| null | ID da mensagem na conversa |
+| `content` | string \| null | Texto enviado |
+| `sent_at` | string \| null | Quando saiu |
+| `delay_ms` | integer \| null | Atraso aplicado antes de enviar |
+
+### `handoff`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `triggered` | boolean | Se houve transferência |
+| `reason` | string \| null | Motivo |
+| `summary` | string \| null | Resumo da conversa gerado para quem assumir |
+| `handoff_to` | string \| null | Destino configurado: `user`, `queue` ou `team` |
+| `resolved_type` | string \| null | Destino efetivo: `user` ou `queue` |
+| `assigned_to` | string \| null | Pessoa que assumiu |
+| `team_id` | string \| null | Time de destino |
+
+### `usage`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `promptTokens` | integer | Tokens de entrada |
+| `completionTokens` | integer | Tokens de saída |
+| `totalTokens` | integer | Soma |
+| `model` | string | Modelo que atendeu a execução |
+| `providers` | string[] | Provedores que serviram as chamadas |
+| `estimatedCostUsd` | number | Custo estimado |
+| `realCostUsd` | number \| null | Custo real informado pelo provedor, quando disponível |
+| `creditsCharged` | integer | Créditos de IA debitados da organização |
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha ao listar as execuções |

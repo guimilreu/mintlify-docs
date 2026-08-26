@@ -1,0 +1,78 @@
+---
+title: "Changelog"
+description: "Mudanças na API pública v1 e na documentação."
+---
+
+O que pode mudar sem aviso e o que exige uma versão nova está em [Versionamento](/api-reference/versioning).
+
+---
+
+## 26 de agosto de 2026 — correções na API e revisão geral da documentação
+
+Auditoria endpoint por endpoint da referência contra o código, seguida da correção dos defeitos encontrados.
+
+### Correções de comportamento
+
+Todas compatíveis: nenhum campo de resposta foi removido, renomeado ou teve o tipo alterado.
+
+- **`PATCH /v1/ai-agents/:id`** passa a existir, como alias de `PUT`. O `PUT` continua funcionando.
+- **Códigos de rate limit por canal** deixam de sair acentuados. Agora são `WHATSAPP_INSTANCE_RATE_LIMIT` e `MESSENGER_PAGE_RATE_LIMIT`.
+- **Filtro `stage_id` em negócios** passa a aceitar o **ID** da etapa, como sempre esteve documentado. O nome continua funcionando.
+- **`deals_count` e `messages_count` em contatos** e **`contacts_count`, `deals_count` e `total_deals_value` em empresas** passam a trazer os valores reais. Antes devolviam `0` sempre.
+- **`GET /v1/whatsapp-instances`** passa a devolver `channel` (`official` ou `qrcode`) — é como saber se o número aceita modelo.
+- **`meta.total` em `GET /v1/ai-agents/runs`** passa a respeitar os filtros da requisição.
+- **`DELETE /v1/companies/:id`** passa a recusar empresa com contatos ou negócios vinculados, com `403 COMPANY_HAS_LINKS` — mesma regra do painel.
+- **`PUT`** entra na lista de métodos aceitos em requisições de navegador.
+
+### Webhooks disparados pela API
+
+Escrever pela API v1 passou a emitir **21 eventos**, contra 8 antes. Passam a sair: `contact.deleted`, `contact.tag.added`, `contact.tag.removed`, `company.created`, `company.updated`, `company.deleted`, `deal.deleted`, `deal.assigned`, `deal.pipeline.transferred`, `task.created`, `task.completed`, `conversation.assigned` e `conversation.closed`.
+
+<Note>
+Se a sua integração escreve pela API e assina esses eventos, o volume de entregas aumenta. Confira a deduplicação por `id` do evento antes.
+</Note>
+
+### Documentação
+
+### Correções que afetavam integrações
+
+- **Agentes de IA · criar** — o exemplo publicado era inválido. `scope.channels` não existe (é `scope.sources`), `behavior` exige `strategy`, e `aiConfig` é obrigatório. O corpo é em camelCase; a resposta, em snake_case.
+- **Agentes de IA · atualizar** — o método é `PUT`, não `PATCH`.
+- **Disparos · audiência** — os filtros ficam em `audience.filters`, não na raiz de `audience`. A documentação anterior induzia a um payload aceito com `201` que disparava para toda a base.
+- **Disparos · perfil de envio** — os valores são `conservative`, `moderate` e `aggressive`. Os antes documentados (`slow`, `balanced`, `fast`) nunca existiram.
+- **Disparos · status** — não existe `running`; um disparo em andamento passa por `processing` e `sending`. Acrescentados `completed_with_errors` e `failed`.
+- **Escopos** — o código de escopo insuficiente é `INSUFFICIENT_SCOPES`, no plural, e traz `required_scopes`, `missing_scopes` e `your_scopes`.
+- **Rate limit por canal** — os códigos reais são `INSTÂNCIA_WHATSAPP_RATE_LIMIT` e `PÁGINA_MESSENGER_RATE_LIMIT`, **com acento**.
+- **Contatos** — removido `assigned_to` da documentação: contato não tem responsável na v1, a atribuição é por conversa. O campo era descrito como filtro, campo de corpo e campo de resposta, e não existe em nenhum dos três.
+- **Paginação** — `meta.next_cursor` é **omitido** na última página, não vem `null`.
+- **Idempotência** — o header vale em quatro rotas, não em todo `POST`.
+- **Funis** — os campos são `total_deals` e `total_value`; `deals_count` e `won_count` no nível do funil nunca existiram.
+
+### Limitações agora documentadas
+
+- **Webhooks** — escrever pela API v1 dispara 8 dos 47 eventos. A lista completa do que sai e do que não sai está em [Eventos e a API v1](/webhooks/introduction#eventos-e-a-api-v1).
+- **Contadores em zero** — `deals_count` e `messages_count` em contatos, e `contacts_count`, `deals_count` e `total_deals_value` em empresas devolvem `0` sempre.
+- **Filtro `stage_id` em negócios** — compara com o nome da etapa, não com o ID.
+- **`meta.total` em execuções de agente** — ignora os filtros aplicados.
+- **`template_name` em número por QR Code** — é ignorado em silêncio.
+- **`external_id` no envio** — só existe na resposta de envio de modelo.
+
+### Spec OpenAPI completo
+
+O arquivo em `/api/docs/openapi.json` passou de **42 para 68 caminhos (97 operações)**, com `components.schemas` preenchido — antes estava vazio. Agora cobre 100% das rotas da API pública e serve para gerar cliente, importar no Postman e validar payloads.
+
+Um teste novo (`openapiCobertura.test.mjs`) compara o que o servidor registra com o que o spec declara, nos dois sentidos, e falha na divergência. É a mesma trava que mantém a referência de webhooks em dia.
+
+### Páginas novas
+
+[Limites e cotas](/api-reference/limits) · [Versionamento](/api-reference/versioning) · [Changelog](/api-reference/changelog) · [Modelos do WhatsApp Oficial](/api-reference/whatsapp-templates) · [Enviar pela conversa](/api-reference/conversations/send) · Guias de integração
+
+### Créditos de mensagem
+
+As quatro páginas viraram [uma só](/api-reference/message-credits/wallet). A funcionalidade está descontinuada — as mensagens do WhatsApp Oficial são cobradas pela Meta direto na conta do cliente. As rotas continuam publicadas e explicam o motivo em vez de devolver `404`.
+
+---
+
+## Antes disso
+
+A referência de eventos de webhook passou a ser **gerada a partir do catálogo do servidor**, com teste que falha se o arquivo ficar para trás. É a razão de a seção de webhooks ter permanecido correta enquanto o restante da referência descolava.

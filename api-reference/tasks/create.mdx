@@ -54,3 +54,12 @@ Retorna `HTTP 201` com o objeto tarefa criado.
 | `MISSING_REQUIRED_FIELD` | `400` | `title`, `assigned_to` ou `due_date` ausente |
 | `INVALID_TYPE` | `400` | Tipo inválido |
 | `INVALID_PRIORITY` | `400` | Prioridade inválida |
+
+<Note>
+  A API Key não representa uma pessoa. A tarefa criada por aqui registra como **criador** o próprio
+  `assigned_to` — no painel, ela aparece como criada pelo responsável.
+</Note>
+
+<Note>
+Criar dispara `task.created`; concluir dispara `task.completed`.
+</Note>

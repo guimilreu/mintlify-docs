@@ -25,11 +25,11 @@ curl "https://api.socialsell.ai/v1/tags" \
 ```json
 {
   "data": [
-    { "name": "cliente", "count": 87 },
-    { "name": "vip", "count": 34 },
-    { "name": "lead", "count": 128 },
-    { "name": "inbound", "count": 65 },
-    { "name": "enterprise", "count": 12 }
+    { "name": "lead", "color": "#3B82F6", "count": 128 },
+    { "name": "cliente", "color": "#10B981", "count": 87 },
+    { "name": "inbound", "color": "#F59E0B", "count": 65 },
+    { "name": "vip", "color": "#8B5CF6", "count": 34 },
+    { "name": "enterprise", "color": "#EF4444", "count": 12 }
   ],
   "meta": {
     "total": 5,
@@ -45,4 +45,13 @@ Os resultados são ordenados por contagem de uso (decrescente).
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `name` | string | Nome da tag |
+| `color` | string | Cor em hexadecimal, usada no painel |
 | `count` | integer | Total de usos (contatos + empresas + negócios) |
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

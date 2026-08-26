@@ -62,3 +62,22 @@ Retorna `HTTP 201` com o campo criado.
 <Warning>
 `key`, `type` e `entity` não podem ser alterados após a criação. Defina-os com cuidado.
 </Warning>
+
+## Regras da `key`
+
+A `key` é o identificador do campo dentro do objeto `custom_fields` — e é **imutável** depois de criada.
+
+| Regra | Valor |
+|-------|-------|
+| Formato | `^[a-z][a-z0-9_]*$` — começa com letra minúscula; depois, minúsculas, dígitos e `_` |
+| Tamanho | Até 50 caracteres |
+| Unicidade | Por entidade. `cpf` em `contact` e `cpf` em `company` convivem |
+
+✅ `cpf`, `data_nascimento`, `nivel_2`  ·  ❌ `CPF`, `2_via`, `data-nascimento`, `data nascimento`
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido — inclusive `key` fora do formato |
+| `DUPLICATE_KEY` | `409` | Já existe campo com essa `key` nesta entidade |

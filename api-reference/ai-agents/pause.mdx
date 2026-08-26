@@ -1,6 +1,6 @@
 ---
 title: "Pausar agente"
-description: "Pausa um agente de IA ativo, interrompendo novas execuções."
+description: "Pausa um agente de IA, interrompendo novas execuções."
 ---
 
 ## Endpoint
@@ -11,17 +11,26 @@ POST /v1/ai-agents/:id/pause
 
 **Escopo necessário:** `write:ai_agents`
 
-Transição de status: `active` → `paused`
-
-O agente para de responder a novos eventos. Execuções já em andamento são concluídas normalmente.
+Transição: `active` → `paused`. O agente para de reagir a novos eventos; execuções já em andamento terminam normalmente.
 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z/pause \
+curl -X POST https://api.socialsell.ai/v1/ai-agents/66445c483fa9572a0b2496cb/pause \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
-Retorna `HTTP 200` com o agente no status `paused`.
+Retorna `HTTP 200` com o agente em `status: paused`.
+
+<Tip>
+Para pausar **todos** os agentes da organização de uma vez, use o [Kill Switch](/api-reference/ai-agents/kill-switch).
+</Tip>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Agente não encontrado |

@@ -1,0 +1,115 @@
+---
+title: "Espelhar o inbox em um sistema externo"
+description: "Receber toda mensagem que entra e sai, em tempo real, sem perder nada."
+---
+
+Para levar as conversas da SocialSell para um data warehouse, um helpdesk ou um sistema próprio.
+
+**Escopos necessários:** `read:conversations`, `write:webhooks`.
+
+## 1. Assine os dois lados
+
+Espelhar só o que **entra** produz metade da conversa. Assine os três eventos de mensagem:
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/webhooks \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Espelho do inbox",
+    "url": "https://meusistema.com/webhooks/socialsell",
+    "events": ["message.received", "message.sent", "message.edited"]
+  }'
+```
+
+Guarde o `secret` da resposta — ele só aparece na criação.
+
+<Note>
+  `message.sent` cobre também o que o vendedor manda **do próprio celular** em números conectados por QR
+  Code. Sem ele, essas mensagens ficariam fora do espelho.
+</Note>
+
+## 2. Valide a assinatura
+
+Obrigatório. O detalhe e exemplos em quatro linguagens estão em [Segurança](/webhooks/security). O resumo:
+
+```
+assinatura = "sha256=" + HMAC_SHA256(secret, "{timestamp}.{corpo_bruto}")
+```
+
+Use o corpo **bruto**, nunca o JSON reserializado.
+
+## 3. Deduplique pelo `id` do evento
+
+A entrega é **at-least-once**: o mesmo evento pode chegar duas vezes em falha de rede ou reenvio manual.
+
+```javascript
+async function processar(evento) {
+  const novo = await db.eventos.insertIfAbsent(evento.id);
+  if (!novo) return; // já processado
+  await espelhar(evento);
+}
+```
+
+<Warning>
+Guarde os ids em armazenamento persistente. Um `Set` em memória some no restart, e a deduplicação vai junto.
+</Warning>
+
+## 4. Responda rápido
+
+Você tem **10 segundos**. Responda `200` e processe em background — é a causa número um de timeout em integração de webhook.
+
+```javascript
+app.post('/webhooks/socialsell', (req, res) => {
+  res.status(200).send('OK');
+  fila.add('espelhar', req.body);
+});
+```
+
+Depois de 5 tentativas sem sucesso a entrega é marcada como falha; após 10 falhas consecutivas o endpoint é **pausado automaticamente**.
+
+## 5. Não confie na ordem
+
+A ordem de chegada **não é garantida** — retentativas e concorrência reordenam. Reconstrua a linha do tempo pelo `created_at` do evento e descarte atualizações mais velhas que o estado que você já tem.
+
+## 6. Preencha os buracos
+
+Se o seu endpoint ficou fora por mais de ~15 minutos, a recuperação automática já se esgotou. Duas saídas:
+
+**Reenvio manual** — o log guarda 15 dias:
+
+```bash
+curl "https://api.socialsell.ai/v1/webhooks/664f.../deliveries?limit=200" \
+  -H "Authorization: Bearer sk_live_..."
+
+curl -X POST https://api.socialsell.ai/v1/webhooks/deliveries/664e.../redeliver \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+**Varredura por API** — mais confiável para janelas longas:
+
+```bash
+curl "https://api.socialsell.ai/v1/conversations?updated_after=2026-08-25T00:00:00.000Z" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+E depois, por conversa, `GET /v1/conversations/:id/messages`.
+
+## 7. Monitore a saúde
+
+O objeto da assinatura traz `status`, `consecutive_failures`, `last_delivery_at` e `last_failure_at`. Vale um alerta quando `consecutive_failures` passar de 3 — a pausa automática vem aos 10.
+
+<Tip>
+Assine também `channel.disconnected`. Enquanto um canal está fora, **nenhuma mensagem entra ou sai** por ele — e o espelho fica silenciosamente vazio, sem erro nenhum.
+</Tip>
+
+## Checklist
+
+- [ ] `message.received`, `message.sent` e `message.edited` assinados
+- [ ] Assinatura HMAC validada com o corpo bruto
+- [ ] Deduplicação por `evento.id` em armazenamento persistente
+- [ ] Resposta `200` antes do processamento
+- [ ] Linha do tempo reconstruída por `created_at`
+- [ ] Varredura de recuperação implementada
+- [ ] `channel.disconnected` assinado
+- [ ] Alerta em `consecutive_failures`

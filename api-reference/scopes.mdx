@@ -38,8 +38,8 @@ Ao criar uma API Key, você define quais **escopos** ela possui. Um escopo é um
 | `read:instagram_accounts` | Leitura | Todos | Listar contas Instagram conectadas |
 | `read:custom_fields` | Leitura | Todos | Listar campos personalizados |
 | `write:custom_fields` | Escrita | Todos | Criar e editar campos personalizados |
-| `read:message_credits` | Leitura | Todos | Consultar saldo e extrato de créditos de mensagem |
-| `write:message_credits` | Escrita | Todos | Configurar recarga e comprar créditos |
+| `read:message_credits` | Leitura | Todos | ⚠️ Descontinuado — ver [Créditos de mensagem](/api-reference/message-credits/wallet) |
+| `write:message_credits` | Escrita | Todos | ⚠️ Descontinuado — as rotas respondem `410` |
 
 ## Restrições por plano
 
@@ -57,11 +57,18 @@ Ao tentar usar um endpoint que requer um escopo restrito, a API retorna:
 {
   "error": {
     "type": "forbidden",
-    "message": "Recurso não disponível no seu plano. Faça upgrade para Growth ou superior.",
-    "code": "PLAN_RESTRICTION"
+    "message": "O endpoint 'read:deals' não está disponível no plano starter. Faça upgrade para Growth ou superior.",
+    "code": "PLAN_RESTRICTION",
+    "required_plan": "growth",
+    "current_plan": "starter"
+  },
+  "meta": {
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```
+
+O corpo diz **qual** escopo foi barrado e **qual** plano resolve — dá para montar a mensagem de upgrade sem tabela do seu lado.
 
 ## Erro de escopo insuficiente
 
@@ -71,14 +78,65 @@ Se a chave não tiver o escopo necessário para um endpoint:
 {
   "error": {
     "type": "forbidden",
-    "message": "Escopo 'write:contacts' necessário.",
-    "code": "INSUFFICIENT_SCOPE"
+    "message": "Scopes insuficientes. Necessários: write:contacts",
+    "code": "INSUFFICIENT_SCOPES",
+    "required_scopes": ["write:contacts"],
+    "missing_scopes": ["write:contacts"],
+    "your_scopes": ["read:contacts", "read:conversations", "write:messages"]
+  },
+  "meta": {
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```
+
+Os três arrays permitem diagnosticar sem adivinhação: `required_scopes` é o que o endpoint pede, `missing_scopes` é o que falta na chave, e `your_scopes` é o que ela tem hoje.
 
 ## Boas práticas
 
 - **Princípio do mínimo privilégio**: conceda apenas os escopos que a integração realmente precisa
 - **Crie chaves separadas por integração**: facilita auditar e revogar acessos específicos
 - **Prefira `read:*` quando possível**: evite `write:*` em integrações que só precisam ler dados
+
+## Atalhos ao criar a chave
+
+O painel oferece três conjuntos prontos. Nada impede montar o seu, mas estes cobrem a maioria dos casos:
+
+| Preset | Escopos | Para quê |
+|--------|---------|----------|
+| **Só leitura** | todos os `read:*` | Relatórios, BI, espelhamento de dados |
+| **Mensagens** | `read:contacts`, `read:conversations`, `write:messages` | Bot ou integração que só precisa enviar e ler conversa |
+| **CRM típico** | leitura e escrita de contatos, empresas, negócios, funis, conversas, tags, campos personalizados e webhooks, mais `read:members` | Sincronização bidirecional com ERP ou CRM interno |
+
+## Qual escopo cada endpoint exige
+
+| Endpoints | Escopo de leitura | Escopo de escrita |
+|-----------|-------------------|-------------------|
+| `/contacts`, `/contacts/:id/notes` | `read:contacts` | `write:contacts` |
+| `/companies` | `read:companies` | `write:companies` |
+| `/deals`, `/deals/:id/move` · `won` · `lost` · `reopen` · `notes` | `read:deals` | `write:deals` |
+| `/pipelines` | `read:pipelines` | `write:pipelines` |
+| `/conversations`, `/conversations/:id/messages` | `read:conversations` | `write:conversations` |
+| `/messages/send`, `/conversations/send` | — | `write:messages` |
+| `/tasks` | `read:tasks` | `write:tasks` |
+| `/broadcasts`, `/broadcasts/audience/estimate` | `read:broadcasts` | `write:broadcasts` |
+| `/ai-agents`, `/ai-agents/runs`, `/ai-agents/stats` | `read:ai_agents` | `write:ai_agents` |
+| `/webhooks`, `/webhooks/:id/deliveries` | `read:webhooks` | `write:webhooks` |
+| `/custom-fields` | `read:custom_fields` | `write:custom_fields` |
+| `/tags` | `read:tags` | — |
+| **Tags em contato, empresa ou negócio** | — | `write:tags` |
+| `/members` | `read:members` | — |
+| `/whatsapp-instances` | `read:whatsapp_instances` | — |
+| `/messenger-pages` | `read:messenger_pages` | — |
+| `/instagram-accounts` | `read:instagram_accounts` | — |
+| `/message-credits` (descontinuado) | `read:message_credits` | `write:message_credits` |
+
+<Warning>
+  Adicionar ou remover tag de um contato, empresa ou negócio exige **`write:tags`**, não o escopo de
+  escrita do recurso. Uma chave com `write:contacts` mas sem `write:tags` cria e edita contatos, e falha
+  em `POST /v1/contacts/:id/tags` com `403`.
+</Warning>
+
+<Note>
+Não existe `read:messages`: a leitura de mensagens usa `read:conversations`.
+</Note>

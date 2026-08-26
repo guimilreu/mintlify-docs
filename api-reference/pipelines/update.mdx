@@ -39,3 +39,13 @@ curl -X PATCH https://api.socialsell.ai/v1/pipelines/664a1b2c3d4e5f6789012345 \
     "name": "Funil Principal 2026"
   }'
 ```
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido, ou nenhum campo enviado |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NAME_REQUIRED` | `400` | Nome vazio |
+| `STAGES_REQUIRED` | `400` | Lista de etapas vazia |
+| `NOT_FOUND` | `404` | Funil não encontrado |

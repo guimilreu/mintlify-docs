@@ -351,13 +351,15 @@ Alguém registrou uma nota no histórico do contato.
     "note": {
       "id": "664b4c5d6e7f8a901234520c",
       "content": "Cliente pediu para revisar a cláusula de reajuste.",
+      "color": null,
       "category": "general",
       "is_pinned": false,
       "created_by": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "created_at": "2026-08-20T14:30:00.000Z"
+      "created_at": "2026-08-20T14:30:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
     }
   }
 }
@@ -385,6 +387,8 @@ Uma empresa foi cadastrada.
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
+      "city": null,
+      "state": null,
       "address": null,
       "assigned_to": {
         "id": "664a0000000000000000000f",
@@ -394,6 +398,9 @@ Uma empresa foi cadastrada.
         "enterprise"
       ],
       "custom_fields": {},
+      "contacts_count": 0,
+      "deals_count": 0,
+      "total_deals_value": 0,
       "created_at": "2026-06-15T09:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     }
@@ -421,6 +428,8 @@ Um campo da empresa mudou. `changed_fields` lista quais.
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
+      "city": null,
+      "state": null,
       "address": null,
       "assigned_to": {
         "id": "664a0000000000000000000f",
@@ -430,6 +439,9 @@ Um campo da empresa mudou. `changed_fields` lista quais.
         "enterprise"
       ],
       "custom_fields": {},
+      "contacts_count": 0,
+      "deals_count": 0,
+      "total_deals_value": 0,
       "created_at": "2026-06-15T09:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     },
@@ -461,6 +473,8 @@ Uma empresa foi excluída. O payload traz o último estado conhecido.
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
+      "city": null,
+      "state": null,
       "address": null,
       "assigned_to": {
         "id": "664a0000000000000000000f",
@@ -470,6 +484,9 @@ Uma empresa foi excluída. O payload traz o último estado conhecido.
         "enterprise"
       ],
       "custom_fields": {},
+      "contacts_count": 0,
+      "deals_count": 0,
+      "total_deals_value": 0,
       "created_at": "2026-06-15T09:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     }
@@ -497,6 +514,8 @@ Alguém registrou uma nota no histórico da empresa.
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
+      "city": null,
+      "state": null,
       "address": null,
       "assigned_to": {
         "id": "664a0000000000000000000f",
@@ -506,19 +525,24 @@ Alguém registrou uma nota no histórico da empresa.
         "enterprise"
       ],
       "custom_fields": {},
+      "contacts_count": 0,
+      "deals_count": 0,
+      "total_deals_value": 0,
       "created_at": "2026-06-15T09:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     },
     "note": {
       "id": "664b4c5d6e7f8a901234520c",
       "content": "Cliente pediu para revisar a cláusula de reajuste.",
+      "color": null,
       "category": "general",
       "is_pinned": false,
       "created_by": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "created_at": "2026-08-20T14:30:00.000Z"
+      "created_at": "2026-08-20T14:30:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
     }
   }
 }
@@ -538,7 +562,7 @@ Um negócio entrou em algum funil.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -592,7 +616,7 @@ O negócio andou (ou voltou) no funil. Traz a etapa anterior e a nova.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -648,7 +672,7 @@ O negócio foi marcado como ganho.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -703,7 +727,7 @@ O negócio foi marcado como perdido.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -758,7 +782,7 @@ O responsável pelo negócio mudou.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -820,7 +844,7 @@ O negócio saiu de um funil e entrou em outro.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -876,7 +900,7 @@ Um negócio foi excluído. O payload traz o último estado conhecido.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -930,7 +954,7 @@ Alguém registrou uma nota no histórico do negócio.
   "organization_id": "664a1b2c3d4e5f6789012345",
   "data": {
     "deal": {
-      "id": "664g2h3i4j5k6l7m8n9o0p1q",
+      "id": "664632f1260b42723a5ed4ed",
       "title": "Implantação — Empresa XYZ",
       "description": "Contrato anual com onboarding assistido.",
       "value": 48000,
@@ -971,13 +995,15 @@ Alguém registrou uma nota no histórico do negócio.
     "note": {
       "id": "664b4c5d6e7f8a901234520c",
       "content": "Cliente pediu para revisar a cláusula de reajuste.",
+      "color": null,
       "category": "general",
       "is_pinned": false,
       "created_by": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "created_at": "2026-08-20T14:30:00.000Z"
+      "created_at": "2026-08-20T14:30:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
     }
   }
 }
@@ -1015,7 +1041,7 @@ Uma proposta foi gerada para um negócio.
       "created_at": "2026-08-18T15:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     },
-    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q"
+    "deal_id": "664632f1260b42723a5ed4ed"
   }
 }
 ```
@@ -1050,7 +1076,7 @@ O cliente abriu a proposta pela primeira vez. Só dispara na primeira visualiza�
       "created_at": "2026-08-18T15:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     },
-    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q"
+    "deal_id": "664632f1260b42723a5ed4ed"
   }
 }
 ```
@@ -1085,7 +1111,7 @@ O cliente aceitou a proposta na página pública.
       "created_at": "2026-08-18T15:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     },
-    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "deal_id": "664632f1260b42723a5ed4ed",
     "responded_by": "João Silva",
     "message": "Fechado! Pode emitir o contrato."
   }
@@ -1122,7 +1148,7 @@ O cliente recusou a proposta na página pública.
       "created_at": "2026-08-18T15:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
     },
-    "deal_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "deal_id": "664632f1260b42723a5ed4ed",
     "responded_by": "João Silva",
     "message": "Vamos ficar com outro fornecedor por ora."
   }
@@ -1148,14 +1174,14 @@ Uma tarefa foi criada.
       "description": "Confirmar dados para emissão do contrato.",
       "type": "call",
       "priority": "high",
-      "due_date": "2026-08-22T13:00:00.000Z",
+      "status": "overdue",
       "is_completed": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
       "deal": {
-        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "id": "664632f1260b42723a5ed4ed",
         "title": "Implantação — Empresa XYZ"
       },
       "contact": {
@@ -1166,6 +1192,8 @@ Uma tarefa foi criada.
         "id": "664b1c2d3e4f5a6789012346",
         "name": "Empresa XYZ"
       },
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "completed_at": null,
       "location": null,
       "video_call_link": null,
       "created_at": "2026-08-19T09:00:00.000Z",
@@ -1192,14 +1220,14 @@ Uma tarefa foi marcada como concluída.
       "description": "Confirmar dados para emissão do contrato.",
       "type": "call",
       "priority": "high",
-      "due_date": "2026-08-22T13:00:00.000Z",
+      "status": "completed",
       "is_completed": true,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
       "deal": {
-        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "id": "664632f1260b42723a5ed4ed",
         "title": "Implantação — Empresa XYZ"
       },
       "contact": {
@@ -1210,6 +1238,8 @@ Uma tarefa foi marcada como concluída.
         "id": "664b1c2d3e4f5a6789012346",
         "name": "Empresa XYZ"
       },
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "completed_at": "2026-08-20T14:30:00.000Z",
       "location": null,
       "video_call_link": null,
       "created_at": "2026-08-19T09:00:00.000Z",
@@ -1236,14 +1266,14 @@ Uma tarefa está perto do prazo. Dispara uma vez por tarefa.
       "description": "Confirmar dados para emissão do contrato.",
       "type": "call",
       "priority": "high",
-      "due_date": "2026-08-22T13:00:00.000Z",
+      "status": "overdue",
       "is_completed": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
       "deal": {
-        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "id": "664632f1260b42723a5ed4ed",
         "title": "Implantação — Empresa XYZ"
       },
       "contact": {
@@ -1254,6 +1284,8 @@ Uma tarefa está perto do prazo. Dispara uma vez por tarefa.
         "id": "664b1c2d3e4f5a6789012346",
         "name": "Empresa XYZ"
       },
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "completed_at": null,
       "location": null,
       "video_call_link": null,
       "created_at": "2026-08-19T09:00:00.000Z",
@@ -1281,14 +1313,14 @@ Uma tarefa passou do prazo. Dispara uma vez por tarefa.
       "description": "Confirmar dados para emissão do contrato.",
       "type": "call",
       "priority": "high",
-      "due_date": "2026-08-22T13:00:00.000Z",
+      "status": "overdue",
       "is_completed": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
       "deal": {
-        "id": "664g2h3i4j5k6l7m8n9o0p1q",
+        "id": "664632f1260b42723a5ed4ed",
         "title": "Implantação — Empresa XYZ"
       },
       "contact": {
@@ -1299,6 +1331,8 @@ Uma tarefa passou do prazo. Dispara uma vez por tarefa.
         "id": "664b1c2d3e4f5a6789012346",
         "name": "Empresa XYZ"
       },
+      "due_date": "2026-08-22T13:00:00.000Z",
+      "completed_at": null,
       "location": null,
       "video_call_link": null,
       "created_at": "2026-08-19T09:00:00.000Z",
@@ -1328,18 +1362,30 @@ Uma conversa foi aberta em qualquer canal.
       "type": "direct",
       "contact": {
         "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva"
+        "name": "João Silva",
+        "phone": null
       },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "is_closed": false,
-      "is_archived": false,
+      "objective": null,
+      "ai_agent": null,
       "unread_count": 2,
       "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
       "last_message_at": "2026-08-20T14:30:00.000Z",
-      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "tags": [],
       "closed_at": null,
       "created_at": "2026-07-01T10:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
@@ -1366,18 +1412,30 @@ Uma conversa encerrada voltou a receber mensagem ou foi reaberta manualmente.
       "type": "direct",
       "contact": {
         "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva"
+        "name": "João Silva",
+        "phone": null
       },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "is_closed": false,
-      "is_archived": false,
+      "objective": null,
+      "ai_agent": null,
       "unread_count": 2,
       "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
       "last_message_at": "2026-08-20T14:30:00.000Z",
-      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "tags": [],
       "closed_at": null,
       "created_at": "2026-07-01T10:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
@@ -1403,18 +1461,30 @@ A conversa passou a ter (ou trocou de) responsável.
       "type": "direct",
       "contact": {
         "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva"
+        "name": "João Silva",
+        "phone": null
       },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "is_closed": false,
-      "is_archived": false,
+      "objective": null,
+      "ai_agent": null,
       "unread_count": 2,
       "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
       "last_message_at": "2026-08-20T14:30:00.000Z",
-      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "tags": [],
       "closed_at": null,
       "created_at": "2026-07-01T10:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"
@@ -1448,18 +1518,30 @@ A conversa foi encerrada.
       "type": "direct",
       "contact": {
         "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva"
+        "name": "João Silva",
+        "phone": null
       },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": true,
+      "is_archived": false,
       "assigned_to": {
         "id": "664a0000000000000000000f",
         "name": "Maria Santos"
       },
-      "is_closed": true,
-      "is_archived": false,
+      "objective": null,
+      "ai_agent": null,
       "unread_count": 2,
       "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
       "last_message_at": "2026-08-20T14:30:00.000Z",
-      "last_message_content": "Perfeito, pode enviar o contrato.",
+      "tags": [],
       "closed_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
       "updated_at": "2026-08-20T14:30:00.000Z"

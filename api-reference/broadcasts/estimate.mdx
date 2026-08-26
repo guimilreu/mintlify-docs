@@ -1,6 +1,6 @@
 ---
 title: "Estimar audiência"
-description: "Calcula quantos contatos serão atingidos por uma configuração de audiência."
+description: "Calcula quantos contatos uma configuração de audiência realmente atinge, antes de criar o disparo."
 ---
 
 ## Endpoint
@@ -11,13 +11,20 @@ POST /v1/broadcasts/audience/estimate
 
 **Escopo necessário:** `read:broadcasts`
 
-Use antes de criar um disparo para validar o alcance estimado da campanha.
+Use antes de criar ou lançar. É a forma mais rápida de descobrir que os filtros estão no lugar errado: se a audiência voltar com a base inteira, o aninhamento está errado.
 
 ## Corpo da requisição
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `audience` | object | Sim | Mesma estrutura do campo `audience` em criar disparo |
+| `audience` | object | Sim | Mesma estrutura de [Criar disparo](/api-reference/broadcasts/create) — os filtros ficam em `audience.filters` |
+| `cloudTemplate` | object | Não | `{ templateId }`. Informe em disparos pelo WhatsApp Oficial |
+
+<Note>
+  O modelo importa na conta. A categoria dele decide se vale a política de marketing — descadastro e
+  autorização. Sem `cloudTemplate`, a estimativa mostra **mais gente** do que o disparo vai atingir de
+  verdade.
+</Note>
 
 ## Exemplo de requisição
 
@@ -28,9 +35,12 @@ curl -X POST https://api.socialsell.ai/v1/broadcasts/audience/estimate \
   -d '{
     "audience": {
       "type": "tags",
-      "tags": ["cliente"],
-      "tagsOperator": "or",
-      "hasWhatsapp": true
+      "filters": {
+        "tags": ["cliente"],
+        "tagsOperator": "or",
+        "hasWhatsapp": true
+      },
+      "exclusions": { "recentBroadcastHours": 48 }
     }
   }'
 ```
@@ -41,12 +51,29 @@ curl -X POST https://api.socialsell.ai/v1/broadcasts/audience/estimate \
 {
   "data": {
     "estimated_count": 1250,
-    "estimated_exclusions": 0
+    "estimated_exclusions": 187,
+    "skipped_by_reason": {
+      "recent_broadcast": 142,
+      "blocked": 31,
+      "no_whatsapp": 14
+    }
+  },
+  "meta": {
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```
 
+## Campos da resposta
+
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `estimated_count` | integer | Contatos que receberão o disparo |
-| `estimated_exclusions` | integer | Contatos excluídos pelas regras de exclusão |
+| `estimated_count` | integer | Contatos que vão receber o disparo |
+| `estimated_exclusions` | integer | Quantos foram removidos pelas regras de exclusão e de política |
+| `skipped_by_reason` | object | O detalhamento: motivo → quantidade. É aqui que se descobre *por que* a audiência encolheu |
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | `audience` inválida. `details[]` aponta o campo |

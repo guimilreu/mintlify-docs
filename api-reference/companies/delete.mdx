@@ -11,6 +11,20 @@ DELETE /v1/companies/:id
 
 **Escopo necessário:** `write:companies`
 
+## Comportamento
+
+<Warning>
+  A exclusão é **permanente** — não é soft delete, e não há como restaurar. Diferente de contatos, que
+  são marcados como excluídos e permanecem no banco.
+</Warning>
+
+<Note>
+  Empresa com contatos ou negócios vinculados **não pode ser excluída** — a resposta é
+  `403 COMPANY_HAS_LINKS`, com as duas contagens no corpo. Desvincule antes. É a mesma regra do painel.
+</Note>
+
+A exclusão dispara o webhook `company.deleted`.
+
 ## Exemplo de requisição
 
 ```bash
@@ -27,4 +41,5 @@ Retorna `HTTP 204 No Content` em caso de sucesso.
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `INVALID_ID` | `400` | ID com formato inválido |
+| `COMPANY_HAS_LINKS` | `403` | A empresa tem contatos ou negócios vinculados. O corpo traz `contacts_count` e `deals_count` |
 | `NOT_FOUND` | `404` | Empresa não encontrada |

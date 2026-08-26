@@ -1,6 +1,6 @@
 ---
 title: "Retomar disparo"
-description: "Retoma um disparo pausado, continuando os envios pendentes."
+description: "Retoma um disparo pausado, de onde ele parou."
 ---
 
 ## Endpoint
@@ -11,15 +11,34 @@ POST /v1/broadcasts/:id/resume
 
 **Escopo necessário:** `write:broadcasts`
 
-Transição de status: `paused` → `running`
+Transição: `paused` → `sending`. Os contatos já atingidos não recebem de novo.
 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/resume \
+curl -X POST https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/resume \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
-Retorna `HTTP 200` com o disparo no status `running`.
+Retorna `HTTP 200` com uma confirmação enxuta — **não** o objeto disparo completo:
+
+```json
+{
+  "data": { "id": "6648aefe065dd4c1a34780a1", "status": "sending" },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
+}
+```
+
+<Tip>
+Se o disparo foi pausado pelo disjuntor anti-ban, resolva a causa antes — `pause_code` no objeto disparo diz qual foi. Retomar sem corrigir tende a pausar de novo.
+</Tip>
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `INVALID_STATUS` | `422` | O disparo não está pausado |

@@ -19,8 +19,9 @@ DELETE /v1/contacts/:id
 
 ## Comportamento
 
-A exclusão é um **soft delete** — o contato é marcado como excluído mas permanece no banco de dados. Ele não aparece mais em listagens nem buscas.
+A exclusão é um **soft delete** — o contato é marcado como excluído mas permanece no banco. Ele deixa de aparecer em listagens, buscas e envios, e não há endpoint para restaurá-lo.
 
+A exclusão dispara o webhook `contact.deleted`.
 ## Exemplo de requisição
 
 ```bash

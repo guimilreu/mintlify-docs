@@ -23,7 +23,7 @@ Envie `assigned_to` e/ou `status`. Pelo menos um campo é obrigatório.
 ## Exemplo — Atribuir conversa
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q \
+curl -X PATCH https://api.socialsell.ai/v1/conversations/664632f1260b42723a5ed4ed \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"assigned_to": "664a1b2c3d4e5f6789012345"}'
@@ -32,12 +32,21 @@ curl -X PATCH https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1
 ## Exemplo — Fechar conversa
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q \
+curl -X PATCH https://api.socialsell.ai/v1/conversations/664632f1260b42723a5ed4ed \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"status": "closed"}'
 ```
 
+<Warning>
+  Fechar uma conversa **já fechada** devolve `422 ALREADY_CLOSED`, e reabrir uma já aberta devolve
+  `422 ALREADY_OPEN`. Se a sua integração sincroniza estado periodicamente, trate os dois como sucesso —
+  o estado desejado já é o atual.
+</Warning>
+
+<Note>
+Atribuir dispara `conversation.assigned`; fechar dispara `conversation.closed`.
+</Note>
 ## Resposta
 
 Retorna o objeto conversa atualizado.
@@ -46,5 +55,9 @@ Retorna o objeto conversa atualizado.
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Nenhum campo enviado, ou `status` fora de `open`/`closed` |
 | `INVALID_ID` | `400` | ID inválido |
+| `MEMBER_NOT_FOUND` | `400` | O `assigned_to` informado não é membro desta organização |
 | `NOT_FOUND` | `404` | Conversa não encontrada |
+| `ALREADY_CLOSED` | `422` | A conversa já está fechada |
+| `ALREADY_OPEN` | `422` | A conversa já está aberta |

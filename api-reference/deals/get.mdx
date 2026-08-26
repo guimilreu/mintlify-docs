@@ -68,3 +68,10 @@ curl "https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347" \
 |-------|------|-----------|
 | `notes_count` | integer | Quantidade de notas |
 | `tasks` | array | Tarefas vinculadas (até 20) com `id`, `title`, `type`, `priority`, `status`, `due_date` |
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Negócio não encontrado |

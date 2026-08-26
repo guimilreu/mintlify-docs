@@ -1,55 +1,95 @@
 ---
-title: "Saldo da carteira"
-description: "Consulta o saldo atual de créditos de mensagem da organização."
+title: "Créditos de mensagem"
+description: "Descontinuado — as mensagens da API Oficial são cobradas pela Meta direto na conta do cliente."
 ---
 
-Os créditos de mensagem custeiam o envio via WhatsApp Cloud API. Use este endpoint para verificar o saldo disponível antes de realizar disparos.
+<Warning>
+  **Esta funcionalidade foi descontinuada.** Não existe mais saldo de créditos de mensagem a consumir
+  nem a comprar. As mensagens do WhatsApp Oficial são cobradas **pela Meta, direto na conta do cliente**.
+</Warning>
 
-## Endpoint
+## Por que mudou
 
-```
-GET /v1/message-credits/wallet
-```
+A cobrança agregada por linha de crédito compartilhada é privilégio de Solution Partner da Meta. A SocialSell é **Tech Provider** — a cobrança das mensagens acontece entre a Meta e o portfólio de negócios do próprio cliente, sem passar pela plataforma.
 
-**Escopo necessário:** `read:message_credits`
+As quatro rotas continuam publicadas de propósito: elas fazem parte do contrato de chaves de API já em uso, e devolver `404` trocaria uma explicação por um erro mudo. Cada uma responde o mesmo motivo e o caminho da configuração.
 
-## Exemplo de requisição
+## O que cada rota responde hoje
+
+| Rota | Escopo | Resposta |
+|------|--------|----------|
+| `GET /v1/message-credits/wallet` | `read:message_credits` | `200` com `credits_applicable: false` e `wallet: null` |
+| `GET /v1/message-credits/ledger` | `read:message_credits` | `200` com `items: []` e paginação zerada |
+| `PATCH /v1/message-credits/auto-topup` | `write:message_credits` | `410 credits_not_applicable` |
+| `POST /v1/message-credits/purchase` | `write:message_credits` | `410 credits_not_applicable` |
+
+### Leitura — `wallet`
 
 ```bash
 curl "https://api.socialsell.ai/v1/message-credits/wallet" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
-## Exemplo de resposta
-
 ```json
 {
   "data": {
-    "balance_cents": 50000,
-    "reserved_cents": 1200,
-    "available_cents": 48800,
-    "currency": "BRL",
-    "auto_topup": {
-      "enabled": true,
-      "thresholdCents": 10000,
-      "amountCents": 50000
+    "credits_applicable": false,
+    "reason": "As mensagens da API Oficial são cobradas pela Meta direto na sua conta, então não há créditos a comprar nem saldo a consumir. Configure a moeda e uma forma de pagamento no seu portfólio de negócios da Meta.",
+    "meta_payment_setup": {
+      "title": "Configure a cobrança na sua conta da Meta",
+      "summary": "As mensagens de API Oficial são cobradas pela Meta direto na sua conta. Sem moeda e forma de pagamento configuradas, a Meta aceita o envio e depois recusa todas as entregas.",
+      "steps": ["…"],
+      "helpUrl": "https://www.facebook.com/business/help/2225184664363779",
+      "warning": "A moeda escolhida não pode ser alterada depois. Confirme antes de salvar."
     },
-    "status": "active"
-  }
+    "wallet": null
+  },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
 }
 ```
 
-## Campos da resposta
+### Escrita — `purchase` e `auto-topup`
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `balance_cents` | integer | Saldo total em centavos |
-| `reserved_cents` | integer | Valor reservado para envios em andamento |
-| `available_cents` | integer | Saldo disponível (`balance - reserved`) |
-| `currency` | string | Moeda (`BRL`) |
-| `auto_topup` | object | Configuração de recarga automática |
-| `status` | string | Status da carteira (`active`, `suspended`) |
+```json
+{
+  "error": {
+    "type": "credits_not_applicable",
+    "message": "As mensagens da API Oficial são cobradas pela Meta direto na sua conta, então não há créditos a comprar nem saldo a consumir. Configure a moeda e uma forma de pagamento no seu portfólio de negócios da Meta.",
+    "meta_payment_setup": { "…": "…" }
+  },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
+}
+```
 
-<Tip>
-Sempre use `available_cents` para verificar se há saldo suficiente — `balance_cents` pode incluir valores já comprometidos com disparos em andamento.
-</Tip>
+<Note>
+Este é um dos poucos erros da API **sem** o campo `error.code`. Trate por `error.type` (`credits_not_applicable`) ou pelo status `410`.
+</Note>
+
+## O que fazer no lugar
+
+Configure a cobrança no portfólio de negócios da Meta que é dono do número:
+
+<Steps>
+  <Step title="Abra o Meta Business Suite">
+    Com o portfólio de negócios dono do seu número do WhatsApp.
+  </Step>
+  <Step title="Vá até a conta do WhatsApp">
+    **Configurações → Contas → Contas do WhatsApp**, e selecione a sua.
+  </Step>
+  <Step title="Defina moeda e forma de pagamento">
+    Nas configurações de pagamento. Confira se o cartão aceita cobrança internacional — é a recusa mais comum.
+  </Step>
+</Steps>
+
+<Warning>
+  A moeda **não pode ser alterada depois**. Confirme antes de salvar.
+
+  Sem moeda e forma de pagamento configuradas, a Meta **aceita** o envio e recusa todas as entregas
+  depois (erro `131042`) — a mensagem aparece como “enviada” e nunca chega.
+</Warning>
+
+[Documentação oficial da Meta sobre cobrança →](https://www.facebook.com/business/help/2225184664363779)
+
+## Créditos de IA
+
+Não confunda: os **créditos de IA** — consumidos por agentes autopilot e pelo Pulse — continuam existindo normalmente. Eles têm eventos próprios de webhook (`credits.low`, `credits.depleted`) e não têm relação com esta página.

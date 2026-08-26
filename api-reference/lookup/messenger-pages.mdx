@@ -26,7 +26,7 @@ curl "https://api.socialsell.ai/v1/messenger-pages" \
 {
   "data": [
     {
-      "id": "664i4j5k6l7m8n9o0p1q2r3s",
+      "id": "664314fda3abe63975abff27",
       "page_id": "123456789012345",
       "page_name": "Empresa ABC - Oficial",
       "category": "Software",
@@ -55,3 +55,15 @@ curl "https://api.socialsell.ai/v1/messenger-pages" \
 | `last_sync_at` | string\|null | Última sincronização com o Facebook |
 | `created_at` | string | Timestamp de criação |
 | `updated_at` | string | Timestamp de atualização |
+
+<Note>
+A listagem traz apenas páginas **ativas** na organização. Páginas desconectadas não aparecem.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

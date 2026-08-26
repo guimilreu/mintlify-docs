@@ -44,8 +44,11 @@ curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/move \
 }
 ```
 
-A movimentação dispara o evento `deal.stage.changed` em webhooks configurados.
+A movimentação dispara o webhook `deal.stage.changed`.
 
+<Note>
+Mover para outro funil dispara também `deal.pipeline.transferred`.
+</Note>
 ## Erros
 
 | Código | Status | Descrição |

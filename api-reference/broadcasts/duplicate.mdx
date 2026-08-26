@@ -1,6 +1,6 @@
 ---
 title: "Duplicar disparo"
-description: "Cria uma cópia de um disparo existente em status de rascunho."
+description: "Cria uma cópia de um disparo existente, em rascunho."
 ---
 
 ## Endpoint
@@ -11,15 +11,25 @@ POST /v1/broadcasts/:id/duplicate
 
 **Escopo necessário:** `write:broadcasts`
 
-Cria uma cópia completa do disparo (audiência, mensagem, configuração de envio) com status `draft`.
+Copia audiência, mensagem, números, modelo e configuração de envio. A cópia nasce em `draft`, com as estatísticas zeradas e sem os timestamps do ciclo do original.
+
+Funciona a partir de qualquer status — inclusive de um disparo já concluído, que é o caso mais comum: repetir uma campanha que deu certo.
 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b/duplicate \
+curl -X POST https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1/duplicate \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
 Retorna `HTTP 201` com o novo disparo em `status: draft`.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `MISSING_AUTHOR` | `422` | A API Key não tem usuário criador associado |

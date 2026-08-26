@@ -32,15 +32,17 @@ curl "https://api.socialsell.ai/v1/custom-fields?entity=contact" \
 {
   "data": [
     {
-      "id": "664n9o0p1q2r3s4t5u6v7w8x",
+      "id": "6646c52790822ff5f59c68cb",
       "key": "cpf",
       "label": "CPF",
       "type": "text",
       "entity": "contact",
-      "options": [],
+      "options": null,
       "default_value": null,
       "required": false,
-      "is_active": true
+      "is_active": true,
+      "created_at": "2026-03-02T10:00:00.000Z",
+      "updated_at": "2026-03-02T10:00:00.000Z"
     }
   ],
   "meta": { "total": 1, "has_more": false }
@@ -56,11 +58,21 @@ curl "https://api.socialsell.ai/v1/custom-fields?entity=contact" \
 | `label` | string | Rótulo de exibição |
 | `type` | string | Tipo do campo |
 | `entity` | string | Entidade: `contact`, `company` ou `deal` |
-| `options` | array | Opções para `select`/`multiselect` |
+| `options` | array \| null | Opções para `select`/`multiselect`. Vem `null`, não `[]`, quando não há opções |
 | `default_value` | any | Valor padrão |
 | `required` | boolean | Se é obrigatório |
 | `is_active` | boolean | Se está ativo |
+| `created_at` | string | Criação |
+| `updated_at` | string | Última atualização |
 
 <Tip>
 Os valores dos campos personalizados são lidos e gravados via o objeto `custom_fields` (chave → valor) em contatos, empresas e negócios.
 </Tip>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

@@ -17,8 +17,8 @@ Também disponível como `POST /v1/conversations/send` (alias).
 
 | Canal | Requisito no contato |
 |-------|---------------------|
-| `whatsapp` | Contato deve ter `whatsapp_jid` configurado |
-| `messenger` | Contato deve ter `messenger_psid` configurado |
+| `whatsapp` | Identidade de WhatsApp vinculada — `whatsapp_jid` **ou** o `waId` interno. Um contato pode ter só o `waId` e ainda assim receber, mesmo com `whatsapp_jid` em `null` |
+| `messenger` | `messenger_psid` preenchido |
 
 <Note>
 O canal Instagram não está disponível na API pública neste momento.
@@ -26,8 +26,12 @@ O canal Instagram não está disponível na API pública neste momento.
 
 ## Rate limits por canal
 
-- **WhatsApp:** 30 mensagens/minuto por instância
-- **Messenger:** 30 mensagens/minuto por página
+Independentes do plano e cumulativos com o limite por minuto da chave:
+
+| Canal | Limite | Código do erro |
+|-------|--------|----------------|
+| WhatsApp | 30 mensagens/min **por número** | `WHATSAPP_INSTANCE_RATE_LIMIT` |
+| Messenger | 30 mensagens/min **por página** | `MESSENGER_PAGE_RATE_LIMIT` |
 
 ## Corpo da requisição
 
@@ -40,13 +44,28 @@ O canal Instagram não está disponível na API pública neste momento.
 | `media_url` | string | Condicional | URL pública da mídia. Obrigatório para tipos não-texto |
 | `whatsapp_instance_id` | string | Não | ID da instância WhatsApp. Se omitido, usa a instância conectada disponível |
 | `messenger_page_id` | string | Não | ID da página Messenger. Se omitido, usa a página ativa |
-| `template_name` | string | Não | Nome do template WhatsApp (Cloud API) |
-| `template_language` | string | Não | Código do idioma do template. Padrão: `pt_BR` |
-| `template_components` | array | Não | Componentes do template (Cloud API) |
+| `template_name` | string | Não | Nome do modelo aprovado. **Só funciona em número do WhatsApp Oficial** |
+| `template_language` | string | Não | Idioma do modelo. Padrão: `pt_BR`. Precisa bater exatamente com o modelo aprovado |
+| `template_components` | array | Não | Componentes e variáveis do modelo, no formato da Meta |
 
 ## Comportamento de conversa
 
-Se não existir uma conversa ativa entre o contato e a instância/página, uma nova conversa é criada automaticamente.
+Se não existir conversa entre o contato e aquele número ou página, uma é criada automaticamente. A resposta sempre traz o `conversation_id`.
+
+## Escolha do número
+
+| `whatsapp_instance_id` | O que acontece |
+|------------------------|----------------|
+| Informado | Usa exatamente esse número — **sem verificar se está conectado** |
+| Omitido | Escolhe automaticamente um número com status `connected` |
+
+<Note>
+Informar um número desconectado não devolve `NO_WHATSAPP_INSTANCE`: a requisição segue e falha mais adiante. Omitir o campo é mais seguro quando você não precisa de um número específico.
+</Note>
+
+## Idempotência
+
+Esta rota aceita `Idempotency-Key` — repetir depois de um timeout não envia a mensagem duas vezes. Ver [Idempotência](/api-reference/idempotency).
 
 ## Exemplos
 
@@ -79,7 +98,18 @@ curl -X POST https://api.socialsell.ai/v1/messages/send \
   }'
 ```
 
-### Template WhatsApp (Cloud API)
+### Modelo do WhatsApp Oficial
+
+<Warning>
+  `template_name` só é considerado quando o número é do **WhatsApp Oficial**. Em um número por QR Code
+  ele é **ignorado em silêncio** e a API envia o `content` como texto comum — que no exemplo abaixo está
+  vazio, resultando em mensagem em branco.
+
+  Confirme o canal do número antes: o campo `channel` (`official` \| `qrcode`) aparece em
+  [`whatsapp_instances` de um disparo](/api-reference/broadcasts/list).
+</Warning>
+
+O modelo precisa estar **aprovado** (`APPROVED`), pertencer àquele número e bater com o `template_language` informado. Caso contrário: `422 TEMPLATE_NOT_FOUND`.
 
 ```bash
 curl -X POST https://api.socialsell.ai/v1/messages/send \
@@ -115,27 +145,54 @@ curl -X POST https://api.socialsell.ai/v1/messages/send \
   }'
 ```
 
-## Exemplo de resposta
+## Respostas
+
+Retorna `HTTP 201`. O corpo tem duas formas, conforme o caminho de envio.
+
+### Texto e mídia
 
 ```json
 {
   "data": {
-    "id": "664l7m8n9o0p1q2r3s4t5u6v",
-    "conversation_id": "664g2h3i4j5k6l7m8n9o0p1q",
+    "id": "664d100d2ac9437188591880",
+    "conversation_id": "664632f1260b42723a5ed4ed",
     "content": "Olá! Sua proposta foi aprovada.",
     "type": "text",
     "sender": "agent",
     "status": "sent",
-    "sent_at": "2026-06-10T16:00:00.000Z",
-    "external_id": "wamid.HBg..."
+    "sent_at": "2026-06-10T16:00:00.000Z"
   },
-  "meta": {
-    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
-  }
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
 }
 ```
 
-Retorna `HTTP 201` em caso de sucesso.
+### Modelo do WhatsApp Oficial
+
+```json
+{
+  "data": {
+    "id": "664d100d2ac9437188591880",
+    "conversation_id": "664632f1260b42723a5ed4ed",
+    "content": "[Modelo: boas_vindas]",
+    "type": "template",
+    "sender": "agent",
+    "status": "sent",
+    "sent_at": "2026-06-10T16:00:00.000Z",
+    "external_id": "wamid.HBgNNTUxMTk5OTk5OTk5ORUCABEYEjhGN0..."
+  },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
+}
+```
+
+<Warning>
+  **`external_id` só existe na resposta de modelo.** Nos envios de texto e mídia o campo não vem —
+  ele é gravado na mensagem, mas não devolvido. Se a sua integração concilia pelo identificador da Meta,
+  leia depois em [`GET /v1/conversations/:id/messages`](/api-reference/conversations/messages).
+</Warning>
+
+<Note>
+No envio de modelo, `type` vem como `template` — valor fora da lista de `type` da requisição — e `content` recebe o rótulo `[Modelo: nome]`, não o texto renderizado.
+</Note>
 
 ## Erros
 
@@ -151,5 +208,9 @@ Retorna `HTTP 201` em caso de sucesso.
 | `NO_WHATSAPP_INSTANCE` | `422` | Sem instância WhatsApp conectada |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID Messenger |
 | `NO_MESSENGER_PAGE` | `422` | Sem página Messenger conectada |
-| `WHATSAPP_INSTANCE_RATE_LIMIT` | `429` | 30 msg/min por instância atingido |
+| `TEMPLATE_NOT_FOUND` | `422` | Nenhum modelo aprovado com esse nome e idioma neste número |
+| `TEMPLATE_SEND_ERROR` | `422` | A Meta recusou o envio do modelo. A mensagem traz o motivo |
+| `TEMPLATE_NOT_CONFIRMED` | `502` | O WhatsApp Oficial não confirmou o envio. A mensagem fica como `failed` |
+| `MESSENGER_SEND_ERROR` | `500` | Erro devolvido pela API do Messenger |
+| `WHATSAPP_INSTANCE_RATE_LIMIT` | `429` | 30 msg/min por número atingido |
 | `MESSENGER_PAGE_RATE_LIMIT` | `429` | 30 msg/min por página atingido |

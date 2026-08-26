@@ -1,6 +1,6 @@
 ---
 title: "Atualizar disparo"
-description: "Atualiza nome, descrição ou configurações de um disparo em rascunho."
+description: "Atualiza um disparo que ainda não saiu."
 ---
 
 ## Endpoint
@@ -11,17 +11,66 @@ PATCH /v1/broadcasts/:id
 
 **Escopo necessário:** `write:broadcasts`
 
-Apenas disparos em `draft` ou `scheduled` podem ser atualizados.
+<Note>
+Só é possível editar disparos em `draft` ou `scheduled`. Em qualquer outro status a resposta é `422 INVALID_STATUS`. Para ajustar o ritmo de um disparo **em andamento**, use [Configurar envio](/api-reference/broadcasts/send-config).
+</Note>
+
+## Corpo da requisição
+
+Envie apenas o que quer alterar. Pelo menos um campo é obrigatório.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `name` | string | Nome da campanha. De 3 a 200 caracteres |
+| `description` | string | Descrição. Até 1000 caracteres |
+| `whatsappInstances` | string[] | Substitui a lista de números. De 1 a 20 |
+| `audience` | object | **Mesclado** com a audiência atual, campo a campo |
+| `message` | object | **Mesclado** com a mensagem atual |
+| `sendConfig` | object | **Mesclado** com a configuração atual |
+| `cloudTemplate` | object \| null | Modelo do WhatsApp Oficial. Envie `null` para remover |
+
+Todos os objetos aninhados seguem o formato de [Criar disparo](/api-reference/broadcasts/create) — os filtros de audiência ficam em `audience.filters`.
+
+<Note>
+Ao contrário de `tags` em contatos e negócios, aqui o objeto enviado é **mesclado** com o anterior, não o substitui. Campos omitidos permanecem como estavam.
+</Note>
+
+## Agendamento
+
+Enviar `sendConfig.scheduledFor` muda o status automaticamente: data futura vira `scheduled`, data no passado volta para `draft`.
+
+## Coerência de canal
+
+A checagem de canal × modelo roda sobre o **estado final** do disparo, não sobre o que você enviou. Trocar os números de QR Code para WhatsApp Oficial sem enviar um `cloudTemplate` devolve `422 MISSING_CLOUD_TEMPLATE`, mesmo que a requisição só mexa em `whatsappInstances`.
 
 ## Exemplo de requisição
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/broadcasts/664t3s4t5u6v7w8x9y0z1a2b \
+curl -X PATCH https://api.socialsell.ai/v1/broadcasts/6648aefe065dd4c1a34780a1 \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
-  -d '{"name": "Campanha Black Friday — v2"}'
+  -d '{
+    "name": "Campanha Black Friday — v2",
+    "sendConfig": { "profile": "conservative", "scheduledFor": "2026-11-28T09:00:00.000Z" }
+  }'
 ```
 
 ## Resposta
 
-Retorna `HTTP 200` com o disparo atualizado.
+Retorna `HTTP 200` com o objeto disparo completo.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido, ou nenhum campo enviado |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `INVALID_WHATSAPP_INSTANCE` | `400` | Um ou mais números não pertencem à organização |
+| `UNSUPPORTED_PROFILE` | `400` | O perfil `custom` não é aceito na API pública |
+| `NOT_FOUND` | `404` | Disparo não encontrado |
+| `INVALID_STATUS` | `422` | O disparo não está em `draft` nem em `scheduled` |
+| `MIXED_PROVIDERS` | `422` | Números por QR Code e do WhatsApp Oficial no mesmo disparo |
+| `MISSING_CLOUD_TEMPLATE` | `422` | Disparo pelo WhatsApp Oficial sem modelo aprovado |
+| `TEMPLATE_ON_QRCODE_BROADCAST` | `422` | Modelo informado num disparo por QR Code |
+| `TEMPLATE_NOT_FOUND` | `422` | O modelo não existe nesta organização |
+| `SEND_WINDOW_NEVER_OPENS` | `422` | A janela de envio resultante nunca abre |

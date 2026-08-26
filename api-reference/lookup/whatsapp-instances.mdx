@@ -26,10 +26,11 @@ curl "https://api.socialsell.ai/v1/whatsapp-instances" \
 {
   "data": [
     {
-      "id": "664h3i4j5k6l7m8n9o0p1q2r",
+      "id": "6643cb19da1774a51495b603",
       "name": "WhatsApp Principal",
       "phone": "+5511333344445",
       "status": "connected",
+      "channel": "qrcode",
       "avatar_url": null,
       "created_at": "2026-01-01T00:00:00.000Z",
       "updated_at": "2026-06-10T12:00:00.000Z"
@@ -42,6 +43,10 @@ curl "https://api.socialsell.ai/v1/whatsapp-instances" \
 }
 ```
 
+<Note>
+O campo `channel` distingue os dois canais: `official` (WhatsApp Oficial, aceita modelo e é cobrado pela Meta) e `qrcode`.
+</Note>
+
 ## Objeto instância
 
 | Campo | Tipo | Descrição |
@@ -53,3 +58,16 @@ curl "https://api.socialsell.ai/v1/whatsapp-instances" \
 | `avatar_url` | string\|null | URL do avatar do número |
 | `created_at` | string | Timestamp de criação |
 | `updated_at` | string | Timestamp de atualização |
+
+<Note>
+  A listagem traz apenas números **ativos** na organização. `status` é `connected` quando o número está
+  no ar; qualquer outro valor indica desconexão.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

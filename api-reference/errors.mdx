@@ -1,196 +1,270 @@
 ---
 title: "Erros"
-description: "Formato padrão de erros e referência de todos os códigos de erro da API."
+description: "Formato padrão de erro e referência completa dos códigos da API."
 ---
 
 ## Formato de erro
-
-Todos os erros retornam um objeto JSON no seguinte formato:
 
 ```json
 {
   "error": {
     "type": "validation_error",
-    "message": "Campo 'name' é obrigatório.",
-    "code": "MISSING_REQUIRED_FIELD",
+    "message": "Nome é obrigatório",
+    "code": "VALIDATION_ERROR",
     "details": [
-      {
-        "field": "name",
-        "message": "Campo obrigatório"
-      }
+      { "field": "name", "message": "Nome é obrigatório" }
     ]
   },
   "meta": {
-    "request_id": "req_01jx8kz3m4n5p6q7r8s9t0u1v"
+    "request_id": "req_a1b2c3d4e5f6a7b8"
   }
 }
 ```
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `error.type` | string | Categoria do erro (ex: `validation_error`) |
-| `error.message` | string | Mensagem legível para humanos |
-| `error.code` | string | Código de máquina para tratamento programático |
-| `error.details` | array? | Detalhes adicionais (ex: campos inválidos) |
-| `meta.request_id` | string | ID único da requisição para suporte |
+| `error.type` | string | Categoria do erro. Sempre presente |
+| `error.message` | string | Mensagem legível, em português. Sempre presente |
+| `error.code` | string | Código para tratamento programático |
+| `error.details` | array | Campos inválidos, em erros de validação por schema |
+| `meta.request_id` | string | ID da requisição. Informe no suporte |
+
+<Warning>
+  `error.code` está presente em praticamente toda resposta de erro, mas **não é garantido**. A exceção
+  conhecida hoje é `410 credits_not_applicable`, em
+  [Créditos de mensagem](/api-reference/message-credits/wallet). Trate por `error.type` quando precisar
+  de uma garantia, e use `error.code` para os casos específicos.
+</Warning>
+
+## Categorias de erro
+
+| `error.type` | Status típico | Quando ocorre |
+|--------------|---------------|---------------|
+| `unauthorized` | `401` | API Key ausente, malformada, inválida ou revogada |
+| `forbidden` | `403` | Escopo insuficiente, restrição de plano ou limite atingido |
+| `validation_error` | `400` | Corpo ou parâmetro inválido |
+| `not_found` | `404` | Recurso não existe nesta organização |
+| `conflict` | `409` | Duplicata ou conflito de estado |
+| `unprocessable_entity` | `422` | Dados válidos, mas a operação não é possível no estado atual |
+| `credits_not_applicable` | `410` | Funcionalidade de créditos de mensagem descontinuada |
+| `rate_limit_exceeded` | `429` | Limite de requisições atingido |
+| `internal_error` | `500` / `502` | Falha interna, ou resposta não confirmada por um provedor externo |
+| `service_unavailable` | `503` | Dependência de infraestrutura indisponível |
 
 ## Códigos HTTP
 
-| Status | Tipo | Quando ocorre |
-|--------|------|---------------|
-| `200` | Sucesso | Leitura bem-sucedida |
-| `201` | Criado | Recurso criado com sucesso |
-| `204` | Sem conteúdo | Exclusão bem-sucedida |
-| `400` | `validation_error` | Corpo ou parâmetros inválidos |
-| `401` | `unauthorized` | API Key ausente ou inválida |
-| `403` | `forbidden` | Escopo insuficiente ou restrição de plano |
-| `404` | `not_found` | Recurso não encontrado |
-| `409` | `conflict` | Conflito de dados (ex: duplicata) |
-| `422` | `unprocessable_entity` | Dados válidos mas impossíveis de processar |
-| `429` | `rate_limit_exceeded` | Limite de requisições atingido |
-| `500` | `internal_error` | Erro interno do servidor |
+| Status | Quando ocorre |
+|--------|---------------|
+| `200` | Sucesso |
+| `201` | Recurso criado |
+| `202` | Aceito para processamento assíncrono (reenvio de webhook) |
+| `204` | Sucesso sem corpo (exclusões) |
+| `400` | Requisição inválida |
+| `401` | Não autenticado |
+| `403` | Sem permissão, ou plano insuficiente |
+| `404` | Não encontrado |
+| `409` | Conflito |
+| `410` | Funcionalidade descontinuada |
+| `422` | Impossível de processar no estado atual |
+| `429` | Rate limit |
+| `500` | Erro interno |
+| `502` | Provedor externo não confirmou a operação |
+| `503` | Dependência indisponível (fila, cache) |
 
-## Referência de códigos de erro
+---
 
-### Autenticação
+## Referência de códigos
+
+### Autenticação e permissão
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `MISSING_API_KEY` | `401` | Header Authorization ausente |
-| `INVALID_API_KEY_FORMAT` | `401` | Chave não começa com `sk_live_` |
+| `MISSING_API_KEY` | `401` | Header `Authorization` ausente |
+| `INVALID_API_KEY_FORMAT` | `401` | A chave não começa com `sk_live_` |
 | `INVALID_API_KEY` | `401` | Chave inválida, expirada ou revogada |
-| `INSUFFICIENT_SCOPE` | `403` | Escopo necessário não concedido à chave |
-| `PLAN_RESTRICTION` | `403` | Recurso não disponível no plano atual |
+| `INSUFFICIENT_SCOPES` | `403` | A chave não tem o escopo necessário. O corpo traz `required_scopes`, `missing_scopes` e `your_scopes` |
+| `PLAN_RESTRICTION` | `403` | Recurso indisponível no plano atual. O corpo traz `required_plan` e `current_plan` |
 
 ### Validação
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `INVALID_ID` | `400` | ID de recurso com formato inválido |
-| `MISSING_REQUIRED_FIELD` | `400` | Campo obrigatório ausente |
-| `INVALID_TYPE` | `400` | Valor de enum inválido |
-| `INVALID_PRIORITY` | `400` | Prioridade inválida |
-| `INVALID_CHANNEL` | `400` | Canal não suportado |
-| `CHANNEL_NOT_SUPPORTED` | `400` | Canal não disponível na API pública |
-| `MISSING_CONTENT` | `400` | Conteúdo da mensagem ausente |
-| `MISSING_MEDIA_URL` | `400` | URL de mídia ausente para mensagens não-texto |
+| `VALIDATION_ERROR` | `400` | Falha de schema. O corpo traz `details[]` com `field` e `message` |
+| `INVALID_ID` | `400` | ID fora do formato esperado |
+| `MISSING_REQUIRED_FIELD` | `400` | Campo obrigatório ausente (rotas sem validação por schema) |
+| `MISSING_REQUIRED` | `400` | Configuração obrigatória ausente ao publicar agente. O corpo traz `missing[]` |
+| `MISSING_CONTENT` | `400` | Conteúdo da mensagem ou da nota ausente |
+| `CONTENT_TOO_LONG` | `400` | Nota acima de 1000 caracteres |
 | `MISSING_TAG` | `400` | Campo `tag` ausente |
+| `MISSING_STAGE_ID` | `400` | Campo `stage_id` ausente ao mover negócio |
+| `MISSING_MEDIA_URL` | `400` | `media_url` ausente em mensagem não-texto |
+| `INVALID_TYPE` | `400` | Tipo de tarefa inválido |
+| `INVALID_PRIORITY` | `400` | Prioridade de tarefa inválida |
+| `INVALID_CHANNEL` | `400` | Canal de envio inválido |
+| `CHANNEL_NOT_SUPPORTED` | `400` | Instagram ainda não é suportado no envio pela API |
+| `INVALID_COMPANY_ID` | `400` | `company_id` fora do formato |
+| `INVALID_WHATSAPP_INSTANCE` | `400` | Número do WhatsApp não pertence à organização |
+| `UNSUPPORTED_PROFILE` | `400` / `422` | Perfil de envio `custom` não é aceito na API pública |
+| `MEMBER_NOT_FOUND` | `400` | O usuário informado não é membro da organização |
 
 ### Recursos
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `NOT_FOUND` | `404` | Recurso não encontrado na organização |
-| `PIPELINE_NOT_FOUND` | `404` | Funil de venda não encontrado |
-| `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no funil de venda |
+| `NOT_FOUND` | `404` | Recurso não encontrado nesta organização |
 | `CONTACT_NOT_FOUND` | `404` | Contato não encontrado |
-| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone/email |
-| `DUPLICATE` | `409` | Registro duplicado |
+| `PIPELINE_NOT_FOUND` | `404` | Funil não encontrado |
+| `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no funil |
+| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou email. O corpo traz `existing_contact` |
+| `DUPLICATE` | `409` | Índice único violado |
+| `DUPLICATE_KEY` | `409` | Já existe campo personalizado com essa `key` na entidade |
 
-### Processamento
+### Estado do recurso
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `NO_WHATSAPP_JID` | `422` | Contato sem WhatsApp configurado |
-| `NO_WHATSAPP_INSTANCE` | `422` | Nenhuma instância WhatsApp conectada |
+| `INVALID_STATUS` | `422` | A operação não é permitida no status atual (disparo, agente) |
+| `ALREADY_OPEN` | `422` | Negócio ou conversa já está aberto |
+| `ALREADY_CLOSED` | `422` | Conversa já está fechada |
+| `NO_STAGES` | `422` | O funil não tem etapas |
+| `PIPELINE_INACTIVE` | `422` | Funil desativado não aceita negócios novos |
+| `PIPELINE_HAS_DEALS` | `422` | Funil com negócios não pode ser excluído. O corpo traz `deals_count` |
+| `AGENT_LIMIT_REACHED` | `403` | Teto de agentes de IA ativos atingido |
+| `COMPANY_HAS_LINKS` | `403` | Empresa com contatos ou negócios vinculados não pode ser excluída. O corpo traz `contacts_count` e `deals_count` |
+| `MISSING_AUTHOR` | `422` | A API Key não tem usuário criador associado |
+
+### Envio de mensagens
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `NO_WHATSAPP_JID` | `422` | Contato sem WhatsApp vinculado |
+| `NO_WHATSAPP_INSTANCE` | `422` | Nenhum número do WhatsApp conectado |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID do Messenger |
-| `NO_MESSENGER_PAGE` | `422` | Nenhuma página Messenger conectada |
-| `NO_STAGES` | `422` | Funil de venda sem etapas |
-| `ALREADY_OPEN` | `422` | Negócio já está aberto |
-| `MESSENGER_SEND_ERROR` | `500` | Erro ao enviar via Messenger API |
+| `NO_MESSENGER_PAGE` | `422` | Nenhuma página do Messenger conectada |
+| `TEMPLATE_NOT_FOUND` | `422` | Modelo não encontrado, ou não aprovado neste número e idioma |
+| `TEMPLATE_NOT_APPROVED` | `422` | O modelo existe mas não está aprovado pela Meta |
+| `TEMPLATE_ON_QRCODE_BROADCAST` | `422` | Modelo informado em disparo por QR Code |
+| `MISSING_CLOUD_TEMPLATE` | `422` | Disparo pelo WhatsApp Oficial exige modelo aprovado |
+| `MIXED_PROVIDERS` | `422` | Números por QR Code e do WhatsApp Oficial no mesmo disparo |
+| `SEND_WINDOW_NEVER_OPENS` | `422` | A janela de envio configurada nunca abre |
+| `TEMPLATE_NOT_CONFIRMED` | `502` | O WhatsApp Oficial não confirmou o envio do modelo |
+| `MESSENGER_SEND_ERROR` | `500` | Erro devolvido pela API do Messenger |
 
-### Rate Limiting
+### Webhooks
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `RATE_LIMIT_EXCEEDED` | `429` | Limite por minuto atingido |
-| `RATE_LIMIT_BURST_EXCEEDED` | `429` | Limite de burst (10s) atingido |
+| `WEBHOOK_LIMIT_REACHED` | `403` | Teto de endpoints do plano atingido, ou plano sem webhooks |
+| `WEBHOOK_PAUSED` | `409` | A assinatura está pausada — reative antes de testar ou reenviar |
+| `SSRF_BLOCKED` | `422` | URL não-HTTPS, com credenciais embutidas, ou apontando para rede privada |
+
+### Rate limiting
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `RATE_LIMIT_EXCEEDED` | `429` | Limite por minuto do plano atingido |
+| `RATE_LIMIT_BURST_EXCEEDED` | `429` | Limite de burst (10 segundos) atingido |
 | `RATE_LIMIT_DAILY_EXCEEDED` | `429` | Limite diário atingido |
-| `WHATSAPP_INSTANCE_RATE_LIMIT` | `429` | 30 msg/min por instância WhatsApp |
-| `MESSENGER_PAGE_RATE_LIMIT` | `429` | 30 msg/min por página Messenger |
+| `WHATSAPP_INSTANCE_RATE_LIMIT` | `429` | 30 mensagens/minuto por número do WhatsApp |
+| `MESSENGER_PAGE_RATE_LIMIT` | `429` | 30 mensagens/minuto por página do Messenger |
+
+### Infraestrutura
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INTERNAL_ERROR` | `500` | Falha interna |
+| `QUEUE_ENQUEUE_ERROR` | `500` | Falha ao enfileirar o disparo. O corpo traz `failure_reason` |
+| `QUEUE_UNAVAILABLE` | `503` | Fila de disparos indisponível |
+
+---
+
+## Headers de toda resposta
+
+```
+X-Request-Id: req_a1b2c3d4e5f6a7b8
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 58
+X-RateLimit-Reset: 2026-08-26T15:30:00.000Z
+```
+
+Em `429`, a resposta traz também `Retry-After` com os segundos a aguardar. Em replay de idempotência, traz `Idempotency-Replayed: true`.
 
 ## Tratando erros em código
 
 <CodeGroup>
 
 ```javascript Node.js
-async function apiRequest(url, options = {}) {
-  const response = await fetch(`https://api.socialsell.ai/v1${url}`, {
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`https://api.socialsell.ai/v1${path}`, {
     ...options,
     headers: {
-      'Authorization': 'Bearer sk_live_...',
+      Authorization: `Bearer ${process.env.SOCIALSELL_API_KEY}`,
       'Content-Type': 'application/json',
-      ...options.headers
-    }
+      ...options.headers,
+    },
   });
 
-  const data = await response.json();
+  if (response.status === 204) return null;
 
-  if (!response.ok) {
-    const { error } = data;
-    
-    switch (error.code) {
-      case 'RATE_LIMIT_EXCEEDED':
-        const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
-        // aguardar e tentar novamente
-        await new Promise(r => setTimeout(r, retryAfter * 1000));
-        return apiRequest(url, options);
-        
-      case 'DUPLICATE_CONTACT':
-        // contato já existe — usar o ID retornado
-        return { existing: error.existing_contact };
-        
-      default:
-        throw new Error(`[${error.code}] ${error.message}`);
-    }
+  const data = await response.json();
+  if (response.ok) return data;
+
+  const { error } = data;
+
+  // Rate limit: qualquer uma das camadas. Respeite o Retry-After.
+  if (error.type === 'rate_limit_exceeded') {
+    const espera = parseInt(response.headers.get('Retry-After') || '60', 10);
+    await new Promise((r) => setTimeout(r, espera * 1000));
+    return apiRequest(path, options);
   }
 
-  return data;
+  if (error.code === 'DUPLICATE_CONTACT') {
+    return { existente: error.existing_contact };
+  }
+
+  if (error.code === 'VALIDATION_ERROR') {
+    const campos = (error.details || []).map((d) => `${d.field}: ${d.message}`).join('; ');
+    throw new Error(`Payload inválido — ${campos}`);
+  }
+
+  // request_id é o que o suporte precisa para achar a requisição
+  throw new Error(`[${error.code || error.type}] ${error.message} (${data.meta?.request_id})`);
 }
 ```
 
 ```python Python
-import requests
-import time
+import os, time, requests
+
+BASE = 'https://api.socialsell.ai/v1'
 
 def api_request(path, method='GET', **kwargs):
-    url = f'https://api.socialsell.ai/v1{path}'
-    headers = {'Authorization': 'Bearer sk_live_...'}
-    
-    response = requests.request(method, url, headers=headers, **kwargs)
+    headers = {'Authorization': f"Bearer {os.environ['SOCIALSELL_API_KEY']}"}
+    response = requests.request(method, BASE + path, headers=headers, **kwargs)
+
+    if response.status_code == 204:
+        return None
+
     data = response.json()
-    
-    if not response.ok:
-        error = data.get('error', {})
-        code = error.get('code')
-        
-        if code == 'RATE_LIMIT_EXCEEDED':
-            retry_after = int(response.headers.get('Retry-After', 60))
-            time.sleep(retry_after)
-            return api_request(path, method, **kwargs)
-        
-        raise Exception(f"[{code}] {error.get('message')}")
-    
-    return data
+    if response.ok:
+        return data
+
+    error = data.get('error', {})
+
+    # Trate pelo type: cobre as cinco camadas de rate limit de uma vez
+    if error.get('type') == 'rate_limit_exceeded':
+        time.sleep(int(response.headers.get('Retry-After', 60)))
+        return api_request(path, method, **kwargs)
+
+    if error.get('code') == 'DUPLICATE_CONTACT':
+        return {'existente': error.get('existing_contact')}
+
+    request_id = data.get('meta', {}).get('request_id')
+    raise Exception(f"[{error.get('code') or error.get('type')}] {error.get('message')} ({request_id})")
 ```
 
 </CodeGroup>
 
-## Header de Rate Limiting
-
-Quando bem-sucedida, cada resposta inclui headers informativos:
-
-```
-X-RateLimit-Limit: 60
-X-RateLimit-Remaining: 58
-X-RateLimit-Reset: 2026-06-10T15:30:00.000Z
-X-Request-Id: req_01jx8kz3m4n5p6q7r8s9t0u1v
-```
-
-Quando o limite é atingido, a resposta inclui:
-
-```
-Retry-After: 15
-```
-
-Aguarde o número de segundos indicado antes de tentar novamente.
+<Tip>
+  Guarde o `meta.request_id` dos erros no seu log. É por ele que o suporte localiza a requisição exata
+  do lado da SocialSell.
+</Tip>

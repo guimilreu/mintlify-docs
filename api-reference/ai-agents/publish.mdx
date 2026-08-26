@@ -1,6 +1,6 @@
 ---
 title: "Publicar agente"
-description: "Ativa um agente de IA em rascunho, colocando-o em produção."
+description: "Coloca um agente de IA em produção."
 ---
 
 ## Endpoint
@@ -11,17 +11,49 @@ POST /v1/ai-agents/:id/publish
 
 **Escopo necessário:** `write:ai_agents`
 
-Transição de status: `draft` → `active`
+Transição: `draft` → `active`. A partir daí o agente responde às conversas que caem no seu `scope`, conforme os `triggers`.
 
-Após publicado, o agente começa a responder às conversas conforme seus triggers configurados.
+## Pré-requisitos
+
+A publicação confere seis configurações. Faltando qualquer uma, a resposta é `400 MISSING_REQUIRED` com um array `missing` nomeando exatamente o que falta:
+
+| Precisa estar preenchido | Campo |
+|--------------------------|-------|
+| Nome do agente | `name` |
+| Área de atuação | `type` |
+| Nome da persona | `aiConfig.persona.name` |
+| Tom de voz | `aiConfig.persona.tone` |
+| Canais de atuação | `scope.sources` |
+| Estratégia de atendimento | `behavior.strategy` |
+
+```json
+{
+  "error": {
+    "type": "validation_error",
+    "message": "Faltam configurações obrigatórias: Nome da persona, Estratégia de atendimento.",
+    "code": "MISSING_REQUIRED",
+    "missing": ["Nome da persona", "Estratégia de atendimento"]
+  },
+  "meta": { "request_id": "req_a1b2c3d4e5f6a7b8" }
+}
+```
 
 ## Exemplo de requisição
 
 ```bash
-curl -X POST https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z/publish \
+curl -X POST https://api.socialsell.ai/v1/ai-agents/66445c483fa9572a0b2496cb/publish \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
-Retorna `HTTP 200` com o agente no status `active`.
+Retorna `HTTP 200` com o agente em `status: active`.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `MISSING_REQUIRED` | `400` | Configuração obrigatória ausente. Ver array `missing` |
+| `AGENT_LIMIT_REACHED` | `403` | A organização já atingiu o teto de agentes ativos |
+| `NOT_FOUND` | `404` | Agente não encontrado |

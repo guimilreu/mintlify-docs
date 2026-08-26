@@ -27,9 +27,15 @@ Envie apenas os campos que deseja alterar.
 | `custom_fields` | object | Substitui completamente os campos personalizados |
 
 <Note>
-Para mover o negócio para outra etapa, use `POST /v1/deals/:id/move`. Para marcar como ganho ou perdido, use os endpoints dedicados.
+  Este endpoint **não** altera etapa, funil, status, contatos vinculados nem empresa — esses campos são
+  ignorados se enviados. Use [Mover](/api-reference/deals/move) para etapa e funil, e
+  [Ganho](/api-reference/deals/won) / [Perdido](/api-reference/deals/lost) / [Reabrir](/api-reference/deals/reopen)
+  para status.
 </Note>
 
+<Note>
+Trocar `assigned_to` dispara o webhook `deal.assigned`.
+</Note>
 ## Exemplo de requisição
 
 ```bash
@@ -46,3 +52,10 @@ curl -X PATCH https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347 \
 ## Resposta
 
 Retorna o objeto negócio atualizado.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Negócio não encontrado |

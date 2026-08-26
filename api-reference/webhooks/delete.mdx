@@ -14,10 +14,17 @@ DELETE /v1/webhooks/:id
 ## Exemplo de requisição
 
 ```bash
-curl -X DELETE https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
+curl -X DELETE https://api.socialsell.ai/v1/webhooks/664058b720a5c5631521ca8f \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 ## Resposta
 
 Retorna `HTTP 204 No Content`. A assinatura é removida permanentemente e nenhum evento futuro será entregue para a URL configurada.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Webhook não encontrado |

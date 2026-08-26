@@ -29,7 +29,7 @@ Ao definir `status: "active"`, o contador de `consecutive_failures` é zerado au
 ## Exemplo — Pausar webhook
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
+curl -X PATCH https://api.socialsell.ai/v1/webhooks/664058b720a5c5631521ca8f \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{"status": "paused"}'
@@ -38,10 +38,19 @@ curl -X PATCH https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
 ## Exemplo — Adicionar evento
 
 ```bash
-curl -X PATCH https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w \
+curl -X PATCH https://api.socialsell.ai/v1/webhooks/664058b720a5c5631521ca8f \
   -H "Authorization: Bearer sk_live_..." \
   -H "Content-Type: application/json" \
   -d '{
     "events": ["deal.won", "deal.lost", "proposal.accepted", "channel.disconnected"]
   }'
 ```
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo |
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Webhook não encontrado |
+| `SSRF_BLOCKED` | `422` | URL não-HTTPS, com credenciais embutidas, ou apontando para rede privada |

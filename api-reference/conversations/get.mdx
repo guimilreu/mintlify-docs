@@ -14,8 +14,15 @@ GET /v1/conversations/:id
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/conversations/664g2h3i4j5k6l7m8n9o0p1q" \
+curl "https://api.socialsell.ai/v1/conversations/664632f1260b42723a5ed4ed" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 Retorna o objeto conversa completo (mesmo formato da listagem).
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Conversa não encontrada |

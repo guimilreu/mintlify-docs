@@ -32,3 +32,11 @@ curl -X DELETE "https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/tags
 ```
 
 Ambos os endpoints retornam o objeto negócio atualizado.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `MISSING_TAG` | `400` | Campo `tag` ausente |
+| `NOT_FOUND` | `404` | Negócio não encontrado |

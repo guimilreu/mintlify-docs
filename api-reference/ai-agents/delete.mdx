@@ -11,10 +11,18 @@ DELETE /v1/ai-agents/:id
 
 **Escopo necessário:** `write:ai_agents`
 
+<Warning>
+A exclusão é **permanente**. As execuções (runs) já registradas continuam no histórico e seguem consultáveis por `agent_id`.
+</Warning>
+
+<Note>
+Um agente `active` **não** pode ser excluído — a resposta é `422 INVALID_STATUS`. [Pause](/api-reference/ai-agents/pause) antes.
+</Note>
+
 ## Exemplo de requisição
 
 ```bash
-curl -X DELETE https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z \
+curl -X DELETE https://api.socialsell.ai/v1/ai-agents/66445c483fa9572a0b2496cb \
   -H "Authorization: Bearer sk_live_..."
 ```
 
@@ -22,6 +30,10 @@ curl -X DELETE https://api.socialsell.ai/v1/ai-agents/664p1q2r3s4t5u6v7w8x9y0z \
 
 Retorna `HTTP 204 No Content` em caso de sucesso.
 
-<Warning>
-A exclusão é permanente. O histórico de execuções (runs) do agente é preservado, mas o agente em si não pode ser recuperado.
-</Warning>
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Agente não encontrado |
+| `INVALID_STATUS` | `422` | O agente está ativo. Pause antes de excluir |

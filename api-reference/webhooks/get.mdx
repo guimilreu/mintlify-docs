@@ -14,8 +14,15 @@ GET /v1/webhooks/:id
 ## Exemplo de requisição
 
 ```bash
-curl "https://api.socialsell.ai/v1/webhooks/664m8n9o0p1q2r3s4t5u6v7w" \
+curl "https://api.socialsell.ai/v1/webhooks/664058b720a5c5631521ca8f" \
   -H "Authorization: Bearer sk_live_..."
 ```
 
 Retorna o objeto webhook (mesmo formato da listagem). O campo `secret` **não** é retornado após a criação.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Webhook não encontrado |

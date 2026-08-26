@@ -1,0 +1,52 @@
+---
+title: "Enviar pela conversa"
+description: "Alias de POST /v1/messages/send, para integrações organizadas por conversa."
+---
+
+## Endpoint
+
+```
+POST /v1/conversations/send
+```
+
+**Escopo necessário:** `write:messages`
+
+Este endpoint é um **alias** de [`POST /v1/messages/send`](/api-reference/messages/send): mesmo handler, mesmo corpo, mesmas respostas, mesmos erros e mesma idempotência.
+
+<Note>
+  Apesar do caminho, ele **não** recebe um ID de conversa. O destinatário é sempre `contact_id`, e a
+  conversa é resolvida (ou criada) a partir do contato e do número escolhido — exatamente como na rota
+  de mensagens.
+</Note>
+
+## Qual usar
+
+| Situação | Use |
+|----------|-----|
+| Sua integração pensa em “mandar mensagem para um contato” | `POST /v1/messages/send` |
+| Sua integração já organiza tudo por conversa e o caminho fica mais coerente | `POST /v1/conversations/send` |
+
+Funcionalmente é indiferente. Escolha um e mantenha.
+
+## Exemplo
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/conversations/send \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+  -d '{
+    "contact_id": "664f1a2b3c4d5e6f78901234",
+    "channel": "whatsapp",
+    "type": "text",
+    "content": "Olá! Sua proposta foi aprovada."
+  }'
+```
+
+## Erros
+
+Idênticos aos de [Enviar mensagem](/api-reference/messages/send) — mesmo handler, mesma tabela.
+
+## Referência completa
+
+Corpo da requisição, canais, modelos do WhatsApp Oficial, formatos de resposta e tabela de erros estão em [Enviar mensagem](/api-reference/messages/send).

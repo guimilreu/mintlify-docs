@@ -17,6 +17,7 @@ POST /v1/deals/:id/won
 |-------|------|-------------|-----------|
 | `value` | number | Não | Atualiza o valor final do negócio |
 | `closed_date` | string | Não | Data de fechamento. Padrão: data atual |
+| `reason` | string | Não | Motivo do ganho. Gravado em `won_reason`, **cortado em 200 caracteres** |
 
 ## Exemplo de requisição
 
@@ -26,7 +27,8 @@ curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/won \
   -H "Content-Type: application/json" \
   -d '{
     "value": 20000,
-    "closed_date": "2026-06-10T00:00:00.000Z"
+    "closed_date": "2026-06-10T00:00:00.000Z",
+    "reason": "Melhor custo-benefício frente ao concorrente"
   }'
 ```
 
@@ -40,9 +42,17 @@ curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/won \
     "status": "won",
     "value": 20000,
     "closed_date": "2026-06-10T00:00:00.000Z",
+    "won_reason": "Melhor custo-benefício frente ao concorrente",
     "updated_at": "2026-06-10T16:00:00.000Z"
   }
 }
 ```
 
 Dispara o evento `deal.won` em webhooks configurados.
+
+## Erros
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | ID com formato inválido |
+| `NOT_FOUND` | `404` | Negócio não encontrado |
