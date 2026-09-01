@@ -7,6 +7,13 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 1 de setembro de 2026 — envio de modelo sem `content`
+
+- **`POST /v1/messages/send` com `template_name`** deixa de exigir `content`. A validação de texto rodava antes de olhar o modelo e devolvia `400 MISSING_CONTENT` para o exemplo da própria documentação.
+- **`template_name` em número por QR Code** passa a devolver `422 TEMPLATE_REQUIRES_OFFICIAL_NUMBER`. Antes o campo era ignorado e saía uma mensagem de texto em branco.
+
+---
+
 ## 26 de agosto de 2026 — correções na API e revisão geral da documentação
 
 Auditoria endpoint por endpoint da referência contra o código, seguida da correção dos defeitos encontrados.

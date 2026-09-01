@@ -40,7 +40,7 @@ Independentes do plano e cumulativos com o limite por minuto da chave:
 | `contact_id` | string | Sim | ID do contato destinatário |
 | `channel` | string | Sim | `whatsapp` ou `messenger` |
 | `type` | string | Não | `text` (padrão), `image`, `video`, `audio`, `document` |
-| `content` | string | Condicional | Texto da mensagem. Obrigatório quando `type=text` |
+| `content` | string | Condicional | Texto da mensagem. Obrigatório quando `type=text`, exceto em envio de modelo (`template_name`) |
 | `media_url` | string | Condicional | URL pública da mídia. Obrigatório para tipos não-texto |
 | `whatsapp_instance_id` | string | Não | ID da instância WhatsApp. Se omitido, usa a instância conectada disponível |
 | `messenger_page_id` | string | Não | ID da página Messenger. Se omitido, usa a página ativa |
@@ -100,13 +100,12 @@ curl -X POST https://api.socialsell.ai/v1/messages/send \
 
 ### Modelo do WhatsApp Oficial
 
-<Warning>
-  `template_name` só é considerado quando o número é do **WhatsApp Oficial**. Em um número por QR Code
-  ele é **ignorado em silêncio** e a API envia o `content` como texto comum — que no exemplo abaixo está
-  vazio, resultando em mensagem em branco.
+Com `template_name` informado, `content`, `type` e `media_url` não são usados — o texto vem do modelo aprovado.
 
-  Confirme o canal do número antes: o campo `channel` (`official` \| `qrcode`) aparece em
-  [`whatsapp_instances` de um disparo](/api-reference/broadcasts/list).
+<Warning>
+  Modelo só existe no **WhatsApp Oficial**. Em um número por QR Code a API devolve
+  `422 TEMPLATE_REQUIRES_OFFICIAL_NUMBER`. Confirme o canal do número antes: o campo `channel`
+  (`official` \| `qrcode`) aparece em [`whatsapp_instances` de um disparo](/api-reference/broadcasts/list).
 </Warning>
 
 O modelo precisa estar **aprovado** (`APPROVED`), pertencer àquele número e bater com o `template_language` informado. Caso contrário: `422 TEMPLATE_NOT_FOUND`.
@@ -208,6 +207,7 @@ No envio de modelo, `type` vem como `template` — valor fora da lista de `type`
 | `NO_WHATSAPP_INSTANCE` | `422` | Sem instância WhatsApp conectada |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID Messenger |
 | `NO_MESSENGER_PAGE` | `422` | Sem página Messenger conectada |
+| `TEMPLATE_REQUIRES_OFFICIAL_NUMBER` | `422` | `template_name` informado, mas o número é por QR Code. Modelo só existe no WhatsApp Oficial |
 | `TEMPLATE_NOT_FOUND` | `422` | Nenhum modelo aprovado com esse nome e idioma neste número |
 | `TEMPLATE_SEND_ERROR` | `422` | A Meta recusou o envio do modelo. A mensagem traz o motivo |
 | `TEMPLATE_NOT_CONFIRMED` | `502` | O WhatsApp Oficial não confirmou o envio. A mensagem fica como `failed` |

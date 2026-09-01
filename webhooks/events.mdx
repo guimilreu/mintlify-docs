@@ -53,6 +53,8 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `proposal.created` | Proposta criada |
 | `proposal.viewed` | Proposta visualizada |
 | `proposal.accepted` | Proposta aceita |
+| `proposal.sent` | Proposta enviada |
+| `proposal.action` | Ação clicada na proposta |
 | `proposal.rejected` | Proposta recusada |
 | `task.created` | Tarefa criada |
 | `task.completed` | Tarefa concluída |
@@ -68,6 +70,11 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `channel.connected` | Canal conectado |
 | `channel.disconnected` | Canal desconectado |
 | `ai_agent.handoff` | IA passou para humano |
+| `call.started` | Ligação atendida |
+| `call.ended` | Ligação encerrada |
+| `call.missed` | Ligação perdida |
+| `call.handoff_requested` | Ligação passada para humano |
+| `call.recording_ready` | Gravação disponível |
 | `broadcast.completed` | Disparo concluído |
 | `broadcast.failed` | Disparo interrompido |
 | `import.completed` | Importação concluída |
@@ -1121,6 +1128,82 @@ O cliente aceitou a proposta na página pública.
 }
 ```
 
+### `proposal.sent`
+
+A proposta foi publicada e o link do cliente passou a valer.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "proposal.sent",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "proposal": {
+      "id": "664a3b4c5d6e7f890123510b",
+      "title": "Proposta — Implantação Empresa XYZ",
+      "internal_code": "PROP-2026-0142",
+      "status": "accepted",
+      "subtotal": 52000,
+      "discount_total": 4000,
+      "discount_type": "fixed",
+      "total": 48000,
+      "currency": "BRL",
+      "valid_until": "2026-09-05T00:00:00.000Z",
+      "payment_terms": "12x sem juros",
+      "public_url": "https://socialsell.ai/p/9f2b7c1e-4a83-4d51-9e0b-2c6f1a8d3b47",
+      "view_count": 3,
+      "sent_at": "2026-08-18T16:00:00.000Z",
+      "viewed_at": "2026-08-19T08:20:00.000Z",
+      "responded_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-08-18T15:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "deal_id": "664632f1260b42723a5ed4ed",
+    "public_url": null
+  }
+}
+```
+
+### `proposal.action`
+
+O cliente clicou em um botão da proposta. Só dispara para botões com automação ligada no editor.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "proposal.action",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "proposal": {
+      "id": "664a3b4c5d6e7f890123510b",
+      "title": "Proposta — Implantação Empresa XYZ",
+      "internal_code": "PROP-2026-0142",
+      "status": "accepted",
+      "subtotal": 52000,
+      "discount_total": 4000,
+      "discount_type": "fixed",
+      "total": 48000,
+      "currency": "BRL",
+      "valid_until": "2026-09-05T00:00:00.000Z",
+      "payment_terms": "12x sem juros",
+      "public_url": "https://socialsell.ai/p/9f2b7c1e-4a83-4d51-9e0b-2c6f1a8d3b47",
+      "view_count": 3,
+      "sent_at": "2026-08-18T16:00:00.000Z",
+      "viewed_at": "2026-08-19T08:20:00.000Z",
+      "responded_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-08-18T15:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "deal_id": "664632f1260b42723a5ed4ed",
+    "action": null,
+    "payload": null,
+    "responded_by": "João Silva"
+  }
+}
+```
+
 ### `proposal.rejected`
 
 O cliente recusou a proposta na página pública.
@@ -1734,6 +1817,210 @@ O agente autopilot decidiu (ou foi obrigado a) devolver a conversa para uma pess
       "name": "Maria Santos"
     },
     "team_id": "664c0000000000000000003c"
+  }
+}
+```
+
+## Ligações
+
+### `call.started`
+
+Uma ligação começou a ser atendida — por uma pessoa ou por um agente de IA. `answered_by` diz qual dos dois.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "call.started",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "call": {
+      "id": "664c5d6e7f8a9b012345620d",
+      "direction": "inbound",
+      "status": "in_progress",
+      "from": "+5511999998888",
+      "to": "+551133334444",
+      "answered_by_kind": "agent",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "contact_id": "664f1a2b3c4d5e6f78901234",
+      "duration_sec": 0,
+      "started_at": "2026-08-20T14:26:00.000Z",
+      "answered_at": "2026-08-20T14:26:12.000Z",
+      "ended_at": null,
+      "disposition": null
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "answered_by": {
+      "kind": "agent",
+      "id": "664c0000000000000000002b",
+      "name": "Agente de Vendas"
+    }
+  }
+}
+```
+
+### `call.ended`
+
+A ligação terminou. `reason` é um código estável para ramificar; `summary` só vem quando quem atendeu foi um agente de IA.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "call.ended",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "call": {
+      "id": "664c5d6e7f8a9b012345620d",
+      "direction": "inbound",
+      "status": "completed",
+      "from": "+5511999998888",
+      "to": "+551133334444",
+      "answered_by_kind": "agent",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "contact_id": "664f1a2b3c4d5e6f78901234",
+      "duration_sec": 214,
+      "started_at": "2026-08-20T14:26:00.000Z",
+      "answered_at": "2026-08-20T14:26:12.000Z",
+      "ended_at": "2026-08-20T14:30:00.000Z",
+      "disposition": {
+        "code": "resolvido",
+        "label": "Resolvido na ligação"
+      }
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "reason": "normal",
+    "duration_sec": 214,
+    "ai_duration_sec": 198,
+    "summary": "Cliente perguntou o prazo de implantação e pediu para revisar a cláusula de reajuste. Ficou de responder até sexta."
+  }
+}
+```
+
+### `call.missed`
+
+Ninguém atendeu — nem pessoa, nem agente de IA. É o gancho para acordar um fluxo de retorno no sistema do integrador.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "call.missed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "call": {
+      "id": "664c5d6e7f8a9b012345620d",
+      "direction": "inbound",
+      "status": "missed",
+      "from": "+5511999998888",
+      "to": "+551133334444",
+      "answered_by_kind": null,
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "contact_id": "664f1a2b3c4d5e6f78901234",
+      "duration_sec": 0,
+      "started_at": "2026-08-20T14:26:00.000Z",
+      "answered_at": null,
+      "ended_at": "2026-08-20T14:30:00.000Z",
+      "disposition": null
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "rang_for": [
+      {
+        "user_id": "664a0000000000000000000f",
+        "result": "timeout"
+      },
+      {
+        "user_id": "664a00000000000000000010",
+        "result": "rejected"
+      }
+    ]
+  }
+}
+```
+
+### `call.handoff_requested`
+
+O agente de IA passou a ligação para uma pessoa. `reason` é a frase do próprio agente (o caso comum é o cliente pedir) e `ringing` diz se chegou a tocar para alguém.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "call.handoff_requested",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "call": {
+      "id": "664c5d6e7f8a9b012345620d",
+      "direction": "inbound",
+      "status": "in_progress",
+      "from": "+5511999998888",
+      "to": "+551133334444",
+      "answered_by_kind": "agent",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "contact_id": "664f1a2b3c4d5e6f78901234",
+      "duration_sec": 0,
+      "started_at": "2026-08-20T14:26:00.000Z",
+      "answered_at": "2026-08-20T14:26:12.000Z",
+      "ended_at": null,
+      "disposition": null
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva"
+    },
+    "agent": {
+      "id": "664c0000000000000000002b",
+      "name": "Agente de Vendas"
+    },
+    "reason": "cliente pediu para falar com uma pessoa",
+    "ringing": true
+  }
+}
+```
+
+### `call.recording_ready`
+
+A gravação da ligação terminou de ser processada e já pode ser ouvida no painel. O áudio não viaja no webhook.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "call.recording_ready",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "call": {
+      "id": "664c5d6e7f8a9b012345620d",
+      "direction": "inbound",
+      "status": "completed",
+      "from": "+5511999998888",
+      "to": "+551133334444",
+      "answered_by_kind": "agent",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "contact_id": "664f1a2b3c4d5e6f78901234",
+      "duration_sec": 214,
+      "started_at": "2026-08-20T14:26:00.000Z",
+      "answered_at": "2026-08-20T14:26:12.000Z",
+      "ended_at": "2026-08-20T14:30:00.000Z",
+      "disposition": {
+        "code": "resolvido",
+        "label": "Resolvido na ligação"
+      }
+    },
+    "recording": {
+      "bytes": 684320,
+      "duration_sec": 214,
+      "status": "stored"
+    }
   }
 }
 ```
