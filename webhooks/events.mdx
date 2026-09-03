@@ -1823,6 +1823,10 @@ O agente autopilot decidiu (ou foi obrigado a) devolver a conversa para uma pess
 
 ## Ligações
 
+<Info>
+  Toda ligação carrega `channel`, que diz por onde ela passou: `whatsapp` (chamada de voz do WhatsApp) ou `phone` (telefone comum). Em `phone`, `line_id` traz a linha telefônica que atendeu ou discou; no WhatsApp ele é `null`. Os dois campos foram acrescentados em 02/set/2026 e nunca faltam: integração escrita antes disso continua funcionando sem tocar em nada.
+</Info>
+
 ### `call.started`
 
 Uma ligação começou a ser atendida — por uma pessoa ou por um agente de IA. `answered_by` diz qual dos dois.
@@ -1836,6 +1840,8 @@ Uma ligação começou a ser atendida — por uma pessoa ou por um agente de IA.
   "data": {
     "call": {
       "id": "664c5d6e7f8a9b012345620d",
+      "channel": "whatsapp",
+      "line_id": null,
       "direction": "inbound",
       "status": "in_progress",
       "from": "+5511999998888",
@@ -1875,6 +1881,8 @@ A ligação terminou. `reason` é um código estável para ramificar; `summary` 
   "data": {
     "call": {
       "id": "664c5d6e7f8a9b012345620d",
+      "channel": "whatsapp",
+      "line_id": null,
       "direction": "inbound",
       "status": "completed",
       "from": "+5511999998888",
@@ -1916,6 +1924,8 @@ Ninguém atendeu — nem pessoa, nem agente de IA. É o gancho para acordar um f
   "data": {
     "call": {
       "id": "664c5d6e7f8a9b012345620d",
+      "channel": "whatsapp",
+      "line_id": null,
       "direction": "inbound",
       "status": "missed",
       "from": "+5511999998888",
@@ -1960,6 +1970,8 @@ O agente de IA passou a ligação para uma pessoa. `reason` é a frase do própr
   "data": {
     "call": {
       "id": "664c5d6e7f8a9b012345620d",
+      "channel": "whatsapp",
+      "line_id": null,
       "direction": "inbound",
       "status": "in_progress",
       "from": "+5511999998888",
@@ -2000,6 +2012,8 @@ A gravação da ligação terminou de ser processada e já pode ser ouvida no pa
   "data": {
     "call": {
       "id": "664c5d6e7f8a9b012345620d",
+      "channel": "whatsapp",
+      "line_id": null,
       "direction": "inbound",
       "status": "completed",
       "from": "+5511999998888",
