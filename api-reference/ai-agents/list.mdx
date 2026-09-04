@@ -46,7 +46,7 @@ curl "https://api.socialsell.ai/v1/ai-agents?status=active" \
         "types": ["direct"],
         "objectives": ["sales"]
       },
-      "triggers": [{ "event": "message.received.from_contact", "enabled": true }],
+      "triggers": [{ "event": "message.received", "enabled": true }],
       "behavior": {
         "strategy": "qualify_and_handoff",
         "queueAssignmentMode": "queue_immediate"

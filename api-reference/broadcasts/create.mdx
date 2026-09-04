@@ -42,11 +42,12 @@ Todos os números do disparo precisam ser do **mesmo canal**: ou todos por QR Co
 
 | Campo | Tipo | Padrão | Descrição |
 |-------|------|--------|-----------|
-| `type` | string | `filtered` | `all_contacts`, `filtered`, `tags`, `manual` ou `import` |
+| `type` | string | `filtered` | `filtered` (todos que passam nos filtros) ou `manual` (`manualContactIds`) |
 | `filters` | object | `{}` | **Onde vivem os filtros.** Ver tabela abaixo |
 | `manualContactIds` | string[] | `[]` | IDs específicos de contatos |
 | `exclusions` | object | ver abaixo | Quem fica de fora |
 | `estimatedCount` | number | — | Alcance estimado, se você já calculou |
+| `includeAiOwnedConversations` | boolean | `false` | Enviar também para quem está sendo atendido por um agente de IA (por padrão fica de fora, como `skippedByReason.conversa_com_ia`) |
 
 ### `audience.filters`
 
@@ -55,9 +56,16 @@ Todos os números do disparo precisam ser do **mesmo canal**: ou todos por QR Co
 | `tags` | string[] | Nomes **ou** IDs de tags. Nome desconhecido não cria tag — apenas não casa com ninguém |
 | `tagsOperator` | string | `or` (padrão) ou `and` |
 | `hasWhatsapp` | boolean | Apenas contatos com WhatsApp vinculado |
-| `hasOptIn` | boolean | Apenas contatos com opt-in |
+| `hasOptIn` | boolean | Apenas contatos com consentimento de marketing registrado |
 | `createdAfter` | string | ISO 8601 — contatos criados após esta data |
 | `createdBefore` | string | ISO 8601 — contatos criados antes desta data |
+| `assignedTo` | string | ID do vendedor: só a carteira dele |
+| `hasOwner` | boolean | `false` = só contatos sem dono; `true` = só com dono |
+| `companyId` | string | ID da empresa |
+| `source` | string | Origem do contato (`whatsapp`, `instagram`, `manual`, `import`…) |
+| `lastContactOlderThanDays` | number | Reativação: sem contato há mais de N dias (inclui quem nunca teve contato) |
+| `lifecycleStages` | string[] | `lead`, `opportunity`, `customer`, `former_customer` |
+| `segmentId` | string | Segmento salvo da tela de Contatos — aplica os filtros e a busca dele |
 | `dealFilter` | object | Filtro por negócios abertos. Ver abaixo |
 
 ### `audience.filters.dealFilter`
@@ -137,7 +145,7 @@ curl -X POST https://api.socialsell.ai/v1/broadcasts \
     "name": "Aviso de manutenção",
     "whatsappInstances": ["6643cb19da1774a51495b603"],
     "audience": {
-      "type": "tags",
+      "type": "filtered",
       "filters": {
         "tags": ["cliente"],
         "tagsOperator": "or",

@@ -27,6 +27,19 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `created_at` | string | ISO 8601 do momento em que o evento ocorreu. |
 | `organization_id` | string | Organização dona do evento. |
 | `data` | object | Conteúdo específico do evento — as seções abaixo. |
+| `batch` | object | **Opcional.** Só aparece quando o evento veio de um processamento em massa. `origin` diz a origem (`import`) e `detail` o arquivo, quando houver. |
+
+<Note>
+  **Rajada.** Uma importação de planilha pode gerar centenas de eventos de uma vez — por exemplo,
+  300 `contact.lifecycle_changed` de uma lista de prospecção. Esses eventos chegam com `batch` no
+  envelope, e saem numa fila de cadência própria: o backlog da importação não atrasa os eventos
+  avulsos da mesma organização. Use `batch` para agrupar em vez de tratar cada um como uma mudança
+  individual do cliente.
+
+  ```json
+  "batch": { "origin": "import", "detail": "clinicas.csv" }
+  ```
+</Note>
 
 ## Índice
 
@@ -34,6 +47,7 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | --- | --- |
 | `contact.created` | Contato criado |
 | `contact.updated` | Contato atualizado |
+| `contact.lifecycle_changed` | Ciclo de vida mudou |
 | `contact.deleted` | Contato excluído |
 | `contact.tag.added` | Etiqueta adicionada ao contato |
 | `contact.tag.removed` | Etiqueta removida do contato |
@@ -48,6 +62,7 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `deal.lost` | Negócio perdido |
 | `deal.assigned` | Negócio atribuído |
 | `deal.pipeline.transferred` | Negócio transferido de funil |
+| `deal.reopened` | Negócio reaberto |
 | `deal.deleted` | Negócio excluído |
 | `deal.note.added` | Nota adicionada ao negócio |
 | `proposal.created` | Proposta criada |
@@ -64,6 +79,14 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `conversation.reopened` | Conversa reaberta |
 | `conversation.assigned` | Conversa atribuída |
 | `conversation.closed` | Conversa encerrada |
+| `atendimento.opened` | Atendimento aberto |
+| `atendimento.status_changed` | Status do atendimento mudou |
+| `atendimento.assigned` | Atendente definido |
+| `atendimento.closed` | Atendimento encerrado |
+| `atendimento.reopened` | Atendimento reaberto |
+| `atendimento.discarded` | Atendimento descartado |
+| `atendimento.csat_received` | Avaliação recebida |
+| `atendimento.sla_breached` | SLA estourado |
 | `message.received` | Mensagem recebida |
 | `message.sent` | Mensagem enviada |
 | `message.edited` | Mensagem editada |
@@ -76,11 +99,14 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `call.handoff_requested` | Ligação passada para humano |
 | `call.recording_ready` | Gravação disponível |
 | `broadcast.completed` | Disparo concluído |
+| `broadcast.replied` | Contato respondeu ao disparo |
 | `broadcast.failed` | Disparo interrompido |
 | `import.completed` | Importação concluída |
 | `import.failed` | Importação falhou |
 | `team.member.joined` | Membro entrou na equipe |
 | `team.member.left` | Membro saiu da equipe |
+| `team.member.deactivated` | Membro desativado |
+| `team.member.reactivated` | Membro reativado |
 | `credits.low` | Créditos acabando |
 | `credits.depleted` | Créditos esgotados |
 | `billing.payment.confirmed` | Pagamento confirmado |
@@ -122,7 +148,12 @@ Um contato foi criado — pelo painel, pela API, por importação ou pela primei
       "custom_fields": {
         "origem_campanha": "black-friday"
       },
-      "funnel_stage": "qualificado",
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
       "notes_count": 1,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
@@ -166,7 +197,12 @@ Um campo do contato mudou. `changed_fields` lista quais.
       "custom_fields": {
         "origem_campanha": "black-friday"
       },
-      "funnel_stage": "qualificado",
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
       "notes_count": 1,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
@@ -175,8 +211,60 @@ Um campo do contato mudou. `changed_fields` lista quais.
     },
     "changed_fields": [
       "phone",
-      "funnelStage"
+      "company"
     ]
+  }
+}
+```
+
+### `contact.lifecycle_changed`
+
+O contato mudou de estágio — `unknown`, `lead`, `opportunity`, `customer` ou `former_customer`. Derivado de leads e negócios, nunca digitado; `reason` diz o evento que causou.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "contact.lifecycle_changed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_stage": null,
+    "new_stage": null,
+    "reason": null
   }
 }
 ```
@@ -214,7 +302,12 @@ Um contato foi excluído. O payload traz o último estado conhecido, já que o r
       "custom_fields": {
         "origem_campanha": "black-friday"
       },
-      "funnel_stage": "qualificado",
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
       "notes_count": 1,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
@@ -258,7 +351,12 @@ Uma etiqueta foi aplicada ao contato.
       "custom_fields": {
         "origem_campanha": "black-friday"
       },
-      "funnel_stage": "qualificado",
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
       "notes_count": 1,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
@@ -303,7 +401,12 @@ Uma etiqueta foi retirada do contato.
       "custom_fields": {
         "origem_campanha": "black-friday"
       },
-      "funnel_stage": "qualificado",
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
       "notes_count": 1,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
@@ -348,7 +451,12 @@ Alguém registrou uma nota no histórico do contato.
       "custom_fields": {
         "origem_campanha": "black-friday"
       },
-      "funnel_stage": "qualificado",
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
       "notes_count": 1,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
@@ -454,7 +562,7 @@ Um campo da empresa mudou. `changed_fields` lista quais.
     },
     "changed_fields": [
       "phone",
-      "funnelStage"
+      "company"
     ]
   }
 }
@@ -891,6 +999,62 @@ O negócio saiu de um funil e entrou em outro.
     },
     "previous_pipeline": "664c1d2e3f4a5b6789012347",
     "new_pipeline": "664c1d2e3f4a5b6789012399"
+  }
+}
+```
+
+### `deal.reopened`
+
+Um negócio ganho ou perdido voltou a ficar aberto. `previous_status` diz de onde ele veio.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "deal.reopened",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "deal": {
+      "id": "664632f1260b42723a5ed4ed",
+      "title": "Implantação — Empresa XYZ",
+      "description": "Contrato anual com onboarding assistido.",
+      "value": 48000,
+      "status": "won",
+      "pipeline": {
+        "id": "664c1d2e3f4a5b6789012347",
+        "name": "Funil Principal"
+      },
+      "stage": {
+        "name": "Fechamento"
+      },
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "contacts": [
+        {
+          "id": "664f1a2b3c4d5e6f78901234",
+          "name": "João Silva"
+        }
+      ],
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise"
+      ],
+      "probability": 100,
+      "expected_close_date": "2026-08-31T00:00:00.000Z",
+      "closed_date": "2026-08-20T14:30:00.000Z",
+      "won_reason": "Melhor custo-benefício",
+      "loss_reason": null,
+      "custom_fields": {},
+      "created_at": "2026-07-10T11:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "previous_status": null,
+    "user": "664a00000000000000000010"
   }
 }
 ```
@@ -1642,6 +1806,448 @@ A conversa foi encerrada.
 }
 ```
 
+## Atendimentos
+
+### `atendimento.opened`
+
+Uma conversa recebida virou atendimento (ou alguém abriu um à mão / por automação).
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.opened",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.status_changed`
+
+Aberto ↔ aguardando cliente ↔ aguardando interno. `from` e `to` dizem a transição.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.status_changed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.assigned`
+
+O atendimento ganhou (ou trocou de) atendente — acompanha a conversa enquanto aberto.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.assigned",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.closed`
+
+Encerrado com `category` e `close_reason`. A conversa vai para Concluídas.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.closed",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.reopened`
+
+O cliente voltou (ou alguém reabriu): nasce um NOVO atendimento, `reopened_from` aponta o anterior.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.reopened",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.discarded`
+
+Aberto por engano e apagado — a conversa virou modo Vendas. NÃO conta como atendimento encerrado: não entra em SLA nem em "Por que nos procuram".
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.discarded",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.csat_received`
+
+O cliente respondeu a pesquisa de satisfação. `score` de 1 a 5.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.csat_received",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
+### `atendimento.sla_breached`
+
+Prazo de 1ª resposta ou de resolução vencido. `kind` diz qual. Sai uma vez por prazo.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "atendimento.sla_breached",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "atendimento": null,
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "phone": "+5511999998888"
+    }
+  }
+}
+```
+
 ## Mensagens
 
 ### `message.received`
@@ -2068,6 +2674,106 @@ Um disparo em massa terminou. Traz o consolidado de enviadas, entregues e falhas
 }
 ```
 
+### `broadcast.replied`
+
+Um contato respondeu a um disparo em massa (primeira resposta, até 72 h depois do envio). Uma vez por contato por disparo.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "broadcast.replied",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "broadcast": {
+      "id": null,
+      "name": null
+    },
+    "contact": {
+      "id": "664f1a2b3c4d5e6f78901234",
+      "name": "João Silva",
+      "email": "joao@empresaxyz.com.br",
+      "phone": "+5511999998888",
+      "instagram_username": null,
+      "whatsapp_jid": "5511999998888@s.whatsapp.net",
+      "messenger_psid": null,
+      "messenger_name": null,
+      "source": "whatsapp",
+      "avatar_url": null,
+      "company": {
+        "id": "664b1c2d3e4f5a6789012346",
+        "name": "Empresa XYZ"
+      },
+      "tags": [
+        "enterprise",
+        "inbound"
+      ],
+      "custom_fields": {
+        "origem_campanha": "black-friday"
+      },
+      "funnel_stage": null,
+      "lifecycle": {
+        "stage": "unknown",
+        "since": null,
+        "customer_since": null
+      },
+      "notes_count": 1,
+      "deals_count": 2,
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "conversation": {
+      "id": "664d1e2f3a4b5c6789012348",
+      "channel": "whatsapp",
+      "type": "direct",
+      "contact": {
+        "id": "664f1a2b3c4d5e6f78901234",
+        "name": "João Silva",
+        "phone": null
+      },
+      "whatsapp_instance": null,
+      "messenger_page": null,
+      "instagram_account": null,
+      "status": "open",
+      "is_closed": false,
+      "is_archived": false,
+      "assigned_to": {
+        "id": "664a0000000000000000000f",
+        "name": "Maria Santos"
+      },
+      "objective": null,
+      "ai_agent": null,
+      "unread_count": 2,
+      "message_count": 37,
+      "last_message": {
+        "content": "Perfeito, pode enviar o contrato.",
+        "sent_at": "2026-08-20T14:30:00.000Z",
+        "sender": null
+      },
+      "last_message_at": "2026-08-20T14:30:00.000Z",
+      "tags": [],
+      "closed_at": null,
+      "created_at": "2026-07-01T10:00:00.000Z",
+      "updated_at": "2026-08-20T14:30:00.000Z"
+    },
+    "message": {
+      "id": "664e1f2a3b4c5d6789012349",
+      "conversation_id": "664d1e2f3a4b5c6789012348",
+      "content": "Perfeito, pode enviar o contrato.",
+      "type": "text",
+      "sender": "contact",
+      "sent_by": null,
+      "media": null,
+      "is_internal_note": false,
+      "reactions": [],
+      "sent_at": "2026-08-20T14:30:00.000Z",
+      "edited_at": null
+    }
+  }
+}
+```
+
 ### `broadcast.failed`
 
 Um disparo em massa parou por erro ou por acionamento do disjuntor anti-ban.
@@ -2180,6 +2886,50 @@ Alguém deixou de fazer parte da organização.
       "name": "Carlos Lima",
       "email": "carlos@empresaxyz.com.br"
     }
+  }
+}
+```
+
+### `team.member.deactivated`
+
+Alguém perdeu o acesso à organização. O histórico permanece, e o payload diz para quem foi o trabalho.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "team.member.deactivated",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "member": {
+      "id": "664a00000000000000000010",
+      "name": "Carlos Lima",
+      "email": "carlos@empresaxyz.com.br"
+    },
+    "deactivated_by": null,
+    "reassigned_to": null,
+    "moved": null
+  }
+}
+```
+
+### `team.member.reactivated`
+
+Alguém voltou a ter acesso à organização. Reativar devolve acesso e cargo, nunca a carteira.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "team.member.reactivated",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "member": {
+      "id": "664a00000000000000000010",
+      "name": "Carlos Lima",
+      "email": "carlos@empresaxyz.com.br"
+    },
+    "reactivated_by": null
   }
 }
 ```
