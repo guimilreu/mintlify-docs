@@ -1,5 +1,7 @@
 # Documentação da API SocialSell
 
+> Regras da plataforma inteira (contrato público, git, banco, como rodar): [`../AGENTS.md`](../AGENTS.md) — ler primeiro.
+
 Site Mintlify da API pública v1. Páginas são MDX com frontmatter YAML; a configuração vive em `docs.json`.
 
 - `mint dev` — preview local
