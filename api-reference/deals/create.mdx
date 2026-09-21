@@ -19,7 +19,7 @@ POST /v1/deals
 | `pipeline_id` | string | Sim | ID do pipeline |
 | `stage_id` | string | Não | ID da etapa. Se omitido, usa a primeira etapa do funil de venda |
 | `value` | number | Não | Valor em reais. Padrão: `0` |
-| `contact_ids` | string[] | Não | IDs dos contatos vinculados |
+| `contact_ids` | string[] | Não | IDs dos contatos vinculados, todos da sua organização |
 | `company_id` | string | Não | ID da empresa |
 | `assigned_to` | string | Não | ID do membro responsável |
 | `expected_close_date` | string | Não | Data prevista de fechamento (ISO 8601) |
@@ -51,6 +51,10 @@ curl -X POST https://api.socialsell.ai/v1/deals \
 
 Retorna `HTTP 201` com o objeto negócio criado.
 
+A resposta inclui `stage.id` (ID da etapa) e `stage.name` (nome legível).
+
+Use `contact_ids` como lista. Campos desconhecidos, como `contact_id`, retornam `422` com código `UNKNOWN_FIELDS` e o nome do campo em `error.details`.
+
 A criação dispara o evento `deal.created` em webhooks configurados.
 
 ## Erros
@@ -62,3 +66,5 @@ A criação dispara o evento `deal.created` em webhooks configurados.
 | `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no funil de venda |
 | `NO_STAGES` | `422` | Funil de venda não tem etapas |
 | `PIPELINE_INACTIVE` | `422` | Funil desativado não aceita negócios novos |
+| `UNKNOWN_FIELDS` | `422` | Campo não aceito neste endpoint; consulte `error.details` |
+| `INVALID_REFERENCE` | `422` | Vínculo inválido, inexistente ou de outra organização |
