@@ -17,7 +17,7 @@ POST /v1/contacts
 |-------|------|-------------|-----------|
 | `name` | string | Sim | Nome completo. De 1 a 200 caracteres |
 | `email` | string | Não | Email. Formato validado |
-| `phone` | string | Não | Telefone. Até 40 caracteres |
+| `phone` | string | Não | Telefone. Até 40 caracteres. Para WhatsApp, prefira o formato internacional com DDI, como `+5511999999999` |
 | `instagram_username` | string | Não | Username do Instagram, sem `@`. Até 200 caracteres |
 | `messenger_psid` | string | Não | PSID do Facebook Messenger. Até 64 caracteres |
 | `company_id` | string | Não | ID da empresa para vincular |
@@ -71,7 +71,7 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
     "email": "ana@empresa.com.br",
     "phone": "+5521988888888",
     "instagram_username": null,
-    "whatsapp_jid": null,
+    "whatsapp_jid": "5521988888888@s.whatsapp.net",
     "messenger_psid": null,
     "messenger_name": null,
     "source": "site",
@@ -96,6 +96,10 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
 ```
 
 A criação do contato dispara automaticamente o evento `contact.created` em webhooks configurados.
+
+<Note>
+Você informa apenas `phone`. A SocialSell resolve e mantém internamente a identidade necessária para enviar pelo WhatsApp. O campo `whatsapp_jid` é somente leitura e não deve ser enviado na criação.
+</Note>
 
 ## Erros
 
