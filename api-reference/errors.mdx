@@ -140,7 +140,7 @@ description: "Formato padrão de erro e referência completa dos códigos da API
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `NO_WHATSAPP_JID` | `422` | Contato sem WhatsApp vinculado |
+| `NO_WHATSAPP_JID` | `422` | Código legado para contato sem telefone utilizável. O corpo traz `reason: "WHATSAPP_PHONE_REQUIRED"`; o integrador informa somente `phone` |
 | `NO_WHATSAPP_INSTANCE` | `422` | Nenhum número do WhatsApp conectado |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID do Messenger |
 | `NO_MESSENGER_PAGE` | `422` | Nenhuma página do Messenger conectada |

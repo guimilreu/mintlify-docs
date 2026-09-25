@@ -7,6 +7,16 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 21 de setembro de 2026 — telefone resolve o destinatário do WhatsApp
+
+- `POST /v1/contacts` passa a preparar automaticamente a identidade de WhatsApp quando recebe um `phone` válido.
+- `PATCH /v1/contacts/:id` atualiza a identidade de envio ao trocar o telefone e deixa de manter o destinatário anterior.
+- `POST /v1/messages/send` resolve e autorrepara contatos antigos que possuem telefone, mas ainda não possuem a identidade interna materializada.
+- O integrador informa somente `phone`. JID e identificadores do provedor são detalhes internos da SocialSell.
+- Para contatos sem telefone utilizável, o código legado `NO_WHATSAPP_JID` permanece por compatibilidade e agora traz orientação sobre telefone e `reason: "WHATSAPP_PHONE_REQUIRED"`.
+
+---
+
 ## 9 de setembro de 2026 — criação idempotente de contato e empresa
 
 - **`external_id`** em `POST /v1/contacts` e `POST /v1/companies`: o seu identificador, único por organização. Com ele no corpo, a criação passa a ser **encontrar antes de criar**: se já existir registro com o mesmo `external_id`, telefone ou e-mail (contato) ou `external_id`, CNPJ ou identidade comercial (empresa), a resposta é `200` com o existente e `meta.matched_by`. Sem `external_id`, nada muda: `409` como antes.

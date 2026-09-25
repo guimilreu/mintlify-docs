@@ -17,11 +17,15 @@ Também disponível como `POST /v1/conversations/send` (alias).
 
 | Canal | Requisito no contato |
 |-------|---------------------|
-| `whatsapp` | Identidade de WhatsApp vinculada — `whatsapp_jid` **ou** o `waId` interno. Um contato pode ter só o `waId` e ainda assim receber, mesmo com `whatsapp_jid` em `null` |
+| `whatsapp` | Telefone válido, preferencialmente no formato internacional com DDI, como `+5511999999999` |
 | `messenger` | `messenger_psid` preenchido |
 
 <Note>
 O canal Instagram não está disponível na API pública neste momento.
+</Note>
+
+<Note>
+Você não precisa conhecer nem informar JID ou outro identificador interno do WhatsApp. A SocialSell resolve o destinatário a partir do telefone e também autorrepara contatos antigos no primeiro envio.
 </Note>
 
 ## Rate limits por canal
@@ -206,7 +210,7 @@ No envio de modelo, `type` vem como `template` — valor fora da lista de `type`
 | `MISSING_CONTENT` | `400` | `content` ausente para mensagem de texto |
 | `MISSING_MEDIA_URL` | `400` | `media_url` ausente para mensagens de mídia |
 | `CONTACT_NOT_FOUND` | `404` | Contato não encontrado |
-| `NO_WHATSAPP_JID` | `422` | Contato sem WhatsApp |
+| `NO_WHATSAPP_JID` | `422` | Código legado devolvido quando o contato não possui telefone utilizável. A mensagem orienta cadastrar um telefone válido com DDI e o corpo traz `reason: "WHATSAPP_PHONE_REQUIRED"` |
 | `NO_WHATSAPP_INSTANCE` | `422` | Sem instância WhatsApp conectada |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID Messenger |
 | `NO_MESSENGER_PAGE` | `422` | Sem página Messenger conectada |
