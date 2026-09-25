@@ -1,6 +1,6 @@
 ---
 title: "Criar contato"
-description: "Cria um novo contato na organização."
+description: "Cria um contato ou devolve o que já existe para o mesmo external_id, telefone ou e-mail."
 ---
 
 ## Endpoint
@@ -21,13 +21,25 @@ POST /v1/contacts
 | `instagram_username` | string | Não | Username do Instagram, sem `@`. Até 200 caracteres |
 | `messenger_psid` | string | Não | PSID do Facebook Messenger. Até 64 caracteres |
 | `company_id` | string | Não | ID da empresa para vincular |
+| `external_id` | string | Não | Identificador do contato no **seu** sistema. Até 100 caracteres, único por organização. Torna a criação idempotente (veja abaixo) |
 | `tags` | string[] | Não | Lista de tags |
 | `source` | string | Não | Origem do contato. Até 50 caracteres. Padrão: `api` |
 | `custom_fields` | object | Não | Campos personalizados (chave → valor) |
 
-## Detecção de duplicatas
+## Encontrar antes de criar
 
-Se `phone` ou `email` já existirem em outro contato da organização, a API retorna `HTTP 409`:
+Antes de gravar, a API procura um contato da organização com as mesmas chaves, nesta ordem: `external_id`, telefone (em qualquer grafia — `+5514999990000`, `5514999990000`, `14999990000`, `(14) 99999-0000` casam o mesmo contato) e e-mail.
+
+**Com `external_id` no corpo**, a criação é idempotente: se o contato já existir, a resposta é `HTTP 200` com o registro **existente** e `meta.matched_by` dizendo por qual chave casou. Reenviar a mesma requisição (retry de rede, reentrega de fila) devolve sempre o mesmo `id`, sem criar duplicata. O contato existente não é alterado — para complementar dados, use [Atualizar contato](/api-reference/contacts/update).
+
+| `meta.created` | `meta.matched_by` | Status | Significado |
+|---|---|---|---|
+| `true` | `null` | `201` | Contato criado agora |
+| `false` | `external_id` | `200` | Já existia com esse `external_id` |
+| `false` | `phone` | `200` | Já existia com esse telefone |
+| `false` | `email` | `200` | Já existia com esse e-mail |
+
+**Sem `external_id`**, telefone ou e-mail já cadastrados devolvem `HTTP 409`, com o ID do existente no corpo:
 
 ```json
 {
@@ -38,10 +50,17 @@ Se `phone` ou `email` já existirem em outro contato da organização, a API ret
     "existing_contact": {
       "id": "664f1a2b3c4d5e6f78901234",
       "name": "João Silva"
-    }
+    },
+    "matched_by": "phone"
   }
 }
 ```
+
+Para procurar sem tentar criar, use `GET /v1/contacts?phone=...`, `?email=...` ou `?external_id=...` — veja [Listar contatos](/api-reference/contacts/list).
+
+<Note>
+O contato criado por aqui **não entra em nenhuma conversa nem negócio** automaticamente. Ele nasce com a identidade de WhatsApp derivada do telefone (`whatsapp_jid`), pronto para receber uma mensagem por [Enviar mensagem](/api-reference/messages/send). Quem decide se vira oportunidade é o seu processo comercial, depois.
+</Note>
 
 ## Exemplo de requisição
 
@@ -53,6 +72,7 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
     "name": "Ana Costa",
     "email": "ana@empresa.com.br",
     "phone": "+5521988888888",
+    "external_id": "lead_8f3a2c",
     "tags": ["lead", "inbound"],
     "source": "site",
     "custom_fields": {
@@ -63,6 +83,8 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
 
 ## Exemplo de resposta
 
+`HTTP 201` quando criou; `HTTP 200`, com o mesmo corpo, quando já existia e o corpo trazia `external_id`.
+
 ```json
 {
   "data": {
@@ -71,10 +93,11 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
     "email": "ana@empresa.com.br",
     "phone": "+5521988888888",
     "instagram_username": null,
-    "whatsapp_jid": null,
+    "whatsapp_jid": "5521988888888@s.whatsapp.net",
     "messenger_psid": null,
     "messenger_name": null,
     "source": "site",
+    "external_id": "lead_8f3a2c",
     "avatar_url": null,
     "company": null,
     "tags": ["lead", "inbound"],
@@ -90,12 +113,14 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
     "updated_at": "2026-06-10T15:30:00.000Z"
   },
   "meta": {
-    "request_id": "req_a1b2c3d4e5f6a7b8"
+    "request_id": "req_a1b2c3d4e5f6a7b8",
+    "created": true,
+    "matched_by": null
   }
 }
 ```
 
-A criação do contato dispara automaticamente o evento `contact.created` em webhooks configurados.
+A criação do contato dispara o evento `contact.created` em webhooks configurados. Quando a resposta é `200` (contato já existia), nenhum evento é disparado.
 
 ## Erros
 
@@ -103,5 +128,5 @@ A criação do contato dispara automaticamente o evento `contact.created` em web
 |--------|--------|-----------|
 | `VALIDATION_ERROR` | `400` | Campo inválido ou ausente. O corpo traz `details[]` com `field` e `message` |
 | `INVALID_COMPANY_ID` | `400` | `company_id` com formato inválido |
-| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou email |
+| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou e-mail e o corpo não trazia `external_id`. Traz `existing_contact` e `matched_by` |
 | `DUPLICATE` | `409` | Conflito de índice único no banco |

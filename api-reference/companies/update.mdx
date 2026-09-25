@@ -21,6 +21,8 @@ Envie apenas os campos que deseja alterar.
 | `email` | string\|null | Email |
 | `phone` | string\|null | Telefone |
 | `website` | string\|null | URL do site |
+| `document` | string\|null | CNPJ, com ou sem máscara (envie `null` para limpar) |
+| `external_id` | string\|null | Identificador no seu sistema, até 100 caracteres (envie `null` para limpar) |
 | `sector` | string | Setor |
 | `size` | string | Tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
 | `city` | string | Cidade |
@@ -51,4 +53,9 @@ Retorna o objeto empresa atualizado.
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `INVALID_ID` | `400` | ID com formato inválido |
+| `INVALID_DOCUMENT` | `400` | `document` não tem 14 dígitos |
+| `VALIDATION_ERROR` | `400` | `external_id` fora do formato |
 | `NOT_FOUND` | `404` | Empresa não encontrada |
+| `DUPLICATE_EXTERNAL_ID` | `409` | O `external_id` já pertence a outra empresa da organização |
+| `DUPLICATE_DOCUMENT` | `409` | O CNPJ já pertence a outra empresa da organização |
+| `COMPANY_IDENTITY_TAKEN` | `409` | Nome, cidade e telefone já identificam outra empresa |

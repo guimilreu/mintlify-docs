@@ -1,6 +1,6 @@
 ---
 title: "Criar empresa"
-description: "Cria uma nova empresa na organização."
+description: "Cria uma empresa ou devolve a que já existe para o mesmo external_id ou CNPJ."
 ---
 
 ## Endpoint
@@ -19,6 +19,8 @@ POST /v1/companies
 | `email` | string | Não | Email |
 | `phone` | string | Não | Telefone |
 | `website` | string | Não | URL do site |
+| `document` | string | Não | CNPJ, com ou sem máscara (14 dígitos). Único por organização |
+| `external_id` | string | Não | Identificador da empresa no **seu** sistema. Até 100 caracteres, único por organização. Torna a criação idempotente (veja abaixo) |
 | `sector` | string | Não | Setor de atuação |
 | `size` | string | Não | Tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
 | `city` | string | Não | Cidade |
@@ -37,6 +39,8 @@ curl -X POST https://api.socialsell.ai/v1/companies \
     "name": "Nova Empresa Ltda",
     "email": "contato@novaempresa.com.br",
     "phone": "+5511222233334",
+    "document": "12.345.678/0001-95",
+    "external_id": "acc_51c9",
     "sector": "Varejo",
     "size": "11-50",
     "city": "Curitiba",
@@ -45,20 +49,30 @@ curl -X POST https://api.socialsell.ai/v1/companies \
   }'
 ```
 
+## Encontrar antes de criar
+
+**Com `external_id` no corpo**, a criação é idempotente. Antes de gravar, a API procura uma empresa da organização com as mesmas chaves, nesta ordem: `external_id`, CNPJ (`document`) e identidade comercial (nome, cidade e telefone — a mesma regra da importação; só vale para empresa sem CNPJ). Se encontrar, a resposta é `HTTP 200` com o registro **existente** e `meta.matched_by` (`external_id`, `document` ou `identity`). A empresa existente não é alterada.
+
+**Sem `external_id`**, o comportamento é o de sempre: cria, e CNPJ já cadastrado devolve `HTTP 409` com `existing_company` no corpo.
+
+Para procurar sem tentar criar, use `GET /v1/companies?document=...` ou `?external_id=...` — veja [Listar empresas](/api-reference/companies/list).
+
 ## Resposta
 
-Retorna `HTTP 201` com o objeto empresa criado.
+`HTTP 201` com o objeto empresa criado e `meta.created: true`. `HTTP 200`, com o mesmo corpo e `meta.created: false`, quando já existia e o corpo trazia `external_id`. O objeto é o mesmo de [Listar empresas](/api-reference/companies/list), com `document` (CNPJ só dígitos) e `external_id`.
 
 ## Erros
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `MISSING_REQUIRED_FIELD` | `400` | Campo `name` ausente |
+| `INVALID_DOCUMENT` | `400` | `document` não tem 14 dígitos |
+| `VALIDATION_ERROR` | `400` | `external_id` vazio ou com mais de 100 caracteres |
 | `INVALID_ID` | `400` | ID com formato inválido |
-| `DUPLICATE` | `409` | Empresa duplicada |
+| `DUPLICATE` | `409` | Empresa duplicada (CNPJ ou identidade) e o corpo não trazia `external_id`. Traz `existing_company` e `matched_by` quando a existente é identificável |
 
 <Note>
-Criar, atualizar e excluir empresa disparam `company.created`, `company.updated` e `company.deleted`.
+Criar, atualizar e excluir empresa disparam `company.created`, `company.updated` e `company.deleted`. Quando a resposta é `200` (empresa já existia), nenhum evento é disparado.
 </Note>
 <Note>
   Não há endpoint de **notas de empresa** na v1 — só em contatos e negócios. O evento

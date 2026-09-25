@@ -53,7 +53,9 @@ Guarde o timestamp **de antes** de começar a varredura, não de depois. Um cont
 
 ## 3. Escrevendo de volta: trate a duplicata
 
-Criar contato com telefone ou email já existente devolve `409` — **com o ID do contato existente no corpo**. É a deixa para atualizar em vez de criar.
+O caminho mais curto é mandar o **seu** identificador em `external_id`: com ele, `POST /v1/contacts` devolve `201` quando cria e `200` com o contato existente quando já havia um com o mesmo `external_id`, telefone ou e-mail — `meta.matched_by` diz qual. Reenvio nunca duplica, e o `id` que volta é o que você guarda. Se quiser complementar o registro existente, encadeie um `PATCH` quando `meta.created` for `false`.
+
+Sem `external_id`, criar contato com telefone ou email já existente devolve `409` — **com o ID do contato existente no corpo**. É a deixa para atualizar em vez de criar.
 
 ```javascript
 async function criarOuAtualizar(contato) {
@@ -128,7 +130,7 @@ O payload de `data.contact` tem o **mesmo formato** que a API devolve — não �
 
 - [ ] Paginação para em `has_more: false`
 - [ ] `updated_after` no incremental, com o timestamp de antes da varredura
-- [ ] `DUPLICATE_CONTACT` tratado como “atualizar”
+- [ ] `external_id` enviado na criação, ou `DUPLICATE_CONTACT` tratado como “atualizar”
 - [ ] `Idempotency-Key` estável por contato
 - [ ] Tags acrescentadas pelo endpoint dedicado, não pelo `PATCH`
 - [ ] Webhooks assinados e assinatura validada

@@ -22,6 +22,8 @@ GET /v1/companies
 | `sector` | string | Filtra por setor (busca parcial, case-insensitive) |
 | `size` | string | Filtra por tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
 | `assigned_to` | string | ID do membro responsável |
+| `document` | string | CNPJ, com ou sem máscara |
+| `external_id` | string | Identificador da empresa no seu sistema |
 
 ## Exemplo de requisição
 
@@ -41,6 +43,8 @@ curl "https://api.socialsell.ai/v1/companies?sector=tecnologia&size=51-200" \
       "email": "contato@empresaabc.com.br",
       "phone": "+5511333344445",
       "website": "https://empresaabc.com.br",
+      "document": "12345678000195",
+      "external_id": null,
       "sector": "Tecnologia",
       "size": "51-200",
       "city": "São Paulo",
@@ -76,6 +80,8 @@ curl "https://api.socialsell.ai/v1/companies?sector=tecnologia&size=51-200" \
 | `email` | string\|null | Email |
 | `phone` | string\|null | Telefone |
 | `website` | string\|null | Site |
+| `document` | string\|null | CNPJ, só os 14 dígitos |
+| `external_id` | string\|null | Identificador da empresa no seu sistema, único por organização |
 | `sector` | string\|null | Setor de atuação |
 | `size` | string\|null | Tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
 | `city` | string\|null | Cidade |
