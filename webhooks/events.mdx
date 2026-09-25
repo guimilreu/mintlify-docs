@@ -79,14 +79,6 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `conversation.reopened` | Conversa reaberta |
 | `conversation.assigned` | Conversa atribuída |
 | `conversation.closed` | Conversa encerrada |
-| `atendimento.opened` | Atendimento aberto |
-| `atendimento.status_changed` | Status do atendimento mudou |
-| `atendimento.assigned` | Atendente definido |
-| `atendimento.closed` | Atendimento encerrado |
-| `atendimento.reopened` | Atendimento reaberto |
-| `atendimento.discarded` | Atendimento descartado |
-| `atendimento.csat_received` | Avaliação recebida |
-| `atendimento.sla_breached` | SLA estourado |
 | `message.received` | Mensagem recebida |
 | `message.sent` | Mensagem enviada |
 | `message.edited` | Mensagem editada |
@@ -136,6 +128,7 @@ Um contato foi criado — pelo painel, pela API, por importação ou pela primei
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -154,7 +147,7 @@ Um contato foi criado — pelo painel, pela API, por importação ou pela primei
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -185,6 +178,7 @@ Um campo do contato mudou. `changed_fields` lista quais.
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -203,7 +197,7 @@ Um campo do contato mudou. `changed_fields` lista quais.
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -238,6 +232,7 @@ O contato mudou de estágio — `unknown`, `lead`, `opportunity`, `customer` ou 
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -256,7 +251,7 @@ O contato mudou de estágio — `unknown`, `lead`, `opportunity`, `customer` ou 
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -290,6 +285,7 @@ Um contato foi excluído. O payload traz o último estado conhecido, já que o r
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -308,7 +304,7 @@ Um contato foi excluído. O payload traz o último estado conhecido, já que o r
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -339,6 +335,7 @@ Uma etiqueta foi aplicada ao contato.
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -357,7 +354,7 @@ Uma etiqueta foi aplicada ao contato.
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -389,6 +386,7 @@ Uma etiqueta foi retirada do contato.
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -407,7 +405,7 @@ Uma etiqueta foi retirada do contato.
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -439,6 +437,7 @@ Alguém registrou uma nota no histórico do contato.
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -457,7 +456,7 @@ Alguém registrou uma nota no histórico do contato.
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
@@ -499,6 +498,8 @@ Uma empresa foi cadastrada.
       "email": "contato@empresaxyz.com.br",
       "phone": "+551133334444",
       "website": "https://empresaxyz.com.br",
+      "document": null,
+      "external_id": null,
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
@@ -540,6 +541,8 @@ Um campo da empresa mudou. `changed_fields` lista quais.
       "email": "contato@empresaxyz.com.br",
       "phone": "+551133334444",
       "website": "https://empresaxyz.com.br",
+      "document": null,
+      "external_id": null,
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
@@ -585,6 +588,8 @@ Uma empresa foi excluída. O payload traz o último estado conhecido.
       "email": "contato@empresaxyz.com.br",
       "phone": "+551133334444",
       "website": "https://empresaxyz.com.br",
+      "document": null,
+      "external_id": null,
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
@@ -626,6 +631,8 @@ Alguém registrou uma nota no histórico da empresa.
       "email": "contato@empresaxyz.com.br",
       "phone": "+551133334444",
       "website": "https://empresaxyz.com.br",
+      "document": null,
+      "external_id": null,
       "sector": "Tecnologia",
       "size": "51-200",
       "description": "Cliente enterprise da região Sudeste.",
@@ -1806,448 +1813,6 @@ A conversa foi encerrada.
 }
 ```
 
-## Atendimentos
-
-### `atendimento.opened`
-
-Uma conversa recebida virou atendimento (ou alguém abriu um à mão / por automação).
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.opened",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.status_changed`
-
-Aberto ↔ aguardando cliente ↔ aguardando interno. `from` e `to` dizem a transição.
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.status_changed",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.assigned`
-
-O atendimento ganhou (ou trocou de) atendente — acompanha a conversa enquanto aberto.
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.assigned",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.closed`
-
-Encerrado com `category` e `close_reason`. A conversa vai para Concluídas.
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.closed",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.reopened`
-
-O cliente voltou (ou alguém reabriu): nasce um NOVO atendimento, `reopened_from` aponta o anterior.
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.reopened",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.discarded`
-
-Aberto por engano e apagado — a conversa virou modo Vendas. NÃO conta como atendimento encerrado: não entra em SLA nem em "Por que nos procuram".
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.discarded",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.csat_received`
-
-O cliente respondeu a pesquisa de satisfação. `score` de 1 a 5.
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.csat_received",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
-### `atendimento.sla_breached`
-
-Prazo de 1ª resposta ou de resolução vencido. `kind` diz qual. Sai uma vez por prazo.
-
-```json
-{
-  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
-  "type": "atendimento.sla_breached",
-  "created_at": "2026-08-20T14:30:00.000Z",
-  "organization_id": "664a1b2c3d4e5f6789012345",
-  "data": {
-    "atendimento": null,
-    "conversation": {
-      "id": "664d1e2f3a4b5c6789012348",
-      "channel": "whatsapp",
-      "type": "direct",
-      "contact": {
-        "id": "664f1a2b3c4d5e6f78901234",
-        "name": "João Silva",
-        "phone": null
-      },
-      "whatsapp_instance": null,
-      "messenger_page": null,
-      "instagram_account": null,
-      "status": "open",
-      "is_closed": false,
-      "is_archived": false,
-      "assigned_to": {
-        "id": "664a0000000000000000000f",
-        "name": "Maria Santos"
-      },
-      "objective": null,
-      "ai_agent": null,
-      "unread_count": 2,
-      "message_count": 37,
-      "last_message": {
-        "content": "Perfeito, pode enviar o contrato.",
-        "sent_at": "2026-08-20T14:30:00.000Z",
-        "sender": null
-      },
-      "last_message_at": "2026-08-20T14:30:00.000Z",
-      "tags": [],
-      "closed_at": null,
-      "created_at": "2026-07-01T10:00:00.000Z",
-      "updated_at": "2026-08-20T14:30:00.000Z"
-    },
-    "contact": {
-      "id": "664f1a2b3c4d5e6f78901234",
-      "name": "João Silva",
-      "phone": "+5511999998888"
-    }
-  }
-}
-```
-
 ## Mensagens
 
 ### `message.received`
@@ -2699,6 +2264,7 @@ Um contato respondeu a um disparo em massa (primeira resposta, até 72 h depois 
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": null,
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -2717,7 +2283,7 @@ Um contato respondeu a um disparo em massa (primeira resposta, até 72 h depois 
         "since": null,
         "customer_since": null
       },
-      "notes_count": 1,
+      "notes_count": 0,
       "deals_count": 2,
       "last_message_at": "2026-08-20T14:30:00.000Z",
       "created_at": "2026-07-01T10:00:00.000Z",
