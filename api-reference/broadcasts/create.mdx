@@ -14,8 +14,8 @@ POST /v1/broadcasts
 O disparo nasce em `draft`. Nada é enviado até você chamar [Lançar disparo](/api-reference/broadcasts/launch).
 
 <Warning>
-  Os filtros de audiência ficam dentro de **`audience.filters`**, não na raiz de `audience`. Como
-  `filters` tem valor padrão vazio, um corpo com os filtros no lugar errado é aceito com `201` — e o
+  A segmentação fica dentro de **`audience.rules`** (ou, no formato anterior, **`audience.filters`**),
+  não na raiz de `audience`. Um corpo com as condições no lugar errado é aceito com `201` — e o
   disparo sai para **toda a base**. Confira o aninhamento antes de lançar, e use
   [Estimar audiência](/api-reference/broadcasts/estimate) para conferir o alcance.
 </Warning>
@@ -42,14 +42,68 @@ Todos os números do disparo precisam ser do **mesmo canal**: ou todos por QR Co
 
 | Campo | Tipo | Padrão | Descrição |
 |-------|------|--------|-----------|
-| `type` | string | `filtered` | `filtered` (todos que passam nos filtros) ou `manual` (`manualContactIds`) |
-| `filters` | object | `{}` | **Onde vivem os filtros.** Ver tabela abaixo |
+| `type` | string | `filtered` | `filtered` (todos que passam nas regras) ou `manual` (`manualContactIds`) |
+| `rules` | object | — | **Regras de segmentação** em dois níveis (E/OU). Ver tabela abaixo. Quando presente, decide sozinha quem recebe |
+| `filters` | object | `{}` | Formato anterior, plano. Continua aceito: sem `rules`, é convertido em regras na entrada. Ver tabela abaixo |
 | `manualContactIds` | string[] | `[]` | IDs específicos de contatos |
 | `exclusions` | object | ver abaixo | Quem fica de fora |
 | `estimatedCount` | number | — | Alcance estimado, se você já calculou |
 | `includeAiOwnedConversations` | boolean | `false` | Enviar também para quem está sendo atendido por um agente de IA (por padrão fica de fora, como `skippedByReason.conversa_com_ia`) |
 
-### `audience.filters`
+### `audience.rules`
+
+```json
+{
+  "match": "all",
+  "groups": [
+    {
+      "match": "any",
+      "conditions": [
+        { "field": "conversation", "op": "not_within_days", "value": 7 },
+        { "field": "conversation", "op": "never" }
+      ]
+    },
+    { "match": "all", "conditions": [{ "field": "lifecycle", "op": "in", "value": ["customer"] }] }
+  ],
+  "exclude": [{ "field": "broadcast_replied", "op": "within_days", "value": 3 }]
+}
+```
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `match` | string | Como os grupos se combinam: `all` (E, padrão) ou `any` (OU) |
+| `groups[].match` | string | Como as condições do grupo se combinam: `all` (E, padrão) ou `any` (OU) |
+| `groups[].conditions[]` | object | `{ field, op, value }`. Ver campos abaixo |
+| `exclude[]` | object | Condições de exclusão: qualquer uma que o contato atenda o tira do disparo |
+
+Sem grupos e sem exclusões, entra toda a base com WhatsApp. Limites: 10 grupos, 15 condições por grupo, 15 exclusões, 100 IDs por condição.
+
+**Campos e operadores** (`field` → `op` · tipo de `value`):
+
+| `field` | Operadores | `value` |
+|---------|-----------|---------|
+| `tags` | `any`, `all`, `none` · `empty` | IDs **ou nomes** de tags (string[]) · — |
+| `lifecycle` | `in`, `not_in` | `lead`, `opportunity`, `customer`, `former_customer` (string[]) |
+| `source` | `in`, `not_in` | `whatsapp`, `instagram`, `messenger`, `web_chat`, `phone`, `manual`, `import`, `automation`, `api`, `integration` (string[]) |
+| `owner` | `is`, `is_not` · `assigned`, `unassigned` | IDs de usuários (string[]) · — |
+| `company` | `is`, `is_not` · `exists`, `not_exists` | IDs de empresas (string[]) · — |
+| `segment` | `in`, `not_in` | IDs de segmentos salvos da tela de Contatos (string[]) |
+| `email` | `exists`, `not_exists` | — |
+| `job_title` | `contains`, `not_contains`, `equals` · `exists`, `not_exists` | texto (até 200) · — |
+| `created_at` | `within_days`, `not_within_days` · `after`, `before` · `between` | dias (1–3650) · data ISO · `{ from, to }` |
+| `conversation` | `within_days`, `not_within_days`, `never`, `ever` | dias · — |
+| `contact_message` | idem | Última mensagem **recebida do contato** |
+| `broadcast_received` | idem | Recebeu qualquer disparo |
+| `broadcast_replied` | idem | Respondeu a qualquer disparo |
+| `broadcast_specific` | `received`, `not_received`, `replied`, `not_replied` | IDs de disparos (string[]). `not_replied` = recebeu e não respondeu |
+| `deal` | `has`, `has_not` | `{ status: "any"\|"open"\|"won"\|"lost", pipelineId?, stageId? }` |
+| `custom:<key>` | conforme o tipo do campo personalizado | texto: como `job_title` · número: `equals`, `not_equals`, `gt`, `lt` · sim/não: `is_true`, `is_false` · seleção: `in`, `not_in` · múltipla: `any`, `none` · data: como `created_at` |
+
+`not_within_days` nos campos de evento (`conversation`, `contact_message`, `broadcast_*`) **inclui quem nunca teve o evento** — é o que uma reativação quer. Em `created_at` significa "cadastrado há mais de N dias".
+
+O catálogo completo, com os campos personalizados da organização, está em `GET /v1/broadcasts/audience/catalog` no painel (`GET /broadcasts/audience/catalog`).
+
+### `audience.filters` (formato anterior)
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
