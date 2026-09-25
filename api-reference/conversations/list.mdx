@@ -23,7 +23,7 @@ GET /v1/conversations
 | `contact_id` | string | ID do contato |
 | `unread` | boolean | `true` — apenas conversas não lidas |
 | `updated_after` | string | ISO 8601 — conversas atualizadas após esta data |
-| `objective` | string | `sales` ou `support` |
+| `objective` | string | Depreciado. Aceito por compatibilidade, sem filtrar os resultados |
 | `ai_managed` | boolean | `true` — gerenciadas por agente de IA |
 | `whatsapp_instance_id` | string | ID da instância WhatsApp |
 | `messenger_page_id` | string | ID da página Messenger |
@@ -61,7 +61,7 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
         "id": "664a1b2c3d4e5f6789012345",
         "name": "Maria Santos"
       },
-      "objective": "sales",
+      "objective": null,
       "ai_agent": null,
       "unread_count": 3,
       "last_message": {
@@ -95,7 +95,7 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
 | `instagram_account` | object\|null | Conta Instagram `{id, username}` |
 | `status` | string | `open` ou `closed` |
 | `assigned_to` | object\|null | Responsável `{id, name}` |
-| `objective` | string\|null | `sales` ou `support` |
+| `objective` | string\|null | Depreciado. Retorna `null`; não representa modo ou estado da conversa |
 | `ai_agent` | object\|null | Agente ativo `{id, name, paused, activated_at}`. Ver nota sobre `paused` |
 | `unread_count` | integer | Mensagens não lidas |
 | `last_message` | object\|null | Última mensagem `{content, sent_at, sender}` |

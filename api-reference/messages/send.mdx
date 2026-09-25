@@ -43,7 +43,7 @@ Independentes do plano e cumulativos com o limite por minuto da chave:
 | `content` | string | Condicional | Texto da mensagem. Obrigatório quando `type=text`, exceto em envio de modelo (`template_name`) |
 | `media_url` | string | Condicional | URL pública da mídia. Obrigatório para tipos não-texto |
 | `whatsapp_instance_id` | string | Não | ID da instância WhatsApp. Se omitido, usa a instância conectada disponível |
-| `messenger_page_id` | string | Não | ID da página Messenger. Se omitido, usa a página ativa |
+| `messenger_page_id` | string | Não | ID local da conexão Messenger. Se omitido, o contato precisa ter vínculo único comprovado; ambiguidade retorna `409 CONNECTION_REQUIRED` |
 | `template_name` | string | Não | Nome do modelo aprovado. **Só funciona em número do WhatsApp Oficial** |
 | `template_language` | string | Não | Idioma do modelo. Padrão: `pt_BR`. Precisa bater exatamente com o modelo aprovado |
 | `template_components` | array | Não | Componentes e variáveis do modelo, no formato da Meta |
@@ -139,10 +139,13 @@ curl -X POST https://api.socialsell.ai/v1/messages/send \
   -d '{
     "contact_id": "664f1a2b3c4d5e6f78901234",
     "channel": "messenger",
+	"messenger_page_id": "665f1a2b3c4d5e6f78901234",
     "type": "text",
     "content": "Olá! Vi seu interesse no nosso produto. Posso ajudar?"
   }'
 ```
+
+O ID explícito deve ser da mesma organização e corresponder à identidade Messenger do contato. O servidor nunca escolhe “a primeira página” quando o vínculo não é único.
 
 ## Respostas
 
