@@ -38,7 +38,7 @@ curl -X POST https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347/move \
   "data": {
     "id": "664c1d2e3f4a5b6789012347",
     "title": "Proposta Enterprise ACME",
-    "stage": { "name": "Negociação" },
+    "stage": { "id": "664e3f4a5b6c7d8901234567", "name": "Negociação" },
     "updated_at": "2026-06-10T16:00:00.000Z"
   }
 }
@@ -57,3 +57,4 @@ Mover para outro funil dispara também `deal.pipeline.transferred`.
 | `NOT_FOUND` | `404` | Negócio não encontrado |
 | `PIPELINE_NOT_FOUND` | `404` | Funil de venda não encontrado |
 | `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no funil de venda |
+| `UNKNOWN_FIELDS` | `422` | Campo não aceito neste endpoint; consulte `error.details` |

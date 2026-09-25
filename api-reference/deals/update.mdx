@@ -17,6 +17,8 @@ Envie apenas os campos que deseja alterar.
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
+| `contact_ids` | string[] | Substitui todos os contatos vinculados. `[]` remove todos; omitir preserva os vínculos. Os contatos devem pertencer à sua organização |
+| `company_id` | string\|null | ID da empresa da sua organização; `null` remove o vínculo |
 | `title` | string | Título |
 | `description` | string\|null | Descrição |
 | `value` | number | Valor em reais |
@@ -27,8 +29,8 @@ Envie apenas os campos que deseja alterar.
 | `custom_fields` | object | Substitui completamente os campos personalizados |
 
 <Note>
-  Este endpoint **não** altera etapa, funil, status, contatos vinculados nem empresa — esses campos são
-  ignorados se enviados. Use [Mover](/api-reference/deals/move) para etapa e funil, e
+  Campos desconhecidos retornam `422` com código `UNKNOWN_FIELDS` e o nome do campo em `error.details`.
+  Para vincular contatos, use `contact_ids`; `contact_id` e `contacts` não são aceitos. Use [Mover](/api-reference/deals/move) para etapa e funil, e
   [Ganho](/api-reference/deals/won) / [Perdido](/api-reference/deals/lost) / [Reabrir](/api-reference/deals/reopen)
   para status.
 </Note>
@@ -45,6 +47,7 @@ curl -X PATCH https://api.socialsell.ai/v1/deals/664c1d2e3f4a5b6789012347 \
   -d '{
     "value": 22000,
     "probability": 85,
+    "contact_ids": ["664f1a2b3c4d5e6f78901234"],
     "expected_close_date": "2026-07-15T00:00:00.000Z"
   }'
 ```
@@ -59,3 +62,5 @@ Retorna o objeto negócio atualizado.
 |--------|--------|-----------|
 | `INVALID_ID` | `400` | ID com formato inválido |
 | `NOT_FOUND` | `404` | Negócio não encontrado |
+| `UNKNOWN_FIELDS` | `422` | Campo não aceito neste endpoint; consulte `error.details` |
+| `INVALID_REFERENCE` | `422` | Vínculo inválido, inexistente ou de outra organização |
