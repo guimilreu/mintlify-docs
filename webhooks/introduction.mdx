@@ -35,7 +35,7 @@ Com isso dá para:
 
 ## Criando sua primeira assinatura
 
-Requer o escopo `write:webhooks` e plano **Growth ou superior**.
+Requer o escopo `write:webhooks` e um plano com o módulo **Webhooks** e pelo menos um endpoint liberado.
 
 ```bash
 curl -X POST https://api.socialsell.ai/v1/webhooks \
@@ -164,7 +164,7 @@ Os 26 restantes existem porque nascem **fora** da API: mensagens recebidas e env
 | Scale | 10 |
 | Enterprise | 25 |
 
-Cada endpoint pode assinar quantos eventos quiser. Se a organização passar para um plano sem webhooks, os endpoints são pausados e a organização é avisada no painel.
+Esses são os limites dos planos padrão. Planos personalizados podem ter outra quantidade, definida no contrato. Cada endpoint pode assinar quantos eventos quiser. Se a organização perder o módulo ou tiver o limite reduzido a zero, os endpoints são pausados e a organização é avisada no painel.
 
 ## Gerenciando pelo painel
 
