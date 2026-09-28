@@ -17,6 +17,26 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 9 de setembro de 2026 — criação idempotente de contato e empresa
+
+- **`external_id`** em `POST /v1/contacts` e `POST /v1/companies`: o seu identificador, único por organização. Com ele no corpo, a criação passa a ser **encontrar antes de criar**: se já existir registro com o mesmo `external_id`, telefone ou e-mail (contato) ou `external_id`, CNPJ ou identidade comercial (empresa), a resposta é `200` com o existente e `meta.matched_by`. Sem `external_id`, nada muda: `409` como antes.
+- **`meta.created`** e **`meta.matched_by`** nas respostas de criação de contato e empresa.
+- **`document`** (CNPJ) em `POST`, `PATCH` e `GET /v1/companies`; **`external_id`** em `PATCH` de contato e empresa.
+- **Filtros novos**: `GET /v1/contacts?phone=&email=&external_id=` e `GET /v1/companies?document=&external_id=`. O telefone casa em qualquer grafia.
+- **Contato criado pela API nasce com `whatsapp_jid`** derivado do telefone. Antes vinha `null`, e `POST /v1/messages/send` recusava o contato recém-criado com `NO_WHATSAPP_JID`.
+- **Campos novos na resposta**: `external_id` em contato; `document` e `external_id` em empresa. Nenhum campo saiu.
+- **`Idempotency-Key`** passa a valer também em `POST /v1/companies`.
+
+---
+
+## 9 de setembro de 2026 — regras de audiência em dois níveis
+
+- **`audience.rules`** em `POST /v1/broadcasts`, `PATCH /v1/broadcasts/:id` e `POST /v1/broadcasts/audience/estimate`: segmentação com grupos de condições combinados por E/OU e exclusões por regra. Novos critérios: última conversa, última mensagem do contato, disparo recebido/respondido (inclusive um disparo específico), negócio por situação/funil/etapa, cargo, e-mail, campos personalizados. Ver [Criar disparo](/api-reference/broadcasts/create).
+- **`audience.filters`** continua aceito e devolvido. Sem `rules` no corpo, os filtros planos são convertidos em regras na entrada, com a mesma semântica de antes. Nenhum campo de resposta saiu.
+- **Respostas** de disparo passam a trazer `audience.rules` também em disparos criados antes desta data (convertido dos filtros).
+
+---
+
 ## 1 de setembro de 2026 — envio de modelo sem `content`
 
 - **`POST /v1/messages/send` com `template_name`** deixa de exigir `content`. A validação de texto rodava antes de olhar o modelo e devolvia `400 MISSING_CONTENT` para o exemplo da própria documentação.

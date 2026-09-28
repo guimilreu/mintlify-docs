@@ -103,6 +103,7 @@ description: "Formato padrão de erro e referência completa dos códigos da API
 | `INVALID_CHANNEL` | `400` | Canal de envio inválido |
 | `CHANNEL_NOT_SUPPORTED` | `400` | Instagram ainda não é suportado no envio pela API |
 | `INVALID_COMPANY_ID` | `400` | `company_id` fora do formato |
+| `INVALID_DOCUMENT` | `400` | `document` (CNPJ) não tem 14 dígitos |
 | `INVALID_WHATSAPP_INSTANCE` | `400` | Número do WhatsApp não pertence à organização |
 | `UNSUPPORTED_PROFILE` | `400` / `422` | Perfil de envio `custom` não é aceito na API pública |
 | `MEMBER_NOT_FOUND` | `400` | O usuário informado não é membro da organização |
@@ -115,8 +116,10 @@ description: "Formato padrão de erro e referência completa dos códigos da API
 | `CONTACT_NOT_FOUND` | `404` | Contato não encontrado |
 | `PIPELINE_NOT_FOUND` | `404` | Funil não encontrado |
 | `STAGE_NOT_FOUND` | `404` | Etapa não encontrada no funil |
-| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou email. O corpo traz `existing_contact` |
-| `DUPLICATE` | `409` | Índice único violado |
+| `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou e-mail e a criação veio sem `external_id`. O corpo traz `existing_contact`. Com `external_id`, o existente volta em `200` |
+| `DUPLICATE` | `409` | Índice único violado. Na criação de empresa traz `existing_company` quando identificável |
+| `DUPLICATE_EXTERNAL_ID` | `409` | `external_id` já pertence a outro contato ou empresa da organização |
+| `DUPLICATE_DOCUMENT` | `409` | CNPJ já pertence a outra empresa da organização |
 | `DUPLICATE_KEY` | `409` | Já existe campo personalizado com essa `key` na entidade |
 
 ### Estado do recurso
@@ -141,6 +144,8 @@ description: "Formato padrão de erro e referência completa dos códigos da API
 | `NO_WHATSAPP_INSTANCE` | `422` | Nenhum número do WhatsApp conectado |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID do Messenger |
 | `NO_MESSENGER_PAGE` | `422` | Nenhuma página do Messenger conectada |
+| `CONNECTION_REQUIRED` | `409` | Há mais de uma conexão possível; informe a conexão exata |
+| `CONNECTION_MISMATCH` | `409` | A conexão informada não corresponde ao contato ou à conversa |
 | `TEMPLATE_REQUIRES_OFFICIAL_NUMBER` | `422` | Envio de modelo em número por QR Code. Modelo só existe no WhatsApp Oficial |
 | `TEMPLATE_NOT_FOUND` | `422` | Modelo não encontrado, ou não aprovado neste número e idioma |
 | `TEMPLATE_NOT_APPROVED` | `422` | O modelo existe mas não está aprovado pela Meta |

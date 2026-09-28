@@ -29,6 +29,7 @@ Envie apenas os campos que deseja alterar. Campos não incluídos no corpo perma
 | `instagram_username` | string\|null | Username do Instagram |
 | `messenger_psid` | string\|null | PSID do Messenger |
 | `company_id` | string\|null | ID da empresa (envie `null` para desvincular) |
+| `external_id` | string\|null | Identificador no seu sistema, até 100 caracteres (envie `null` para limpar) |
 | `tags` | string[] | Substitui completamente a lista de tags |
 | `custom_fields` | object | Substitui completamente os campos personalizados |
 | `funnel_stage` | string\|null | Descontinuado — aceito e ignorado; a resposta devolve sempre `null` |
@@ -73,4 +74,6 @@ Os campos `tags` e `custom_fields` **substituem** os valores anteriores por comp
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `INVALID_ID` | `400` | ID com formato inválido |
+| `VALIDATION_ERROR` | `400` | `external_id` fora do formato |
 | `NOT_FOUND` | `404` | Contato não encontrado |
+| `DUPLICATE_EXTERNAL_ID` | `409` | O `external_id` já pertence a outro contato da organização |

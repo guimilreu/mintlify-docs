@@ -28,6 +28,9 @@ GET /v1/contacts
 | `created_after` | string | ISO 8601 — contatos criados após esta data |
 | `created_before` | string | ISO 8601 — contatos criados antes desta data |
 | `updated_after` | string | ISO 8601 — contatos atualizados após esta data |
+| `phone` | string | Telefone em qualquer grafia (`+5514999990000`, `14999990000`, `(14) 99999-0000`). Casa também a identidade de WhatsApp |
+| `email` | string | E-mail exato (sem distinção de maiúsculas) |
+| `external_id` | string | Identificador do contato no seu sistema |
 
 ## Exemplo de requisição
 
@@ -51,6 +54,7 @@ curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" 
       "messenger_psid": null,
       "messenger_name": null,
       "source": "whatsapp",
+      "external_id": null,
       "avatar_url": "https://...",
       "company": {
         "id": "664b1c2d3e4f5a6789012346",
@@ -90,6 +94,7 @@ curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" 
 | `messenger_psid` | string\|null | PSID do Facebook Messenger |
 | `messenger_name` | string\|null | Nome no Messenger |
 | `source` | string\|null | Origem: `whatsapp`, `instagram`, `messenger`, `manual`, `import`, `api` |
+| `external_id` | string\|null | Identificador do contato no seu sistema, único por organização |
 | `avatar_url` | string\|null | URL do avatar |
 | `company` | object\|null | Empresa vinculada `{id, name}` |
 | `tags` | string[] | Lista de tags |
