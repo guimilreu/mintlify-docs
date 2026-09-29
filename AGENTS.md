@@ -25,4 +25,4 @@ Mintlify em MDX com frontmatter YAML; configuração em `docs.json`. Tudo em pt-
 
 ## Prova
 
-Revisão do diff basta para correção editorial simples. `mint dev` quando MDX/layout precisar de preview; `mint broken-links` quando links ou navegação mudarem. Exemplo novo/alterado exige conferir o contrato real, sem chamar endpoint com efeitos externos só para validar documentação.
+`mint dev` quando MDX/layout precisar de preview; `mint broken-links` quando links ou navegação mudarem. Exemplo novo/alterado se confere contra o contrato real, sem chamar endpoint com efeito externo só para validar documentação.
