@@ -79,6 +79,7 @@ Todo evento chega no mesmo envelope. O que muda é o conteúdo de `data`:
 | `conversation.reopened` | Conversa reaberta |
 | `conversation.assigned` | Conversa atribuída |
 | `conversation.closed` | Conversa encerrada |
+| `conversation.transferred` | Conversa transferida |
 | `message.received` | Mensagem recebida |
 | `message.sent` | Mensagem enviada |
 | `message.edited` | Mensagem editada |
@@ -1818,6 +1819,38 @@ A conversa foi encerrada.
       "name": "Maria Santos"
     },
     "resolution": "resolvido"
+  }
+}
+```
+
+### `conversation.transferred`
+
+A conversa de WhatsApp foi transferida para outro número da organização: a de origem é concluída e o atendimento segue na de destino. `greeting_sent` diz se o cliente recebeu a mensagem de chegada.
+
+```json
+{
+  "id": "evt_9f2c1a7b4e8d0c3a5b6f7e81",
+  "type": "conversation.transferred",
+  "created_at": "2026-08-20T14:30:00.000Z",
+  "organization_id": "664a1b2c3d4e5f6789012345",
+  "data": {
+    "transfer_id": "664e2a3b4c5d6e7f8901234a",
+    "from_conversation_id": "664d1e2f3a4b5c6789012348",
+    "to_conversation_id": "664d1e2f3a4b5c678901234b",
+    "from_channel": {
+      "id": "664c0000000000000000001a",
+      "name": "WhatsApp Comercial"
+    },
+    "to_channel": {
+      "id": "664c0000000000000000001b",
+      "name": "WhatsApp Financeiro"
+    },
+    "transferred_by": {
+      "id": "664a0000000000000000000f",
+      "name": "Maria Santos"
+    },
+    "at": "2026-08-20T14:30:00.000Z",
+    "greeting_sent": true
   }
 }
 ```
