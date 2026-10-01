@@ -18,6 +18,19 @@ curl -X POST https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456/complet
   -H "Authorization: Bearer sk_live_..."
 ```
 
+## Corpo
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `cancel_scheduled_message` | boolean | Obrigatório como `true` para concluir uma mensagem agendada que ainda não foi enviada. Concluir cancela o envio. |
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/tasks/664d2e3f4a5b6c7890123456/complete \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{ "cancel_scheduled_message": true }'
+```
+
 ## Resposta
 
 Retorna o objeto tarefa com `status: "completed"` e `completed_at` preenchido.
@@ -27,3 +40,4 @@ Retorna o objeto tarefa com `status: "completed"` e `completed_at` preenchido.
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `NOT_FOUND` | `404` | Tarefa não encontrada |
+| `SCHEDULED_MESSAGE_PENDING` | `422` | A tarefa é uma mensagem agendada que ainda não foi enviada. Envie `cancel_scheduled_message: true` para concluir mesmo assim; a mensagem não será enviada. |
