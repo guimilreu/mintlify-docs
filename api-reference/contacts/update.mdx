@@ -33,6 +33,8 @@ Envie apenas os campos que deseja alterar. Campos não incluídos no corpo perma
 | `tags` | string[] | Substitui completamente a lista de tags |
 | `custom_fields` | object | Substitui completamente os campos personalizados |
 | `funnel_stage` | string\|null | Descontinuado — aceito e ignorado; a resposta devolve sempre `null` |
+| `marketing_consent` | object | Autorização para mensagens de marketing: `{ given, method?, source }`. Veja [Marketing](#marketing) |
+| `marketing_opt_out` | object | Descadastro de mensagens de marketing: `{ opted_out, reason? }`. Veja [Marketing](#marketing) |
 
 ## Exemplo de requisição
 
@@ -69,11 +71,32 @@ A atualização dispara o evento `contact.updated` em webhooks configurados.
 Os campos `tags` e `custom_fields` **substituem** os valores anteriores por completo. Para adicionar uma tag sem perder as existentes, use o endpoint dedicado [Adicionar tag](/api-reference/contacts/tags).
 </Warning>
 
+## Marketing
+
+Os campos têm o mesmo formato de [Criar contato](/api-reference/contacts/create#marketing):
+
+- **`marketing_consent`** registra a autorização que você coletou fora da SocialSell, como o aceite no formulário do seu site. `source` é obrigatório com `given: true`; `method` padrão é `form`. Enviar a mesma autorização de novo não grava nada e preserva a data original. `given: false` remove a autorização.
+- **`marketing_opt_out`** registra o descadastro com origem `api`. O descadastro vence a autorização: o contato fica fora de todo envio promocional, mesmo autorizado. Registrar autorização **não** desfaz um descadastro — para isso envie `opted_out: false`.
+
+Quando o próprio cliente desligou as promoções pelo WhatsApp (`opt_out.source` igual a `meta_preference` ou `meta_error_131050`), só ele pode reativar, pelo próprio WhatsApp. `opted_out: false` nesse caso devolve `409 OPT_OUT_LOCKED` e **nada** do corpo é gravado.
+
+```bash
+curl -X PATCH https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234 \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "marketing_opt_out": { "opted_out": true, "reason": "Pediu por e-mail" }
+  }'
+```
+
+Cada mudança entra no histórico do contato, e o `contact.updated` traz `marketing` em `changed_fields`.
+
 ## Erros
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
 | `INVALID_ID` | `400` | ID com formato inválido |
-| `VALIDATION_ERROR` | `400` | `external_id` fora do formato |
+| `VALIDATION_ERROR` | `400` | `external_id` fora do formato, ou `marketing_consent`/`marketing_opt_out` inválido. O corpo traz `details[]` com `field` e `message` |
 | `NOT_FOUND` | `404` | Contato não encontrado |
 | `DUPLICATE_EXTERNAL_ID` | `409` | O `external_id` já pertence a outro contato da organização |
+| `OPT_OUT_LOCKED` | `409` | Tentativa de desfazer um descadastro que o próprio cliente fez pelo WhatsApp |

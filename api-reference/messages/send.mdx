@@ -179,7 +179,7 @@ Retorna `HTTP 201`. O corpo tem duas formas, conforme o caminho de envio.
   "data": {
     "id": "664d100d2ac9437188591880",
     "conversation_id": "664632f1260b42723a5ed4ed",
-    "content": "[Modelo: boas_vindas]",
+    "content": "Olá, Maria! Seu pedido 4821 foi confirmado.",
     "type": "template",
     "sender": "agent",
     "status": "sent",
@@ -197,7 +197,7 @@ Retorna `HTTP 201`. O corpo tem duas formas, conforme o caminho de envio.
 </Warning>
 
 <Note>
-No envio de modelo, `type` vem como `template` — valor fora da lista de `type` da requisição — e `content` recebe o rótulo `[Modelo: nome]`, não o texto renderizado.
+No envio de modelo, `type` vem como `template` — valor fora da lista de `type` da requisição — e `content` traz o corpo do modelo com os parâmetros de `template_components` aplicados — o texto que o contato recebeu. Só um modelo sem texto no corpo devolve o rótulo `[Modelo: nome]`.
 </Note>
 
 ## Erros
@@ -216,6 +216,7 @@ No envio de modelo, `type` vem como `template` — valor fora da lista de `type`
 | `NO_MESSENGER_PAGE` | `422` | Sem página Messenger conectada |
 | `TEMPLATE_REQUIRES_OFFICIAL_NUMBER` | `422` | `template_name` informado, mas o número é por QR Code. Modelo só existe no WhatsApp Oficial |
 | `TEMPLATE_NOT_FOUND` | `422` | Nenhum modelo aprovado com esse nome e idioma neste número |
+| `TEMPLATE_PARAMETERS_MISSING` | `422` | O texto do modelo tem variáveis sem valor em `template_components`. `missing` lista quais (`["1", "2"]`). Nada é enviado nem gravado na conversa |
 | `TEMPLATE_SEND_ERROR` | `422` | A Meta recusou o envio do modelo. A mensagem traz o motivo |
 | `TEMPLATE_NOT_CONFIRMED` | `502` | O WhatsApp Oficial não confirmou o envio. A mensagem fica como `failed` |
 | `MESSENGER_SEND_ERROR` | `500` | Erro devolvido pela API do Messenger |

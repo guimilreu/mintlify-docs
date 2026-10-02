@@ -65,6 +65,11 @@ curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" 
         "cpf": "123.456.789-00"
       },
       "funnel_stage": "Qualificados",
+      "marketing": {
+        "status": "consented",
+        "consent": { "given": true, "given_at": "2026-05-02T11:00:00.000Z", "method": "form", "source": "Formulário do site /contato" },
+        "opt_out": { "at": null, "source": null, "reason": null }
+      },
       "notes_count": 3,
       "deals_count": 2,
       "last_message_at": "2026-06-01T14:22:00.000Z",
@@ -100,11 +105,32 @@ curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" 
 | `tags` | string[] | Lista de tags |
 | `custom_fields` | object | Campos personalizados (chave → valor) |
 | `funnel_stage` | string\|null | Etapa no funil de contatos |
+| `marketing` | object | Autorização e descadastro de mensagens de marketing. Veja abaixo |
 | `notes_count` | integer | Quantidade de notas |
 | `deals_count` | integer | Quantidade de negócios vinculados ao contato |
 | `last_message_at` | string\|null | Timestamp da última mensagem |
 | `created_at` | string | Timestamp de criação (ISO 8601) |
 | `updated_at` | string | Timestamp de atualização (ISO 8601) |
+
+### `marketing`
+
+Duas informações independentes sobre mensagens promocionais:
+
+- **Autorização** (`consent`) é a prova de que a pessoa aceitou receber promoções, coletada **fora** da SocialSell — por exemplo, o formulário do seu site. Serve como filtro opcional nos disparos.
+- **Descadastro** (`opt_out`) é o pedido para parar. É absoluto: o contato descadastrado fica fora de **todo** envio promocional, mesmo com autorização registrada. Mensagens de atendimento continuam normais.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `marketing.status` | string | `opted_out` quando há descadastro; senão `consented` quando há autorização; senão `none` |
+| `marketing.consent.given` | boolean | Se há autorização registrada |
+| `marketing.consent.given_at` | string\|null | Quando a autorização foi registrada |
+| `marketing.consent.method` | string\|null | Como foi coletada: `form` (formulário), `manual` (cadastro pela equipe), `reply` (pedido na conversa), `import` (planilha) |
+| `marketing.consent.source` | string\|null | Onde foi coletada, em texto livre (ex.: `Formulário do site /contato`) |
+| `marketing.opt_out.at` | string\|null | Quando o contato pediu para não receber promoções. `null` = sem descadastro |
+| `marketing.opt_out.source` | string\|null | Origem do pedido: `meta_preference` (desligou as promoções no próprio WhatsApp), `meta_error_131050` (a Meta recusou um envio por esse motivo), `keyword` (respondeu uma palavra como SAIR), `manual` (equipe), `api` (integração) |
+| `marketing.opt_out.reason` | string\|null | Motivo informado, quando houver |
+
+Para registrar autorização ou descadastro, use `marketing_consent` e `marketing_opt_out` em [Criar contato](/api-reference/contacts/create) ou [Atualizar contato](/api-reference/contacts/update).
 
 <Note>
   Não existe filtro por responsável nesta listagem. Contato **não tem responsável** na v1 — a atribuição
