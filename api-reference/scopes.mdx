@@ -15,21 +15,21 @@ Ao criar uma API Key, você define quais **escopos** ela possui. Um escopo é um
 | `write:contacts` | Escrita | Todos | Criar, editar e excluir contatos |
 | `read:companies` | Leitura | Todos | Listar e buscar empresas |
 | `write:companies` | Escrita | Todos | Criar, editar e excluir empresas |
-| `read:deals` | Leitura | Growth+ | Listar e buscar negócios |
-| `write:deals` | Escrita | Growth+ | Criar, editar e excluir negócios |
+| `read:deals` | Leitura | Módulo CRM | Listar e buscar negócios |
+| `write:deals` | Escrita | Módulo CRM | Criar, editar e excluir negócios |
 | `read:pipelines` | Leitura | Todos | Listar pipelines e etapas |
 | `write:pipelines` | Escrita | Todos | Criar e editar pipelines |
 | `read:conversations` | Leitura | Todos | Listar e buscar conversas |
 | `write:conversations` | Escrita | Todos | Atualizar status e responsável |
 | `write:messages` | Escrita | Todos | Enviar mensagens via WhatsApp/Messenger |
-| `read:tasks` | Leitura | Growth+ | Listar e buscar tarefas |
-| `write:tasks` | Escrita | Growth+ | Criar, editar e excluir tarefas |
+| `read:tasks` | Leitura | Módulo CRM | Listar e buscar tarefas |
+| `write:tasks` | Escrita | Módulo CRM | Criar, editar e excluir tarefas |
 | `read:webhooks` | Leitura | Módulo Webhooks | Listar assinaturas de webhooks |
 | `write:webhooks` | Escrita | Módulo Webhooks | Criar e editar assinaturas de webhooks |
 | `read:broadcasts` | Leitura | Growth+ | Listar disparos em massa |
 | `write:broadcasts` | Escrita | Growth+ | Criar e gerenciar disparos |
-| `read:ai_agents` | Leitura | Growth+ | Listar agentes de IA |
-| `write:ai_agents` | Escrita | Growth+ | Gerenciar agentes de IA |
+| `read:ai_agents` | Leitura | Módulo Agentes de IA | Listar agentes de IA |
+| `write:ai_agents` | Escrita | Módulo Agentes de IA | Gerenciar agentes de IA |
 | `read:tags` | Leitura | Todos | Listar tags da organização |
 | `write:tags` | Escrita | Todos | Adicionar e remover tags de recursos |
 | `read:members` | Leitura | Todos | Listar membros da organização |
@@ -43,13 +43,15 @@ Ao criar uma API Key, você define quais **escopos** ela possui. Um escopo é um
 
 ## Restrições por plano
 
-Os seguintes escopos não estão disponíveis no plano **Starter**:
+Alguns escopos acompanham o módulo que o seu plano inclui no painel. Se o plano tem o módulo, a API também tem:
 
-- `read:deals` / `write:deals`
-- `read:tasks` / `write:tasks`
-- `read:webhooks` / `write:webhooks`
-- `read:broadcasts` / `write:broadcasts`
-- `read:ai_agents` / `write:ai_agents`
+| Escopos | Liberados quando o plano inclui |
+|---------|--------------------------------|
+| `read:deals` / `write:deals` · `read:tasks` / `write:tasks` | CRM |
+| `read:ai_agents` / `write:ai_agents` | Agentes de IA |
+| `read:webhooks` / `write:webhooks` | Webhooks |
+
+Growth e Scale incluem os três módulos. Os escopos `read:broadcasts` / `write:broadcasts` não estão disponíveis no plano **Starter**.
 
 Ao tentar usar um endpoint que requer um escopo restrito, a API retorna:
 
@@ -57,7 +59,7 @@ Ao tentar usar um endpoint que requer um escopo restrito, a API retorna:
 {
   "error": {
     "type": "forbidden",
-    "message": "O endpoint 'read:deals' não está disponível no plano starter. Faça upgrade para Growth ou superior.",
+    "message": "O escopo 'read:deals' não está incluído no plano atual. Faça upgrade para Growth ou superior.",
     "code": "PLAN_RESTRICTION",
     "required_plan": "growth",
     "current_plan": "starter"

@@ -95,7 +95,7 @@ curl "https://api.socialsell.ai/v1/conversations/664632f1260b42723a5ed4ed/messag
 | `content` | string\|null | Texto da mensagem |
 | `type` | string | `text`, `image`, `video`, `audio`, `document` |
 | `sender` | string | `contact`, `agent`, `ai_agent`, `system` |
-| `sent_by` | object\|null | Membro que enviou `{id, name}` (se sender = `agent`) |
+| `sent_by` | object\|null | Membro que enviou `{id, name}`. `null` para mensagens do contato, do agente de IA e das que saíram pelo celular, pela API ou por automação |
 | `media` | object\|null | Mídia: `{url, mime_type, filename, size_bytes}` |
 | `is_internal_note` | boolean | Se é comentário interno (não visível ao contato) |
 | `reactions` | array | Reações: `[{emoji, sender}]` |
