@@ -7,6 +7,22 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 2 de outubro de 2026 — autorização e descadastro de marketing no contato
+
+- **Campo novo na resposta de contato**: `marketing`, com `status` (`consented`, `opted_out` ou `none`), a autorização em `consent` e o descadastro em `opt_out`. Vale para `GET`, `POST`, `PATCH` e para o `contact` dos webhooks `contact.*`. Nenhum campo saiu ou mudou de tipo. Veja [Objeto contato](/api-reference/contacts/list#objeto-contato).
+- **`marketing_consent`** e **`marketing_opt_out`** em `POST /v1/contacts` e `PATCH /v1/contacts/:id`: registram a autorização coletada no seu sistema (ex.: formulário do site) e o descadastro, com origem `api`. Cada mudança entra no histórico do contato. Na resposta `200` de contato já existente, nada é gravado.
+- Desfazer pela API um descadastro que o próprio cliente fez pelo WhatsApp devolve `409 OPT_OUT_LOCKED`; só ele reativa, pelo WhatsApp.
+- `contact.updated` disparado por `PATCH /v1/contacts/:id` passa a preencher `changed_fields` com os campos alterados, inclusive `marketing`. Antes vinha vazio.
+
+---
+
+## 2 de outubro de 2026 — texto do modelo no histórico
+
+- `POST /v1/messages/send` com `template_name`: `content`, na resposta e na conversa, passa a trazer o corpo do modelo com os parâmetros de `template_components` aplicados, em vez do rótulo `[Modelo: nome]`. O rótulo continua só para modelo sem texto no corpo. Nenhum campo mudou de nome ou tipo.
+- Modelo enviado sem valor para alguma variável do texto passa a voltar `422 TEMPLATE_PARAMETERS_MISSING`, com a lista em `missing`, antes de chegar à Meta. Antes, a Meta recusava o envio e a conversa ficava com uma mensagem falha mostrando `{{1}}`.
+
+---
+
 ## 21 de setembro de 2026 — telefone resolve o destinatário do WhatsApp
 
 - `POST /v1/contacts` passa a preparar automaticamente a identidade de WhatsApp quando recebe um `phone` válido.

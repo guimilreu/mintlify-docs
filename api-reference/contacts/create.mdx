@@ -25,6 +25,8 @@ POST /v1/contacts
 | `tags` | string[] | Não | Lista de tags |
 | `source` | string | Não | Origem do contato. Até 50 caracteres. Padrão: `api` |
 | `custom_fields` | object | Não | Campos personalizados (chave → valor) |
+| `marketing_consent` | object | Não | Autorização para mensagens de marketing. Veja [Marketing](#marketing) |
+| `marketing_opt_out` | object | Não | Descadastro de mensagens de marketing. Veja [Marketing](#marketing) |
 
 ## Encontrar antes de criar
 
@@ -62,6 +64,27 @@ Para procurar sem tentar criar, use `GET /v1/contacts?phone=...`, `?email=...` o
 O contato criado por aqui **não entra em nenhuma conversa nem negócio** automaticamente. Ele nasce com a identidade de WhatsApp derivada do telefone (`whatsapp_jid`), pronto para receber uma mensagem por [Enviar mensagem](/api-reference/messages/send). Quem decide se vira oportunidade é o seu processo comercial, depois.
 </Note>
 
+## Marketing
+
+`marketing_consent` registra a **autorização** que você coletou fora da SocialSell — por exemplo, o aceite no formulário do seu site:
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `given` | boolean | Sim | `true` registra a autorização; `false` remove |
+| `method` | string | Não | Como foi coletada: `form`, `manual`, `reply` ou `import`. Padrão: `form` |
+| `source` | string | Quando `given` é `true` | Onde foi coletada, até 200 caracteres. Ex.: `Formulário do site /contato` |
+
+`marketing_opt_out` registra o **descadastro**, com origem `api`:
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `opted_out` | boolean | Sim | `true` registra que o contato pediu para não receber promoções |
+| `reason` | string\|null | Não | Motivo, até 300 caracteres |
+
+O descadastro vence a autorização: um contato descadastrado fica fora de todo envio promocional, mesmo autorizado. Cada mudança entra no histórico do contato. O resultado aparece no bloco `marketing` da resposta — veja [Objeto contato](/api-reference/contacts/list#objeto-contato).
+
+Quando o contato já existe e a resposta é `200`, `marketing_consent` e `marketing_opt_out` **não são gravados**, como o resto do corpo. Para registrar no existente, use [Atualizar contato](/api-reference/contacts/update).
+
 ## Exemplo de requisição
 
 ```bash
@@ -77,6 +100,11 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
     "source": "site",
     "custom_fields": {
       "cargo": "Gerente de TI"
+    },
+    "marketing_consent": {
+      "given": true,
+      "method": "form",
+      "source": "Formulário do site /contato"
     }
   }'
 ```
@@ -106,6 +134,11 @@ curl -X POST https://api.socialsell.ai/v1/contacts \
     },
     "funnel_stage": null,
     "lifecycle": { "stage": "customer", "since": "2026-05-10T09:00:00.000Z", "customer_since": "2026-05-10T09:00:00.000Z" },
+    "marketing": {
+      "status": "consented",
+      "consent": { "given": true, "given_at": "2026-06-10T15:30:00.000Z", "method": "form", "source": "Formulário do site /contato" },
+      "opt_out": { "at": null, "source": null, "reason": null }
+    },
     "notes_count": 0,
     "deals_count": 0,
     "last_message_at": null,
@@ -130,7 +163,7 @@ Você informa apenas `phone`. A SocialSell resolve e mantém internamente a iden
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `VALIDATION_ERROR` | `400` | Campo inválido ou ausente. O corpo traz `details[]` com `field` e `message` |
+| `VALIDATION_ERROR` | `400` | Campo inválido ou ausente, inclusive `marketing_consent` sem `source` ou com `method` desconhecido. O corpo traz `details[]` com `field` e `message` (ex.: `marketing_consent.source`) |
 | `INVALID_COMPANY_ID` | `400` | `company_id` com formato inválido |
 | `DUPLICATE_CONTACT` | `409` | Já existe contato com esse telefone ou e-mail e o corpo não trazia `external_id`. Traz `existing_contact` e `matched_by` |
 | `DUPLICATE` | `409` | Conflito de índice único no banco |
