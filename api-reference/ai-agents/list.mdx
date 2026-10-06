@@ -92,7 +92,7 @@ curl "https://api.socialsell.ai/v1/ai-agents?status=active" \
 | `priority` | integer | `0` a `100`. **Maior = mais prioritário** quando dois agentes cobrem a mesma conversa |
 | `scope` | object \| null | Canais, tipos de conversa e restrições de número |
 | `triggers` | array | Eventos que acionam o agente |
-| `behavior` | object \| null | Estratégia, transferência e fila |
+| `behavior` | object \| null | Estratégia, fila e retomada (follow-up) |
 | `humanization` | object \| null | `{pace, sendTypingIndicator}` |
 | `guardrails` | object \| null | `{restrictions, requiredDisclosures}` |
 | `tools_allowed` | object \| null | Ferramentas liberadas, uma chave booleana por ferramenta |
