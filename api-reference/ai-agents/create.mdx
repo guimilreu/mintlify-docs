@@ -60,11 +60,17 @@ O agente nasce em `draft` e não atende ninguém até ser publicado.
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
 | `strategy` | string | **Sim** | `full_journey`, `qualify_and_handoff`, `appointment_setter` ou `faq_responder` |
-| `handoffTrigger` | object | Não | `{enabled, handoffTo: {type, id}, handoffMessage, createSummary}`. `type`: `user`, `queue` ou `team` |
 | `fallbackOnError` | object | Não | `{message}` — o que dizer quando algo falha. Até 500 caracteres |
 | `queueAssignmentMode` | string | Não | `manual`, `queue_immediate` (padrão) ou `queue_after_delay` |
 | `queueClaimDelaySeconds` | number | Condicional | De `5` a `3600`. **Obrigatório** quando `queueAssignmentMode` é `queue_after_delay` |
 | `followUp` | object | Não | `{enabled, afterHours (1–168), maxAttempts (1–5)}`. Desligado por padrão |
+
+<Note>
+  Transferência para pessoa não tem configuração: todo agente pode transferir, e o destino
+  (pessoa, equipe ou fila) é decidido pelo agente a partir das instruções em `aiConfig`, por
+  exemplo "orçamentos vão para a Ana". Sem destino nas instruções, a conversa segue o
+  roteamento da organização. `behavior.handoffTrigger` enviado por integrações antigas é ignorado.
+</Note>
 
 ## `aiConfig` — persona e instruções
 
@@ -137,11 +143,6 @@ curl -X POST https://api.socialsell.ai/v1/ai-agents \
     },
     "behavior": {
       "strategy": "faq_responder",
-      "handoffTrigger": {
-        "enabled": true,
-        "handoffTo": { "type": "queue" },
-        "handoffMessage": "Vou chamar alguém do time para te ajudar."
-      },
       "queueAssignmentMode": "queue_immediate"
     },
     "aiConfig": {

@@ -54,10 +54,11 @@ curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=66445c483fa9572a0b249
       ],
       "handoff": {
         "triggered": true,
-        "reason": "customer_requested_human",
+        "reason": "Cliente pediu para falar com uma pessoa sobre o contrato.",
+        "category": "customer_request",
         "summary": "Cliente pediu falar com uma pessoa sobre o contrato.",
-        "handoff_to": "queue",
-        "resolved_type": "queue",
+        "handoff_to": { "type": "team", "id": "6648ca54f7dcd7ea87307690" },
+        "resolved_type": "team",
         "assigned_to": null,
         "team_id": "6648ca54f7dcd7ea87307690"
       },
@@ -124,12 +125,13 @@ curl "https://api.socialsell.ai/v1/ai-agents/runs?agent_id=66445c483fa9572a0b249
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `triggered` | boolean | Se houve transferência |
-| `reason` | string \| null | Motivo |
+| `reason` | string \| null | Motivo, em texto livre escrito pelo agente |
+| `category` | string \| null | Por que transferiu: `customer_request`, `instructions`, `missing_info`, `sensitive`, `unsupported_media`, `message_too_long` ou `technical_error`. `null` em execuções anteriores a outubro de 2026 |
 | `summary` | string \| null | Resumo da conversa gerado para quem assumir |
-| `handoff_to` | string \| null | Destino configurado: `user`, `queue` ou `team` |
-| `resolved_type` | string \| null | Destino efetivo: `user` ou `queue` |
-| `assigned_to` | string \| null | Pessoa que assumiu |
-| `team_id` | string \| null | Time de destino |
+| `handoff_to` | object \| null | Destino escolhido pelo agente: `{type, id}`, com `type` `user`, `team`, `queue` ou `routing` (o agente deixou o roteamento da organização decidir). Execuções anteriores a outubro de 2026 trazem o destino que era configurado no agente |
+| `resolved_type` | string \| null | Onde a conversa foi esperar: `user`, `team` ou `queue` |
+| `assigned_to` | string \| null | Pessoa para quem a conversa foi (quando `resolved_type` é `user`). Quem de fato assumiu aparece na conversa |
+| `team_id` | string \| null | Equipe de destino (quando `resolved_type` é `team`) |
 
 ### `usage`
 

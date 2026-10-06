@@ -7,6 +7,15 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 6 de outubro de 2026 — transferência do agente de IA decidida pelas instruções
+
+- **`behavior.handoffTrigger` saiu dos agentes de IA.** Todo agente pode transferir para pessoa, e o destino (pessoa, equipe ou fila) vem das instruções do agente; sem destino nas instruções, vale o roteamento da organização. Em `POST /v1/ai-agents` e `PATCH /v1/ai-agents/:id` o campo é aceito e ignorado (nenhuma integração antiga recebe erro). Na resposta, `behavior` deixa de trazer `handoffTrigger`. `toolsAllowed` deixa de ter `transfer_to_human`, `list_org_users` e `list_teams`.
+- Nas execuções (`GET /v1/ai-agents/:id/runs`), `handoff.handoff_to` ganha o tipo `routing` e `handoff.resolved_type` ganha `team`. A documentação de `handoff_to` passa a descrever o objeto `{type, id}`, que é o formato que a API sempre devolveu.
+- Campo novo em `handoff`: `category`, o motivo da transferência em lista fechada (`customer_request`, `instructions`, `missing_info`, `sensitive`, `unsupported_media`, `message_too_long`, `technical_error`). `reason` continua, em texto livre.
+- O webhook `ai_agent.handoff` mantém o formato; `assigned_to` é a pessoa para quem a conversa foi transferida.
+
+---
+
 ## 2 de outubro de 2026 — autorização e descadastro de marketing no contato
 
 - **Campo novo na resposta de contato**: `marketing`, com `status` (`consented`, `opted_out` ou `none`), a autorização em `consent` e o descadastro em `opt_out`. Vale para `GET`, `POST`, `PATCH` e para o `contact` dos webhooks `contact.*`. Nenhum campo saiu ou mudou de tipo. Veja [Objeto contato](/api-reference/contacts/list#objeto-contato).
