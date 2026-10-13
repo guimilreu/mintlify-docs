@@ -7,6 +7,21 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 13 de outubro de 2026 — agentes de IA: trabalho por tipo, reuniões, materiais e snake_case
+
+Mudança sem período de transição em `/v1/ai-agents`. Ajuste a integração no mesmo dia.
+
+- **Corpo em snake_case.** `POST /v1/ai-agents` e `PATCH /v1/ai-agents/:id` passam a ler os mesmos nomes da resposta, inclusive dentro dos objetos (`ai_config.persona.language_style`, `behavior.queue_assignment_mode`). Nome em camelCase é descartado sem erro. Erros de validação apontam o campo em snake_case.
+- **Resposta em snake_case por inteiro.** `scope`, `behavior`, `humanization`, `guardrails`, `limits`, `ai_config` e `stats` deixam de vir em camelCase por dentro.
+- **`behavior.strategy`** vale só para `type: "support"`, com os valores `answer`, `triage`, `resolve` e `schedule`. Em `sales` é recusada; o agente segue o método. Os valores antigos foram convertidos: `faq_responder` → `answer`, `qualify_and_handoff` → `triage`, `full_journey` → `resolve`, `appointment_setter` → `schedule`.
+- **Campos novos:** `behavior.triage.collect`, `behavior.sales` (`handoff_stage_key`, `handoff_mode`), `behavior.meetings`, `materials`, `ai_config.audio_replies`, `ai_config.persona.tone_custom` (com `tone: "custom"`), `sales_method_id` na escrita e `sales_method` na resposta.
+- **Saíram:** `behavior.follow_up.after_hours` e `max_attempts` (`follow_up` fica só com `enabled`) e `ai_config.persona.language_style.use_emojis` (sem emoji agora é `emoji_frequency: "never"`).
+- **`tools_allowed`** tem 13 chaves: `search_knowledge_base`, `create_internal_note`, `save_contact_memory`, `get_routine`, `update_contact`, `create_task`, `get_product`, `get_customer_ongoing`, `close_conversation`, `send_material`, `register_opportunity`, `advance_stage` e `send_proposal`. As demais saíram e são descartadas na escrita. Marcar reunião liga por `behavior.meetings.enabled`, não mais por `book_meeting`.
+- **Conferência na escrita:** os IDs enviados são conferidos na organização com o acesso do usuário que criou a API Key, como no painel. Sem acesso: `403 FORBIDDEN`. `PATCH` passa a exigir API Key com usuário criador (`422 MISSING_AUTHOR`).
+- **Duplicar** leva junto o método do agente.
+
+---
+
 ## 6 de outubro de 2026 — transferência do agente de IA decidida pelas instruções
 
 - **`behavior.handoffTrigger` saiu dos agentes de IA.** Todo agente pode transferir para pessoa, e o destino (pessoa, equipe ou fila) vem das instruções do agente; sem destino nas instruções, vale o roteamento da organização. Em `POST /v1/ai-agents` e `PATCH /v1/ai-agents/:id` o campo é aceito e ignorado (nenhuma integração antiga recebe erro). Na resposta, `behavior` deixa de trazer `handoffTrigger`. `toolsAllowed` deixa de ter `transfer_to_human`, `list_org_users` e `list_teams`.
