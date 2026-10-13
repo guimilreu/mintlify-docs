@@ -14,9 +14,9 @@ POST /v1/ai-agents
 O agente nasce em `draft` e não atende ninguém até ser publicado.
 
 <Warning>
-  O **corpo da requisição é em camelCase** (`toolsAllowed`, `aiConfig`), enquanto a resposta é em
-  snake_case (`tools_allowed`, `ai_config`). Enviar os nomes da resposta não gera erro — os campos são
-  descartados em silêncio e o agente é criado sem eles. Use exatamente os nomes da tabela abaixo.
+  Desde 13/10/2026 o corpo é em **snake_case**, como a resposta (`tools_allowed`, `ai_config`,
+  `behavior.queue_assignment_mode`). Campo desconhecido é descartado sem erro. Veja o
+  [Changelog](/api-reference/changelog).
 </Warning>
 
 ## Corpo da requisição
@@ -24,17 +24,21 @@ O agente nasce em `draft` e não atende ninguém até ser publicado.
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
 | `name` | string | **Sim** | Nome do agente. De 3 a 100 caracteres |
-| `type` | string | **Sim** | `sales` ou `support` |
+| `type` | string | **Sim** | `support` (atendimento) ou `sales` (vendas) |
 | `scope` | object | **Sim** | Onde o agente atua. Ver abaixo |
-| `behavior` | object | **Sim** | Como o agente conduz o atendimento. Ver abaixo |
-| `aiConfig` | object | **Sim** | Persona e instruções. Ver abaixo |
+| `behavior` | object | **Sim** | O trabalho do agente. Ver abaixo |
+| `ai_config` | object | **Sim** | Persona e instruções. Ver abaixo |
+| `sales_method_id` | string \| null | Não | Método de venda do agente (ID de um método publicado da organização ou da biblioteca). `null` remove. Ausente não altera |
 | `description` | string | Não | Descrição. Até 500 caracteres |
 | `triggers` | array | Não | O que aciona o agente. Padrão: mensagem recebida do contato |
 | `humanization` | object | Não | Ritmo de resposta |
 | `guardrails` | object | Não | Restrições de conduta |
-| `toolsAllowed` | object | Não | Ferramentas liberadas. Todas ligadas por padrão |
+| `tools_allowed` | object | Não | Ferramentas liberadas. Ver abaixo |
+| `materials` | object | Não | Itens da biblioteca de mídia que o agente pode enviar. Ver abaixo |
 | `limits` | object | Não | Tetos de consumo |
 | `priority` | number | Não | `0` a `100`. Padrão `0`. Desempata quando mais de um agente cobre a mesma conversa |
+
+Os IDs enviados (números, contas, pessoas, pastas e itens de mídia, método) são conferidos na organização com o acesso do usuário que criou a API Key. ID de outra organização ou sem acesso responde `403 FORBIDDEN`.
 
 ---
 
@@ -45,9 +49,8 @@ O agente nasce em `draft` e não atende ninguém até ser publicado.
 | `sources` | string[] | **Sim** | Canais: `whatsapp` e/ou `instagram`. Mínimo 1 |
 | `types` | string[] | Não | `direct` e/ou `group`. Padrão: `["direct"]` |
 | `objectives` | string[] | Não | `support` e/ou `sales` |
-| `allowedWhatsappInstanceIds` | string[] | Não | Restringe a números específicos. Vazio = todos |
-| `allowedInstagramAccountIds` | string[] | Não | Restringe a contas específicas |
-| `knowledgeCollections` | string[] | Não | Coleções da base de conhecimento que o agente pode consultar |
+| `allowed_whatsapp_instance_ids` | string[] | Não | Restringe a números específicos. Vazio = todos |
+| `allowed_instagram_account_ids` | string[] | Não | Restringe a contas específicas |
 
 <Note>
   Pela API, `sources` aceita **apenas** `whatsapp` e `instagram` — Messenger não é canal de agente
@@ -55,68 +58,89 @@ O agente nasce em `draft` e não atende ninguém até ser publicado.
   pelo painel, mas **não é aceito na escrita** por este endpoint.
 </Note>
 
-## `behavior` — como conduz o atendimento
+## `behavior` — o trabalho do agente
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `strategy` | string | **Sim** | `full_journey`, `qualify_and_handoff`, `appointment_setter` ou `faq_responder` |
-| `fallbackOnError` | object | Não | `{message}` — o que dizer quando algo falha. Até 500 caracteres |
-| `queueAssignmentMode` | string | Não | `manual`, `queue_immediate` (padrão) ou `queue_after_delay` |
-| `queueClaimDelaySeconds` | number | Condicional | De `5` a `3600`. **Obrigatório** quando `queueAssignmentMode` é `queue_after_delay` |
-| `followUp` | object | Não | `{enabled, afterHours (1–168), maxAttempts (1–5)}`. Desligado por padrão |
+| `strategy` | string | Só em `support` | `answer` (tira dúvidas), `triage` (coleta e passa), `resolve` (resolve pelas rotinas e encerra) ou `schedule` (agenda). **Recusado** em `sales` |
+| `triage` | object | Não | `{collect}` — até 10 itens (120 caracteres cada) que o agente coleta antes de passar, com `strategy: "triage"` |
+| `sales` | object | Não | Só `sales`. `{handoff_stage_key, handoff_mode}`: chave da etapa do método até onde o agente conduz (`null` = até o fim) e como passa (`transfer`, padrão, ou `meeting`) |
+| `follow_up` | object | Não | `{enabled}` — o agente pode agendar uma volta ao cliente. Desligado por padrão |
+| `meetings` | object | Não | O agente pode marcar reuniões. Ver abaixo |
+| `fallback_on_error` | object | Não | `{message}` — o que dizer quando algo falha. Até 500 caracteres |
+| `queue_assignment_mode` | string | Não | `manual`, `queue_immediate` (padrão) ou `queue_after_delay` |
+| `queue_claim_delay_seconds` | number | Condicional | De `5` a `3600`. **Obrigatório** quando `queue_assignment_mode` é `queue_after_delay` |
+
+### `behavior.meetings`
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `enabled` | boolean | Padrão `false` |
+| `assignees` | string | `owner` (responsável pelo cliente, padrão) ou `users` |
+| `user_ids` | string[] | Com `users`: até 10 pessoas da organização |
+| `duration_minutes` | number | `30` ou `60` (padrão) |
+| `how_it_happens` | string | Como a reunião acontece, dito ao cliente. Até 300 caracteres |
 
 <Note>
   Transferência para pessoa não tem configuração: todo agente pode transferir, e o destino
-  (pessoa, equipe ou fila) é decidido pelo agente a partir das instruções em `aiConfig`, por
-  exemplo "orçamentos vão para a Ana". Sem destino nas instruções, a conversa segue o
-  roteamento da organização. `behavior.handoffTrigger` enviado por integrações antigas é ignorado.
+  (pessoa, equipe ou fila) é decidido pelo agente a partir das instruções em `ai_config`. Sem destino
+  nas instruções, a conversa segue o roteamento da organização.
 </Note>
 
-## `aiConfig` — persona e instruções
+## `tools_allowed` — ferramentas
+
+Uma chave booleana por ferramenta. Chave fora desta lista é descartada.
+
+| Chave | Padrão |
+|-------|--------|
+| `search_knowledge_base`, `create_internal_note`, `save_contact_memory`, `get_routine`, `update_contact`, `create_task`, `get_product`, `get_customer_ongoing`, `close_conversation`, `send_material` | `true` |
+| `register_opportunity`, `advance_stage`, `send_proposal` | Só vendas: ligadas em `sales`, desligadas em `support` quando não enviadas |
+
+Transferir para pessoa vale sempre. Agendar volta depende de `behavior.follow_up.enabled`; consultar agenda e marcar reunião, de `behavior.meetings.enabled`.
+
+## `materials` — o que o agente pode enviar
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `media_folder_ids` | string[] | Pastas da biblioteca de mídia. Até 20 |
+| `media_ids` | string[] | Itens da biblioteca de mídia. Até 100 |
+
+## `ai_config` — persona e instruções
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
 | `persona` | object | **Sim** | Quem o agente é. Ver abaixo |
-| `activationMode` | string | Não | `always` (padrão) ou `outside_business_hours` |
+| `activation_mode` | string | Não | `always` (padrão) ou `outside_business_hours` |
+| `audio_replies` | string | Não | `never`, `when_customer_audio` (padrão: responde áudio com áudio) ou `agent_decides` |
 | `instructions` | string | Não | Instruções livres. Até 6000 caracteres |
-| `writingStyle` | string | Não | Como escrever. Até 2000 caracteres |
-| `styleExamples` | string[] | Não | Até 5 exemplos de mensagem, 600 caracteres cada |
-| `whenUnsure` | string | Não | O que fazer na dúvida. Até 600 caracteres |
-| `brandVocabulary` | string | Não | Vocabulário da marca. Até 600 caracteres |
-| `keyObjections` | array | Não | Até 15 pares `{objection, response}` |
+| `writing_style` | string | Não | Como escrever. Até 2000 caracteres |
+| `style_examples` | string[] | Não | Até 5 exemplos de mensagem, 600 caracteres cada |
+| `when_unsure` | string | Não | O que fazer na dúvida. Até 600 caracteres |
+| `brand_vocabulary` | string | Não | Vocabulário da marca. Até 600 caracteres |
+| `key_objections` | array | Não | Até 15 pares `{objection, response}` |
 | `memories` | array | Não | Até 50 fatos `{id, text}` que o agente sempre considera |
-| `actionRules` | array | Não | Até 30 regras `{id, condition, action}` |
-| `greetingMessage` | string | Não | Saudação inicial. Até 500 caracteres |
+| `action_rules` | array | Não | Até 30 regras `{id, condition, action}` |
+| `greeting_message` | string | Não | Saudação inicial. Até 500 caracteres |
 
-### `aiConfig.persona`
+### `ai_config.persona`
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
 | `name` | string | **Sim** | Nome pelo qual o agente se apresenta. De 2 a 50 caracteres |
-| `tone` | string | Não | `formal`, `casual`, `friendly` (padrão), `professional`, `empathetic` ou `enthusiastic` |
+| `tone` | string | Não | `formal`, `casual`, `friendly` (padrão), `professional`, `empathetic`, `enthusiastic` ou `custom` |
+| `tone_custom` | string | Com `custom` | O tom em palavras. Até 40 caracteres |
 | `role` | string | Não | Cargo declarado. Até 100 caracteres |
 | `style` | string | Não | Estilo em texto livre. Até 500 caracteres |
-| `languageStyle` | object | Não | `{useEmojis, emojiFrequency, formality}` |
-
-<Note>
-  Os campos `model` e `temperature` **não existem mais** em `aiConfig`. O modelo é decidido pela
-  plataforma por tier; `temperature` nunca foi aplicada pelo runtime. Payloads antigos que ainda os
-  enviem são descartados sem erro.
-</Note>
+| `language_style` | object | Não | `{emoji_frequency, formality}`. `emoji_frequency`: `never`, `rare`, `moderate` (padrão) ou `frequent` |
 
 ## `humanization` e `limits`
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `humanization.pace` | string | `instant`, `natural` (padrão) ou `calm` |
-| `humanization.sendTypingIndicator` | boolean | Padrão `true` |
-| `limits.maxMessagesPerConversationPerDay` | number | De `1` a `200`. Padrão `50` |
-| `limits.dailyCreditsBudget` | number | Teto diário de créditos de IA. Padrão `5000` |
-
-<Note>
-  A humanização foi reduzida a esses dois campos. Controles antigos — atraso de digitação, divisão de
-  mensagens, cancelamento — viraram comportamento interno do runtime e são descartados se enviados.
-</Note>
+| `humanization.send_typing_indicator` | boolean | Padrão `true` |
+| `limits.max_messages_per_conversation_per_day` | number | De `1` a `200`. Padrão `50` |
+| `limits.daily_credits_budget` | number | Teto diário de créditos de IA. Padrão `5000` |
 
 ## `triggers`
 
@@ -142,37 +166,38 @@ curl -X POST https://api.socialsell.ai/v1/ai-agents \
       "objectives": ["support"]
     },
     "behavior": {
-      "strategy": "faq_responder",
-      "queueAssignmentMode": "queue_immediate"
+      "strategy": "triage",
+      "triage": { "collect": ["Número do pedido", "Foto do produto"] },
+      "follow_up": { "enabled": true },
+      "queue_assignment_mode": "queue_immediate"
     },
-    "aiConfig": {
+    "ai_config": {
       "persona": {
         "name": "Alice",
         "role": "Analista de suporte",
-        "tone": "friendly"
+        "tone": "friendly",
+        "language_style": { "emoji_frequency": "rare" }
       },
-      "activationMode": "always",
+      "activation_mode": "always",
+      "audio_replies": "never",
       "instructions": "Responda dúvidas sobre planos e cobrança. Nunca prometa desconto.",
-      "whenUnsure": "Transfira para o time em vez de arriscar uma resposta."
+      "when_unsure": "Transfira para o time em vez de arriscar uma resposta."
     },
     "humanization": { "pace": "natural" },
-    "limits": { "maxMessagesPerConversationPerDay": 30 },
+    "limits": { "max_messages_per_conversation_per_day": 30 },
     "priority": 10
   }'
 ```
 
 ## Resposta
 
-Retorna `HTTP 201` com o agente em `status: draft`. Para colocá-lo em produção, use [Publicar agente](/api-reference/ai-agents/publish).
-
-<Tip>
-A estrutura espelha as opções do painel em **Agentes de IA**. O caminho mais rápido para acertar os objetos aninhados é montar um agente pelo painel e ler com [`GET /v1/ai-agents/:id`](/api-reference/ai-agents/get).
-</Tip>
+Retorna `HTTP 201` com o agente em `status: draft`, no formato de [Listar agentes](/api-reference/ai-agents/list#objeto-agente). Para colocá-lo em produção, use [Publicar agente](/api-reference/ai-agents/publish).
 
 ## Erros
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo — inclusive `scope.sources`, `behavior.strategy` e `aiConfig` ausentes |
+| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo em snake_case — inclusive `behavior.strategy` ausente em `support` ou enviado em `sales`, `ai_config.persona.tone_custom` ausente com `custom` e método não publicado |
+| `FORBIDDEN` | `403` | O usuário da API Key não pode gerenciar agentes, ou um ID enviado não é da organização |
 | `AGENT_LIMIT_REACHED` | `403` | A organização já atingiu o teto de agentes ativos |
 | `MISSING_AUTHOR` | `422` | A API Key não tem usuário criador associado |

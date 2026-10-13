@@ -48,25 +48,77 @@ curl "https://api.socialsell.ai/v1/ai-agents?status=active" \
       },
       "triggers": [{ "event": "message.received", "enabled": true }],
       "behavior": {
-        "strategy": "qualify_and_handoff",
-        "queueAssignmentMode": "queue_immediate"
+        "strategy": null,
+        "triage": { "collect": [] },
+        "sales": { "handoff_stage_key": "proposta", "handoff_mode": "meeting" },
+        "follow_up": { "enabled": true },
+        "meetings": {
+          "enabled": true,
+          "assignees": "owner",
+          "user_ids": [],
+          "duration_minutes": 30,
+          "how_it_happens": "Videochamada pelo Google Meet"
+        },
+        "fallback_on_error": null,
+        "queue_assignment_mode": "queue_immediate",
+        "queue_claim_delay_seconds": null
       },
-      "humanization": { "pace": "natural", "sendTypingIndicator": true },
-      "guardrails": { "restrictions": "Nunca prometer desconto." },
-      "tools_allowed": { "search_knowledge_base": true, "create_deal": true },
-      "limits": { "maxMessagesPerConversationPerDay": 50, "dailyCreditsBudget": 5000 },
+      "sales_method": {
+        "id": "66445c483fa9572a0b2496d0",
+        "name": "SPIN",
+        "stages": [
+          { "key": "situacao", "name": "Situação" },
+          { "key": "proposta", "name": "Proposta" }
+        ]
+      },
+      "humanization": { "pace": "natural", "send_typing_indicator": true },
+      "guardrails": { "restrictions": "Nunca prometer desconto.", "required_disclosures": [] },
+      "tools_allowed": {
+        "search_knowledge_base": true,
+        "create_internal_note": true,
+        "save_contact_memory": true,
+        "get_routine": true,
+        "update_contact": true,
+        "create_task": true,
+        "get_product": true,
+        "get_customer_ongoing": true,
+        "close_conversation": true,
+        "send_material": true,
+        "register_opportunity": true,
+        "advance_stage": true,
+        "send_proposal": true
+      },
+      "materials": { "media_folder_ids": [], "media_ids": ["66445c483fa9572a0b2496d1"] },
+      "limits": { "max_messages_per_conversation_per_day": 50, "daily_credits_budget": 5000 },
       "ai_config": {
-        "persona": { "name": "Bia", "tone": "friendly" },
-        "activationMode": "always"
+        "persona": {
+          "name": "Bia",
+          "role": null,
+          "tone": "friendly",
+          "tone_custom": null,
+          "style": null,
+          "language_style": { "emoji_frequency": "rare", "formality": "casual-professional" }
+        },
+        "activation_mode": "always",
+        "instructions": "",
+        "writing_style": "",
+        "style_examples": [],
+        "when_unsure": null,
+        "brand_vocabulary": null,
+        "key_objections": [],
+        "memories": [],
+        "action_rules": [],
+        "greeting_message": "",
+        "audio_replies": "when_customer_audio"
       },
       "stats": {
-        "totalRuns": 142,
-        "completedRuns": 131,
-        "failedRuns": 3,
-        "avgResponseTimeMs": 3980,
-        "avgMessagesPerRun": 2.4,
-        "totalTokensUsed": 384210,
-        "totalCostUsd": 1.47
+        "total_runs": 142,
+        "completed_runs": 131,
+        "failed_runs": 3,
+        "avg_response_time_ms": 3980,
+        "avg_messages_per_run": 2.4,
+        "total_tokens_used": 384210,
+        "total_cost_usd": 1.47
       },
       "created_at": "2026-05-01T00:00:00.000Z",
       "updated_at": "2026-06-10T12:00:00.000Z"
@@ -92,20 +144,21 @@ curl "https://api.socialsell.ai/v1/ai-agents?status=active" \
 | `priority` | integer | `0` a `100`. **Maior = mais prioritário** quando dois agentes cobrem a mesma conversa |
 | `scope` | object \| null | Canais, tipos de conversa e restrições de número |
 | `triggers` | array | Eventos que acionam o agente |
-| `behavior` | object \| null | Estratégia, fila e retomada (follow-up) |
-| `humanization` | object \| null | `{pace, sendTypingIndicator}` |
-| `guardrails` | object \| null | `{restrictions, requiredDisclosures}` |
-| `tools_allowed` | object \| null | Ferramentas liberadas, uma chave booleana por ferramenta |
-| `limits` | object \| null | `{maxMessagesPerConversationPerDay, dailyCreditsBudget}` |
-| `ai_config` | object \| null | Persona, instruções, memórias e regras de ação |
+| `behavior` | object \| null | O trabalho do agente: `strategy` (só `support`; `null` em `sales`), `triage`, `sales` (só `sales`; `null` em `support`), `follow_up`, `meetings` e fila. Campos em [Criar agente](/api-reference/ai-agents/create) |
+| `sales_method` | object \| null | Método atribuído ao agente: `{id, name, stages: [{key, name}]}`. `null` sem atribuição própria (o agente pode herdar o da equipe ou da organização) |
+| `humanization` | object \| null | `{pace, send_typing_indicator}` |
+| `guardrails` | object \| null | `{restrictions, required_disclosures}` |
+| `tools_allowed` | object | As 13 ferramentas, uma chave booleana cada, já com o padrão por tipo aplicado |
+| `materials` | object | `{media_folder_ids, media_ids}` |
+| `limits` | object \| null | `{max_messages_per_conversation_per_day, daily_credits_budget}` |
+| `ai_config` | object \| null | Persona, instruções, memórias, regras de ação e `audio_replies` |
 | `stats` | object \| null | Acumulados do agente. Ver abaixo |
 | `created_at` | string | Criação |
 | `updated_at` | string | Última atualização |
 
 <Note>
-  Os objetos aninhados voltam em **camelCase por dentro** (`maxMessagesPerConversationPerDay`,
-  `sendTypingIndicator`), mesmo com as chaves de primeiro nível em snake_case. É o mesmo formato aceito
-  na escrita — ver [Criar agente](/api-reference/ai-agents/create).
+  Desde 13/10/2026 os objetos aninhados também voltam em snake_case, no mesmo formato aceito na escrita.
+  Ver [Criar agente](/api-reference/ai-agents/create).
 </Note>
 
 ### Objeto `stats`
@@ -114,14 +167,14 @@ Acumulado desde sempre, não por período. Para métricas com janela de tempo e 
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `totalRuns` | integer | Execuções do agente |
-| `completedRuns` | integer | Execuções concluídas |
-| `failedRuns` | integer | Execuções que falharam |
-| `avgResponseTimeMs` | number | Tempo médio de resposta |
-| `avgMessagesPerRun` | number | Mensagens por execução, em média |
-| `totalTokensUsed` | integer | Tokens consumidos |
-| `totalCostUsd` | number | Custo acumulado em dólares |
-| `lastRunAt` | string \| null | Última execução |
+| `total_runs` | integer | Execuções do agente |
+| `completed_runs` | integer | Execuções concluídas |
+| `failed_runs` | integer | Execuções que falharam |
+| `avg_response_time_ms` | number | Tempo médio de resposta |
+| `avg_messages_per_run` | number | Mensagens por execução, em média |
+| `total_tokens_used` | integer | Tokens consumidos |
+| `total_cost_usd` | number | Custo acumulado em dólares |
+| `last_run_at` | string \| null | Última execução |
 
 ## Erros
 

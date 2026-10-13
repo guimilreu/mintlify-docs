@@ -15,15 +15,16 @@ Também disponível como `PUT /v1/ai-agents/:id` — mesmo handler, mantido por 
 
 ## Semântica da atualização
 
-O corpo aceita os mesmos campos de [Criar agente](/api-reference/ai-agents/create), todos opcionais — e em **camelCase**.
+O corpo aceita os mesmos campos de [Criar agente](/api-reference/ai-agents/create), todos opcionais, em **snake_case**.
 
 | Nível | Comportamento |
 |-------|---------------|
 | Campos de primeiro nível | Só os enviados mudam. Os demais permanecem |
-| Objetos aninhados (`scope`, `behavior`, `aiConfig`, `limits`…) | **Substituídos por inteiro**, não mesclados |
+| `sales_method_id` | Ausente não mexe no método; `null` remove a atribuição do agente |
+| Objetos aninhados (`scope`, `behavior`, `ai_config`, `limits`…) | **Substituídos por inteiro**, não mesclados |
 
 <Warning>
-  Enviar `aiConfig: { "persona": { "name": "Alice" } }` **descarta** todo o resto do `aiConfig` —
+  Enviar `ai_config: { "persona": { "name": "Alice" } }` **descarta** todo o resto do `ai_config` —
   instruções, memórias, regras de ação. Leia o agente com
   [`GET /v1/ai-agents/:id`](/api-reference/ai-agents/get), altere o objeto completo e devolva inteiro.
 </Warning>
@@ -49,6 +50,8 @@ Atualizar um agente `active` vale **imediatamente** para as próximas execuçõe
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo |
+| `VALIDATION_ERROR` | `400` | Corpo inválido. `details[]` aponta o campo em snake_case |
+| `FORBIDDEN` | `403` | O usuário da API Key não pode gerenciar agentes, ou um ID enviado não é da organização |
+| `MISSING_AUTHOR` | `422` | A API Key não tem usuário criador associado |
 | `INVALID_ID` | `400` | ID com formato inválido |
 | `NOT_FOUND` | `404` | Agente não encontrado |
