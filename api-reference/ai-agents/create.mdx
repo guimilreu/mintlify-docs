@@ -65,7 +65,7 @@ Os IDs enviados (números, contas, pessoas, pastas e itens de mídia, método) s
 | `strategy` | string | Só em `support` | `answer` (tira dúvidas), `triage` (coleta e passa), `resolve` (resolve pelas rotinas e encerra) ou `schedule` (agenda). **Recusado** em `sales` |
 | `triage` | object | Não | `{collect}` — até 10 itens (120 caracteres cada) que o agente coleta antes de passar, com `strategy: "triage"` |
 | `sales` | object | Não | Só `sales`. `{handoff_stage_key, handoff_mode}`: chave da etapa do método até onde o agente conduz (`null` = até o fim) e como passa (`transfer`, padrão, ou `meeting`) |
-| `follow_up` | object | Não | `{enabled}` — o agente pode agendar uma volta ao cliente. Desligado por padrão |
+| `follow_up` | object | Não | `{enabled}` — o agente pode agendar uma volta ao cliente. Ligado por padrão |
 | `meetings` | object | Não | O agente pode marcar reuniões. Ver abaixo |
 | `fallback_on_error` | object | Não | `{message}` — o que dizer quando algo falha. Até 500 caracteres |
 | `queue_assignment_mode` | string | Não | `manual`, `queue_immediate` (padrão) ou `queue_after_delay` |

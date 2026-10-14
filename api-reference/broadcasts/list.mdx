@@ -164,9 +164,7 @@ curl "https://api.socialsell.ai/v1/broadcasts?status=sending&limit=10" \
 | `errorsByType` | object | Falhas agrupadas por código de erro: `{count, label, message}` |
 
 <Note>
-  Dentro de `byProvider`, as chaves são `evolution` (números por QR Code) e `cloud` (WhatsApp Oficial).
-  O nome `evolution` é legado do provedor original e permanece por compatibilidade — na interface e no
-  resto da API o canal se chama **QR Code**.
+  Dentro de `byProvider`, as chaves são `qr` (números por QR Code) e `cloud` (WhatsApp Oficial).
 </Note>
 
 ## Erros
