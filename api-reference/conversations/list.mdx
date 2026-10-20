@@ -15,6 +15,7 @@ GET /v1/conversations
 
 | Parâmetro | Tipo | Descrição |
 |-----------|------|-----------|
+| `type` | string | `direct` (padrão), `group` (grupos do WhatsApp) ou `all` |
 | `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
 | `cursor` | string | Token de paginação |
 | `status` | string | `open` ou `closed` (arquivada) |
@@ -43,11 +44,13 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
   "data": [
     {
       "id": "664632f1260b42723a5ed4ed",
+      "type": "direct",
       "contact": {
         "id": "664f1a2b3c4d5e6f78901234",
         "name": "João Silva",
         "phone": "+5511999999999"
       },
+      "group": null,
       "channel": "whatsapp",
       "whatsapp_instance": {
         "id": "6643cb19da1774a51495b603",
@@ -87,8 +90,9 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `id` | string | ID da conversa |
-| `contact` | object \| null | Contato `{id, name, phone}` |
-| `channel` | string | `whatsapp`, `instagram`, `messenger`, `web_chat` ou `other` |
+| `type` | string | `direct` (conversa com um contato) ou `group` (grupo do WhatsApp) |
+| `contact` | object \| null | Contato `{id, name, phone}`. `null` em grupo |
+| `group` | object \| null | Grupo `{id, name, participants_count}`. Só em `type: "group"`; o `id` serve como `group_id` no envio |
 | `channel` | string | `whatsapp`, `instagram`, `messenger`, `web_chat` (chat do site) ou `other` |
 | `whatsapp_instance` | object\|null | Instância WhatsApp `{id, name, phone}` |
 | `messenger_page` | object\|null | Página Messenger `{id, page_id, page_name}` |
@@ -104,7 +108,8 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
 | `updated_at` | string | Timestamp de atualização |
 
 <Note>
-  A listagem devolve apenas conversas de atendimento (`type: "direct"`). O chat interno da equipe nunca
+  Sem `type`, a listagem devolve apenas conversas com contato (`type: "direct"`), como sempre. Use
+  `type=group` para os grupos do WhatsApp ou `type=all` para as duas. O chat interno da equipe nunca
   aparece aqui.
 </Note>
 
@@ -119,4 +124,5 @@ Além dos erros comuns a toda a API — [autenticação](/api-reference/authenti
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
+| `INVALID_TYPE` | `400` | `type` diferente de `direct`, `group` ou `all` |
 | `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

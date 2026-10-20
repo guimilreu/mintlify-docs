@@ -1,0 +1,84 @@
+---
+title: "Grupos do WhatsApp"
+description: "Lista os grupos de que um número do WhatsApp participa, para enviar mensagem a eles."
+---
+
+## Endpoint
+
+```
+GET /v1/whatsapp-instances/:id/groups
+```
+
+**Escopo necessário:** `read:conversations`
+
+Use o `id` de cada grupo como `group_id` em [Enviar mensagem](/api-reference/messages/send). Grupo só existe em número do WhatsApp por QR Code; o `:id` vem de [Instâncias WhatsApp](/api-reference/lookup/whatsapp-instances).
+
+## Parâmetros
+
+| Parâmetro | Onde | Tipo | Descrição |
+|-----------|------|------|-----------|
+| `id` | path | string | ID do número (`whatsapp_instance_id`) |
+| `search` | query | string | Trecho do nome do grupo, sem diferenciar maiúsculas |
+| `limit` | query | integer | Itens por página. Padrão: `50`. Máximo: `100` |
+| `cursor` | query | string | Token de paginação (`meta.next_cursor`) |
+
+## Exemplo de requisição
+
+```bash
+curl "https://api.socialsell.ai/v1/whatsapp-instances/6643cb19da1774a51495b603/groups?search=alfa" \
+  -H "Authorization: Bearer sk_live_..."
+```
+
+## Exemplo de resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "6650a1b2c3d4e5f678901234",
+      "name": "Cliente Alfa | Hack",
+      "participants_count": 7,
+      "is_admin": true,
+      "avatar_url": null,
+      "whatsapp_instance_id": "6643cb19da1774a51495b603",
+      "conversation_id": "664632f1260b42723a5ed4ed",
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "updated_at": "2026-10-20T09:30:00.000Z"
+    }
+  ],
+  "meta": {
+    "request_id": "req_a1b2c3d4e5f6a7b8",
+    "total": 1,
+    "has_more": false
+  }
+}
+```
+
+## Objeto grupo
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `id` | string | ID do grupo. Use em `group_id` ao enviar |
+| `name` | string\|null | Nome do grupo no WhatsApp |
+| `participants_count` | integer | Quantidade de participantes |
+| `is_admin` | boolean | Se o número é administrador do grupo |
+| `avatar_url` | string\|null | Foto do grupo |
+| `whatsapp_instance_id` | string | Número de que o grupo faz parte |
+| `conversation_id` | string\|null | Conversa do grupo no inbox. `null` até a primeira mensagem; não é preciso para enviar |
+| `created_at` | string | Quando o grupo foi registrado na SocialSell |
+| `updated_at` | string | Última atualização do registro |
+
+<Note>
+  A lista acompanha os grupos sincronizados do número conectado. Grupo criado agora no celular aparece
+  depois da sincronização seguinte do número.
+</Note>
+
+## Erros
+
+Além dos erros comuns a toda a API — [autenticação](/api-reference/authentication), [escopo](/api-reference/scopes) e [limite de requisições](/api-reference/rate-limits) — esta rota pode responder:
+
+| Código | Status | Descrição |
+|--------|--------|-----------|
+| `INVALID_ID` | `400` | `id` não é um ID válido |
+| `NOT_FOUND` | `404` | Número não encontrado nesta organização |
+| `INTERNAL_ERROR` | `500` | Falha interna ao processar a requisição |

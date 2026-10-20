@@ -1731,6 +1731,7 @@ Uma conversa foi aberta em qualquer canal.
         "name": "João Silva",
         "phone": null
       },
+      "group": null,
       "whatsapp_instance": null,
       "messenger_page": null,
       "instagram_account": null,
@@ -1781,6 +1782,7 @@ Uma conversa encerrada voltou a receber mensagem ou foi reaberta manualmente.
         "name": "João Silva",
         "phone": null
       },
+      "group": null,
       "whatsapp_instance": null,
       "messenger_page": null,
       "instagram_account": null,
@@ -1830,6 +1832,7 @@ A conversa passou a ter (ou trocou de) responsável.
         "name": "João Silva",
         "phone": null
       },
+      "group": null,
       "whatsapp_instance": null,
       "messenger_page": null,
       "instagram_account": null,
@@ -1887,6 +1890,7 @@ A conversa foi encerrada.
         "name": "João Silva",
         "phone": null
       },
+      "group": null,
       "whatsapp_instance": null,
       "messenger_page": null,
       "instagram_account": null,
@@ -1957,7 +1961,7 @@ A conversa de WhatsApp foi transferida para outro número da organização: a de
 
 ### `message.received`
 
-O contato mandou uma mensagem — WhatsApp, Instagram, Messenger ou chat do site.
+O contato mandou uma mensagem — WhatsApp, Instagram, Messenger ou chat do site. Em grupo do WhatsApp, `group` traz o grupo e `contact` é o participante que escreveu.
 
 ```json
 {
@@ -1984,14 +1988,16 @@ O contato mandou uma mensagem — WhatsApp, Instagram, Messenger ou chat do site
       "id": "664f1a2b3c4d5e6f78901234",
       "name": "João Silva"
     },
-    "channel": "whatsapp"
+    "channel": "whatsapp",
+    "conversation_type": "direct",
+    "group": null
   }
 }
 ```
 
 ### `message.sent`
 
-Saiu uma mensagem para o contato — por atendente, automação, agente de IA ou enviada direto do celular conectado. Assine junto com `message.received` para espelhar a conversa inteira.
+Saiu uma mensagem para o contato ou grupo — por atendente, automação, agente de IA, API pública ou enviada direto do celular conectado. Assine junto com `message.received` para espelhar a conversa inteira.
 
 ```json
 {
@@ -2021,7 +2027,9 @@ Saiu uma mensagem para o contato — por atendente, automação, agente de IA ou
       "id": "664f1a2b3c4d5e6f78901234",
       "name": "João Silva"
     },
-    "channel": "whatsapp"
+    "channel": "whatsapp",
+    "conversation_type": "direct",
+    "group": null
   }
 }
 ```
@@ -2056,7 +2064,9 @@ Uma mensagem de WhatsApp foi editada. Traz o conteúdo anterior.
       "id": "664f1a2b3c4d5e6f78901234",
       "name": "João Silva"
     },
-    "channel": "whatsapp"
+    "channel": "whatsapp",
+    "conversation_type": "direct",
+    "group": null
   }
 }
 ```
@@ -2452,6 +2462,7 @@ Um contato respondeu a um disparo em massa (primeira resposta, até 72 h depois 
         "name": "João Silva",
         "phone": null
       },
+      "group": null,
       "whatsapp_instance": null,
       "messenger_page": null,
       "instagram_account": null,

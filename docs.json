@@ -237,6 +237,7 @@
               "api-reference/lookup/tags",
               "api-reference/lookup/members",
               "api-reference/lookup/whatsapp-instances",
+              "api-reference/lookup/whatsapp-groups",
               "api-reference/lookup/messenger-pages",
               "api-reference/lookup/instagram-accounts"
             ]

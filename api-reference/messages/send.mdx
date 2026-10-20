@@ -1,6 +1,6 @@
 ---
 title: "Enviar mensagem"
-description: "Envia uma mensagem para um contato via WhatsApp ou Messenger."
+description: "Envia uma mensagem para um contato via WhatsApp ou Messenger, ou para um grupo do WhatsApp."
 ---
 
 ## Endpoint
@@ -13,12 +13,15 @@ Também disponível como `POST /v1/conversations/send` (alias).
 
 **Escopo necessário:** `write:messages`
 
-## Canais suportados
+## Destinos suportados
 
-| Canal | Requisito no contato |
-|-------|---------------------|
-| `whatsapp` | Telefone válido, preferencialmente no formato internacional com DDI, como `+5511999999999` |
-| `messenger` | `messenger_psid` preenchido |
+| Destino | Canal | Requisito |
+|---------|-------|-----------|
+| Contato (`contact_id`) | `whatsapp` | Telefone válido, preferencialmente no formato internacional com DDI, como `+5511999999999` |
+| Contato (`contact_id`) | `messenger` | `messenger_psid` preenchido |
+| Grupo (`group_id`) | `whatsapp` | Grupo de um número do WhatsApp por QR Code, listado em [Grupos do WhatsApp](/api-reference/lookup/whatsapp-groups) |
+
+Informe `contact_id` ou `group_id`, nunca os dois.
 
 <Note>
 O canal Instagram não está disponível na API pública neste momento.
@@ -34,19 +37,20 @@ Independentes do plano e cumulativos com o limite por minuto da chave:
 
 | Canal | Limite | Código do erro |
 |-------|--------|----------------|
-| WhatsApp | 30 mensagens/min **por número** | `WHATSAPP_INSTANCE_RATE_LIMIT` |
+| WhatsApp | 30 mensagens/min **por número**, somando contatos e grupos | `WHATSAPP_INSTANCE_RATE_LIMIT` |
 | Messenger | 30 mensagens/min **por página** | `MESSENGER_PAGE_RATE_LIMIT` |
 
 ## Corpo da requisição
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `contact_id` | string | Sim | ID do contato destinatário |
+| `contact_id` | string | Condicional | ID do contato destinatário. Obrigatório quando não há `group_id` |
+| `group_id` | string | Condicional | ID do grupo do WhatsApp, no lugar de `contact_id`. Só com `channel=whatsapp` |
 | `channel` | string | Sim | `whatsapp` ou `messenger` |
 | `type` | string | Não | `text` (padrão), `image`, `video`, `audio`, `document` |
 | `content` | string | Condicional | Texto da mensagem. Obrigatório quando `type=text`, exceto em envio de modelo (`template_name`) |
 | `media_url` | string | Condicional | URL pública da mídia. Obrigatório para tipos não-texto |
-| `whatsapp_instance_id` | string | Não | ID da instância WhatsApp. Se omitido, usa a instância conectada disponível |
+| `whatsapp_instance_id` | string | Não | ID da instância WhatsApp. Se omitido, usa a instância conectada disponível. Em grupo, a mensagem sai sempre pelo número do grupo |
 | `messenger_page_id` | string | Não | ID local da conexão Messenger. Se omitido, o contato precisa ter vínculo único comprovado; ambiguidade retorna `409 CONNECTION_REQUIRED` |
 | `template_name` | string | Não | Nome do modelo aprovado. **Só funciona em número do WhatsApp Oficial** |
 | `template_language` | string | Não | Idioma do modelo. Padrão: `pt_BR`. Precisa bater exatamente com o modelo aprovado |
@@ -54,7 +58,28 @@ Independentes do plano e cumulativos com o limite por minuto da chave:
 
 ## Comportamento de conversa
 
-Se não existir conversa entre o contato e aquele número ou página, uma é criada automaticamente. A resposta sempre traz o `conversation_id`.
+Se não existir conversa entre o contato e aquele número ou página, uma é criada automaticamente. O mesmo vale para o grupo: a primeira mensagem cria a conversa do grupo no inbox. A resposta sempre traz o `conversation_id`.
+
+A mensagem é gravada na conversa antes de sair e dispara o webhook [`message.sent`](/webhooks/events), com `channel` e, em grupo, `conversation_type: "group"` e `group`.
+
+## Envio para grupo
+
+O grupo vem de [`GET /v1/whatsapp-instances/:id/groups`](/api-reference/lookup/whatsapp-groups). Aceita texto e mídia; modelo não é enviado para grupo.
+
+| Regra | O que acontece |
+|-------|----------------|
+| Número | A mensagem sai pelo número de que o grupo faz parte. `whatsapp_instance_id` diferente devolve `422 GROUP_INSTANCE_MISMATCH` |
+| WhatsApp Oficial | Grupo só em número por QR Code. Em número oficial: `422 GROUP_REQUIRES_QR_NUMBER` |
+| Participação | O número precisa estar no grupo e ter permissão para escrever. Se o WhatsApp recusar, a resposta é `422 MESSAGE_SEND_FAILED` com o motivo |
+
+<Warning>
+  **Ritmo e risco de bloqueio.** O WhatsApp não publica um limite seguro para números por QR Code. O
+  limite da SocialSell é técnico (30 mensagens/min por número, somando contatos e grupos), não uma
+  garantia contra bloqueio. Para reduzir o risco: envie só para grupos em que o cliente espera o aviso,
+  espalhe os envios na sua fila em vez de rajadas, varie o texto entre grupos, evite links encurtados e
+  mantenha o número em uso normal, com conversas que recebem resposta. Denúncias de participantes pesam
+  mais do que o volume.
+</Warning>
 
 ## Escolha do número
 
@@ -64,12 +89,21 @@ Se não existir conversa entre o contato e aquele número ou página, uma é cri
 | Omitido | Escolhe automaticamente um número com status `connected` |
 
 <Note>
-Informar um número desconectado não devolve `NO_WHATSAPP_INSTANCE`: a requisição segue e falha mais adiante. Omitir o campo é mais seguro quando você não precisa de um número específico.
+Informar um número desconectado não devolve `NO_WHATSAPP_INSTANCE`: a requisição segue e o envio é recusado com `422 MESSAGE_SEND_FAILED`. Omitir o campo é mais seguro quando você não precisa de um número específico.
 </Note>
 
 ## Idempotência
 
-Esta rota aceita `Idempotency-Key` — repetir depois de um timeout não envia a mensagem duas vezes. Ver [Idempotência](/api-reference/idempotency).
+Esta rota aceita `Idempotency-Key` — repetir depois de um timeout não envia a mensagem duas vezes. A chave fica gravada com a mensagem: a proteção vale mesmo depois das 24 horas do cache e não depende dele.
+
+| Repetição com a mesma chave | Resposta |
+|-----------------------------|----------|
+| Mensagem já enviada, mesmo conteúdo | `201` com a mesma mensagem |
+| Primeira tentativa ainda em envio | `409 IDEMPOTENCY_IN_PROGRESS`, com `Retry-After` |
+| Primeira tentativa falhou | `409 IDEMPOTENCY_KEY_FAILED`. Para tentar de novo, use uma chave nova |
+| Outro conteúdo | `422 IDEMPOTENCY_KEY_REUSED` |
+
+Ver [Idempotência](/api-reference/idempotency).
 
 ## Exemplos
 
@@ -84,6 +118,21 @@ curl -X POST https://api.socialsell.ai/v1/messages/send \
     "channel": "whatsapp",
     "type": "text",
     "content": "Olá! Sua proposta foi aprovada. Podemos agendar uma reunião?"
+  }'
+```
+
+### Texto para grupo do WhatsApp
+
+```bash
+curl -X POST https://api.socialsell.ai/v1/messages/send \
+  -H "Authorization: Bearer sk_live_..." \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: 3f1c9a2e-7b4d-4e8a-9c21-5d6f7a8b9c0d" \
+  -d '{
+    "group_id": "6650a1b2c3d4e5f678901234",
+    "channel": "whatsapp",
+    "type": "text",
+    "content": "Sua reunião foi marcada para quinta, às 10h."
   }'
 ```
 
@@ -162,6 +211,7 @@ Retorna `HTTP 201`. O corpo tem duas formas, conforme o caminho de envio.
   "data": {
     "id": "664d100d2ac9437188591880",
     "conversation_id": "664632f1260b42723a5ed4ed",
+    "group_id": null,
     "content": "Olá! Sua proposta foi aprovada.",
     "type": "text",
     "sender": "agent",
@@ -197,6 +247,10 @@ Retorna `HTTP 201`. O corpo tem duas formas, conforme o caminho de envio.
 </Warning>
 
 <Note>
+No WhatsApp, `group_id` traz o grupo quando o destino é grupo e `null` quando é contato. No Messenger e no envio de modelo o campo não vem.
+</Note>
+
+<Note>
 No envio de modelo, `type` vem como `template` — valor fora da lista de `type` da requisição — e `content` traz o corpo do modelo com os parâmetros de `template_components` aplicados — o texto que o contato recebeu. Só um modelo sem texto no corpo devolve o rótulo `[Modelo: nome]`.
 </Note>
 
@@ -204,12 +258,23 @@ No envio de modelo, `type` vem como `template` — valor fora da lista de `type`
 
 | Código | Status | Descrição |
 |--------|--------|-----------|
-| `MISSING_REQUIRED_FIELD` | `400` | `contact_id` ausente |
-| `INVALID_CHANNEL` | `400` | Canal inválido |
+| `MISSING_REQUIRED_FIELD` | `400` | `contact_id` ausente (e sem `group_id`) |
+| `CONFLICTING_RECIPIENT` | `400` | `contact_id` e `group_id` juntos |
+| `INVALID_ID` | `400` | `group_id` não é um ID válido |
+| `INVALID_CHANNEL` | `400` | Canal inválido, ou `group_id` com canal diferente de `whatsapp` |
 | `CHANNEL_NOT_SUPPORTED` | `400` | Instagram ainda não suportado |
 | `MISSING_CONTENT` | `400` | `content` ausente para mensagem de texto |
 | `MISSING_MEDIA_URL` | `400` | `media_url` ausente para mensagens de mídia |
 | `CONTACT_NOT_FOUND` | `404` | Contato não encontrado |
+| `GROUP_NOT_FOUND` | `404` | Grupo não encontrado nesta organização |
+| `IDEMPOTENCY_IN_PROGRESS` | `409` | A primeira tentativa com esta `Idempotency-Key` ainda está em envio |
+| `IDEMPOTENCY_KEY_FAILED` | `409` | A tentativa com esta `Idempotency-Key` falhou. Envie com uma chave nova |
+| `IDEMPOTENCY_KEY_REUSED` | `422` | A `Idempotency-Key` já foi usada com outro conteúdo |
+| `GROUP_INSTANCE_MISMATCH` | `422` | `whatsapp_instance_id` diferente do número do grupo. O corpo traz o `whatsapp_instance_id` do grupo |
+| `GROUP_REQUIRES_QR_NUMBER` | `422` | O grupo está em número do WhatsApp Oficial |
+| `TEMPLATE_NOT_SUPPORTED_FOR_GROUP` | `422` | `template_name` informado com `group_id` |
+| `MESSAGE_SEND_FAILED` | `422` | O WhatsApp recusou o envio (número desconectado, fora do grupo, sem permissão para escrever etc.). A mensagem traz o motivo e fica como `failed` na conversa |
+| `WHATSAPP_INVALID_RECIPIENT`, `WHATSAPP_CLOUD_MEDIA_INVALID` e demais `WHATSAPP_CLOUD_*` | `422` | Recusa do WhatsApp Oficial com código próprio. A mensagem traz o motivo |
 | `NO_WHATSAPP_JID` | `422` | Código legado devolvido quando o contato não possui telefone utilizável. A mensagem orienta cadastrar um telefone válido com DDI e o corpo traz `reason: "WHATSAPP_PHONE_REQUIRED"` |
 | `NO_WHATSAPP_INSTANCE` | `422` | Sem instância WhatsApp conectada |
 | `NO_MESSENGER_PSID` | `422` | Contato sem PSID Messenger |
