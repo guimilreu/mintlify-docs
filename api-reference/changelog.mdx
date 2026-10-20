@@ -7,6 +7,18 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 20 de outubro de 2026 — grupos do WhatsApp e envio idempotente
+
+- **Grupos do WhatsApp**: [`GET /v1/whatsapp-instances/:id/groups`](/api-reference/lookup/whatsapp-groups) lista os grupos do número (`id`, `name`, `participants_count`, `is_admin`, `conversation_id`). Escopo `read:conversations`.
+- **Envio para grupo**: `POST /v1/messages/send` aceita `group_id` no lugar de `contact_id`, com texto ou mídia, em número por QR Code. A resposta ganha `group_id`. Veja [Envio para grupo](/api-reference/messages/send#envio-para-grupo).
+- **Conversas de grupo**: `GET /v1/conversations` aceita `type=direct|group|all`. Sem o parâmetro, nada muda: só conversas com contato. O objeto conversa ganha `group` (`null` fora de grupo).
+- **Webhooks de mensagem**: `message.received`, `message.sent` e `message.edited` ganham `conversation_type` e `group`. Em grupo, `contact` é o participante que escreveu.
+- **`message.sent` para envios pela API**: a mensagem enviada por `POST /v1/messages/send` passa a disparar `message.sent`. Antes, só saía para envios pelo painel, automação e celular.
+- **Falha de envio vira erro**: no WhatsApp, texto e mídia recusados pelo provedor respondem `422 MESSAGE_SEND_FAILED` (ou o código próprio do WhatsApp Oficial). Antes a resposta era `201` mesmo sem envio.
+- **Idempotência mais rígida**: repetir uma `Idempotency-Key` enquanto a primeira ainda executa devolve `409 IDEMPOTENCY_IN_PROGRESS`; com outro corpo, `422 IDEMPOTENCY_KEY_REUSED` (antes devolvia a resposta antiga em silêncio). No envio de mensagem, a chave fica gravada com a mensagem e vale sem cache e depois das 24 horas; repetir a chave de um envio que falhou devolve `409 IDEMPOTENCY_KEY_FAILED`. Veja [Idempotência](/api-reference/idempotency).
+
+---
+
 ## 13 de outubro de 2026 — agentes de IA: trabalho por tipo, reuniões, materiais e snake_case
 
 Mudança sem período de transição em `/v1/ai-agents`. Ajuste a integração no mesmo dia.
