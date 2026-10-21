@@ -46,16 +46,18 @@ Os IDs enviados (números, contas, pessoas, pastas e itens de mídia, método) s
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `sources` | string[] | **Sim** | Canais: `whatsapp` e/ou `instagram`. Mínimo 1 |
+| `sources` | string[] | **Sim** | Canais: `whatsapp`, `instagram`, `messenger` e/ou `web_chat`. Mínimo 1 |
 | `types` | string[] | Não | `direct` e/ou `group`. Padrão: `["direct"]` |
 | `objectives` | string[] | Não | `support` e/ou `sales` |
-| `allowed_whatsapp_instance_ids` | string[] | Não | Restringe a números específicos. Vazio = todos |
-| `allowed_instagram_account_ids` | string[] | Não | Restringe a contas específicas |
+| `allowed_whatsapp_instance_ids` | string[] | Não | Restringe a números específicos (QR Code ou API Oficial). Vazio = todos |
+| `allowed_instagram_account_ids` | string[] | Não | Restringe a contas específicas. Vazio = todas |
+| `allowed_messenger_page_ids` | string[] | Não | Restringe a páginas do Messenger específicas. Vazio = todas |
 
 <Note>
-  Pela API, `sources` aceita **apenas** `whatsapp` e `instagram` — Messenger não é canal de agente
-  autopilot. O chat do site (`web_chat`) existe no modelo e pode aparecer na leitura de um agente criado
-  pelo painel, mas **não é aceito na escrita** por este endpoint.
+  No chat do site (`web_chat`), quem liga a IA é o widget, em **Responder com IA**. Widget com um agente
+  escolhido é atendido por ele; sem agente escolhido, atende o agente ativo que tem `web_chat` em `sources`.
+  No WhatsApp Oficial, no Instagram e no Messenger, a Meta só aceita mensagem livre até 24 horas depois da
+  última mensagem do cliente: o agente não marca retorno além desse prazo.
 </Note>
 
 ## `behavior` — o trabalho do agente
