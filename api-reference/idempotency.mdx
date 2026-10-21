@@ -12,7 +12,7 @@ A `Idempotency-Key` resolve isso: a segunda chamada com a mesma chave devolve **
 ## Onde funciona
 
 <Warning>
-  A idempotência vale em **quatro rotas**, não em todo `POST`. Nas demais, o header é aceito e
+  A idempotência vale em **cinco rotas**, não em todo `POST`. Nas demais, o header é aceito e
   **ignorado em silêncio** — a requisição é processada normalmente e uma retentativa cria um segundo
   recurso.
 </Warning>
@@ -20,6 +20,7 @@ A `Idempotency-Key` resolve isso: a segunda chamada com a mesma chave devolve **
 | Rota | Idempotente |
 |------|-------------|
 | `POST /v1/contacts` | ✅ |
+| `POST /v1/companies` | ✅ |
 | `POST /v1/deals` | ✅ |
 | `POST /v1/messages/send` | ✅ |
 | `POST /v1/conversations/send` | ✅ |
@@ -28,7 +29,7 @@ A `Idempotency-Key` resolve isso: a segunda chamada com a mesma chave devolve **
 
 ## Como usar
 
-Gere um UUID v4 por operação lógica e envie no header `Idempotency-Key`:
+Gere um UUID v4 por operação lógica e envie no header `Idempotency-Key` (até 255 caracteres):
 
 ```bash
 curl -X POST https://api.socialsell.ai/v1/contacts \
@@ -55,7 +56,8 @@ Use `Idempotency-Replayed` para distinguir “criei agora” de “já existia�
 | Primeira chamada, resposta `2xx` | Processa e **guarda** a resposta por 24 horas |
 | Primeira chamada, resposta de erro | Processa e **não guarda**. A mesma chave pode ser reusada |
 | Repetição com a mesma chave | Devolve a resposta em cache + `Idempotency-Replayed: true` |
-| Mesma chave, **corpo diferente** | Devolve a resposta em cache do corpo **original**. O corpo novo é ignorado |
+| Repetição enquanto a primeira ainda executa | `409 IDEMPOTENCY_IN_PROGRESS` com `Retry-After`. Nada é executado de novo |
+| Mesma chave, **corpo diferente** | `422 IDEMPOTENCY_KEY_REUSED`. Nada é executado |
 | Chave nova, mesmo corpo | Processa como operação independente — cria um segundo recurso |
 | Rota não idempotente | Header ignorado |
 
@@ -63,8 +65,9 @@ Use `Idempotency-Replayed` para distinguir “criei agora” de “já existia�
   **Só respostas `2xx` entram no cache.** Se a primeira tentativa falhou com `500`, repetir com a mesma
   chave executa de verdade — que é o comportamento desejado numa retentativa.
 
-  **Não há verificação do corpo.** Reutilizar uma chave com um payload diferente não gera erro: devolve
-  silenciosamente o resultado da primeira operação. Uma chave por operação lógica, sempre.
+  **Exceção: envio de mensagem.** Em `POST /v1/messages/send` a chave fica gravada com a mensagem. Se o
+  provedor recusou o envio, repetir com a mesma chave devolve `409 IDEMPOTENCY_KEY_FAILED` e não reenvia:
+  a mensagem pode ter saído antes da falha ser conhecida, então quem decide reenviar é você, com chave nova.
 </Warning>
 
 ## Escopo e validade
@@ -75,9 +78,12 @@ Use `Idempotency-Replayed` para distinguir “criei agora” de “já existia�
 | **Escopo** | Por **organização** — não por API Key. Duas chaves da mesma organização compartilham o mesmo espaço de idempotência |
 
 <Note>
-  A idempotência depende do cache distribuído. Se ele estiver indisponível, a requisição é processada
-  normalmente **sem** proteção contra duplicata — não há erro nem aviso na resposta. Para operações
-  críticas, mantenha também a sua própria checagem no destino.
+  Nas rotas de criação, a idempotência depende do cache distribuído. Se ele estiver indisponível, a
+  requisição é processada normalmente **sem** proteção contra duplicata — não há erro nem aviso na
+  resposta. Para operações críticas, mantenha também a sua própria checagem no destino.
+
+  O envio de mensagem não depende do cache: a chave gravada com a mensagem impede o segundo envio para a
+  mesma conversa mesmo sem cache e depois das 24 horas.
 </Note>
 
 ## Exemplo — criação segura com retentativa
@@ -123,6 +129,6 @@ async function criarContatoComSeguranca(dados) {
 
 - **Gere a chave antes de enviar**, não depois de falhar — uma chave criada na retentativa não protege nada.
 - **Persista a chave junto com a operação**, para reusá-la se o processo reiniciar no meio.
-- **Uma chave por operação lógica.** Nunca reaproveite entre operações diferentes: como o corpo não é verificado, o resultado seria a resposta errada, sem erro nenhum.
+- **Uma chave por operação lógica.** Reaproveitar a chave com outro corpo devolve `422 IDEMPOTENCY_KEY_REUSED`.
 - **UUID v4.** Evite chaves sequenciais ou previsíveis.
 - **Para as rotas não idempotentes**, use uma checagem própria antes de repetir — por exemplo, buscar pelo identificador externo antes de criar de novo.
