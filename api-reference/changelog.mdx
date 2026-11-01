@@ -7,6 +7,12 @@ O que pode mudar sem aviso e o que exige uma versão nova está em [Versionament
 
 ---
 
+## 1º de novembro de 2026 — agentes de IA: chave Pix
+
+- **`tools_allowed.send_pix_key`** (padrão `false`): com ela ligada, o agente envia ao cliente o card de uma chave Pix salva pela equipe, escolhida pelo apelido, em conversas do WhatsApp por QR Code. O campo novo aparece na resposta de `/v1/ai-agents`; quem não o envia continua com a ferramenta desligada.
+
+---
+
 ## 20 de outubro de 2026 — grupos do WhatsApp e envio idempotente
 
 - **Grupos do WhatsApp**: [`GET /v1/whatsapp-instances/:id/groups`](/api-reference/lookup/whatsapp-groups) lista os grupos do número (`id`, `name`, `participants_count`, `is_admin`, `conversation_id`). Escopo `read:conversations`.

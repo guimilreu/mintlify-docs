@@ -96,6 +96,7 @@ Uma chave booleana por ferramenta. Chave fora desta lista é descartada.
 | Chave | Padrão |
 |-------|--------|
 | `search_knowledge_base`, `create_internal_note`, `save_contact_memory`, `get_routine`, `update_contact`, `create_task`, `get_product`, `get_customer_ongoing`, `close_conversation`, `send_material` | `true` |
+| `send_pix_key` | `false`. Envia o card de uma chave Pix salva pela equipe, escolhida pelo apelido. Só em conversas do WhatsApp por QR Code |
 | `register_opportunity`, `advance_stage`, `send_proposal` | Só vendas: ligadas em `sales`, desligadas em `support` quando não enviadas |
 
 Transferir para pessoa vale sempre. Agendar volta depende de `behavior.follow_up.enabled`; consultar agenda e marcar reunião, de `behavior.meetings.enabled`.
