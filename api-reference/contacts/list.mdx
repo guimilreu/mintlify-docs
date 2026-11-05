@@ -20,7 +20,7 @@ GET /v1/contacts
 | `sort` | string | Campo de ordenação: `created_at` (padrão), `updated_at`, `name` |
 | `order` | string | Direção: `desc` (padrão) ou `asc` |
 | `search` | string | Busca por nome, email ou telefone (case-insensitive) |
-| `tag` | string | Filtra por tag exata |
+| `tag` | string | Filtra por etiqueta exata |
 | `source` | string | Fonte do contato (ex: `whatsapp`, `instagram`, `manual`, `api`) |
 | `has_whatsapp` | boolean | `true` / `false` — filtra por presença de WhatsApp |
 | `has_instagram` | boolean | `true` / `false` — filtra por presença de Instagram |
@@ -102,7 +102,7 @@ curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" 
 | `external_id` | string\|null | Identificador do contato no seu sistema, único por organização |
 | `avatar_url` | string\|null | URL do avatar |
 | `company` | object\|null | Empresa vinculada `{id, name}` |
-| `tags` | string[] | Lista de tags |
+| `tags` | string[] | Lista de etiquetas |
 | `custom_fields` | object | Campos personalizados (chave → valor) |
 | `funnel_stage` | string\|null | Etapa no funil de contatos |
 | `marketing` | object | Autorização e descadastro de mensagens de marketing. Veja abaixo |

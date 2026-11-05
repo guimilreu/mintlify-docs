@@ -1,6 +1,6 @@
 ---
 title: "Listar tags"
-description: "Retorna todas as tags usadas na organização com contagem de uso."
+description: "Retorna todas as etiquetas usadas na organização com contagem de uso."
 ---
 
 ## Endpoint
@@ -11,7 +11,7 @@ GET /v1/tags
 
 **Escopo necessário:** `read:tags`
 
-As tags são agregadas de contatos, empresas e negócios, com contagem total de uso em cada entidade.
+As etiquetas são agregadas de contatos, empresas e negócios, com contagem total de uso em cada entidade.
 
 ## Exemplo de requisição
 
@@ -40,11 +40,11 @@ curl "https://api.socialsell.ai/v1/tags" \
 
 Os resultados são ordenados por contagem de uso (decrescente).
 
-## Objeto tag
+## Objeto etiqueta
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `name` | string | Nome da tag |
+| `name` | string | Nome da etiqueta |
 | `color` | string | Cor em hexadecimal, usada no painel |
 | `count` | integer | Total de usos (contatos + empresas + negócios) |
 

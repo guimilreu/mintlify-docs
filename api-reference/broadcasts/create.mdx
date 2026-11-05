@@ -82,7 +82,7 @@ Sem grupos e sem exclusões, entra toda a base com WhatsApp. Limites: 10 grupos,
 
 | `field` | Operadores | `value` |
 |---------|-----------|---------|
-| `tags` | `any`, `all`, `none` · `empty` | IDs **ou nomes** de tags (string[]) · — |
+| `tags` | `any`, `all`, `none` · `empty` | IDs **ou nomes** de etiquetas (string[]) · — |
 | `lifecycle` | `in`, `not_in` | `lead`, `opportunity`, `customer`, `former_customer` (string[]) |
 | `source` | `in`, `not_in` | `whatsapp`, `instagram`, `messenger`, `web_chat`, `phone`, `manual`, `import`, `automation`, `api`, `integration` (string[]) |
 | `owner` | `is`, `is_not` · `assigned`, `unassigned` | IDs de usuários (string[]) · — |
@@ -107,7 +107,7 @@ Para consultar os campos personalizados disponíveis na sua organização, use a
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `tags` | string[] | Nomes **ou** IDs de tags. Nome desconhecido não cria tag — apenas não casa com ninguém |
+| `tags` | string[] | Nomes **ou** IDs de etiquetas. Nome desconhecido não cria etiqueta — apenas não casa com ninguém |
 | `tagsOperator` | string | `or` (padrão) ou `and` |
 | `hasWhatsapp` | boolean | Apenas contatos com WhatsApp vinculado |
 | `hasOptIn` | boolean | Apenas contatos com consentimento de marketing registrado |
@@ -189,7 +189,7 @@ Obrigatório quando os números do disparo são do **WhatsApp Oficial**. Em disp
 
 ---
 
-## Exemplo — disparo por QR Code, segmentado por tag
+## Exemplo — disparo por QR Code, segmentado por etiqueta
 
 ```bash
 curl -X POST https://api.socialsell.ai/v1/broadcasts \

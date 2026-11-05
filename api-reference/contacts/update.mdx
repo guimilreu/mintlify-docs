@@ -30,7 +30,7 @@ Envie apenas os campos que deseja alterar. Campos não incluídos no corpo perma
 | `messenger_psid` | string\|null | PSID do Messenger |
 | `company_id` | string\|null | ID da empresa (envie `null` para desvincular) |
 | `external_id` | string\|null | Identificador no seu sistema, até 100 caracteres (envie `null` para limpar) |
-| `tags` | string[] | Substitui completamente a lista de tags |
+| `tags` | string[] | Substitui completamente a lista de etiquetas |
 | `custom_fields` | object | Substitui completamente os campos personalizados |
 | `funnel_stage` | string\|null | Descontinuado — aceito e ignorado; a resposta devolve sempre `null` |
 | `marketing_consent` | object | Autorização para mensagens de marketing: `{ given, method?, source }`. Veja [Marketing](#marketing) |
@@ -68,7 +68,7 @@ curl -X PATCH https://api.socialsell.ai/v1/contacts/664f1a2b3c4d5e6f78901234 \
 A atualização dispara o evento `contact.updated` em webhooks configurados.
 
 <Warning>
-Os campos `tags` e `custom_fields` **substituem** os valores anteriores por completo. Para adicionar uma tag sem perder as existentes, use o endpoint dedicado [Adicionar tag](/api-reference/contacts/tags).
+Os campos `tags` e `custom_fields` **substituem** os valores anteriores por completo. Para adicionar uma etiqueta sem perder as existentes, use o endpoint dedicado [Adicionar etiqueta](/api-reference/contacts/tags).
 </Warning>
 
 ## Marketing

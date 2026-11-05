@@ -23,7 +23,7 @@ GET /v1/deals
 | `assigned_to` | string | ID do membro responsável |
 | `contact_id` | string | ID do contato vinculado |
 | `company_id` | string | ID da empresa vinculada |
-| `tag` | string | Tag exata |
+| `tag` | string | Etiqueta exata |
 | `min_value` | number | Valor mínimo do negócio |
 | `max_value` | number | Valor máximo do negócio |
 | `created_after` | string | ISO 8601 |
@@ -100,7 +100,7 @@ curl "https://api.socialsell.ai/v1/deals?status=open&pipeline_id=664a1b2c3d4e5f6
 | `assigned_to` | object\|null | Responsável `{id, name}` |
 | `contacts` | array | Contatos vinculados `[{id, name}]` |
 | `company` | object\|null | Empresa `{id, name}` |
-| `tags` | string[] | Tags |
+| `tags` | string[] | Etiquetas |
 | `probability` | integer | Probabilidade de fechamento (0–100) |
 | `expected_close_date` | string\|null | Data prevista de fechamento |
 | `closed_date` | string\|null | Data de fechamento real |

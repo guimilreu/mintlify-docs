@@ -1,9 +1,9 @@
 ---
-title: "Tags de empresa"
-description: "Adicione e remova tags de uma empresa."
+title: "Etiquetas de empresa"
+description: "Adicione e remova etiquetas de uma empresa."
 ---
 
-## Adicionar tag
+## Adicionar etiqueta
 
 ```
 POST /v1/companies/:id/tags
@@ -18,9 +18,9 @@ curl -X POST https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346/tag
   -d '{"tag": "enterprise"}'
 ```
 
-Retorna o objeto empresa atualizado com a nova tag.
+Retorna o objeto empresa atualizado com a nova etiqueta.
 
-## Remover tag
+## Remover etiqueta
 
 ```
 DELETE /v1/companies/:id/tags/:tag
@@ -33,7 +33,7 @@ curl -X DELETE "https://api.socialsell.ai/v1/companies/664b1c2d3e4f5a6789012346/
   -H "Authorization: Bearer sk_live_..."
 ```
 
-Retorna o objeto empresa atualizado sem a tag removida.
+Retorna o objeto empresa atualizado sem a etiqueta removida.
 
 ## Erros
 

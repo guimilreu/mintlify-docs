@@ -5,7 +5,7 @@ description: "Um fluxo completo de sincronização bidirecional entre a SocialSe
 
 O caso mais comum de integração: manter a base de contatos da SocialSell alinhada com um sistema que já existe. Este guia cobre as duas direções e os pontos onde a maioria das integrações erra.
 
-**Escopos necessários:** `read:contacts`, `write:contacts` e — se você usar tags — `write:tags`.
+**Escopos necessários:** `read:contacts`, `write:contacts` e — se você usar etiquetas — `write:tags`.
 
 ## 1. Carga inicial: leia tudo
 
@@ -105,7 +105,7 @@ async function criarOuAtualizar(contato) {
 
 <Note>
   **Excluir contato dispara `contact.deleted`** — assim como criar, atualizar, e adicionar ou remover
-  tag. Se a sua integração escreve pela API **e** assina esses eventos, ela recebe o eco da própria
+  etiqueta. Se a sua integração escreve pela API **e** assina esses eventos, ela recebe o eco da própria
   ação: deduplique por `id` do evento.
 </Note>
 
@@ -132,6 +132,6 @@ O payload de `data.contact` tem o **mesmo formato** que a API devolve — não �
 - [ ] `updated_after` no incremental, com o timestamp de antes da varredura
 - [ ] `external_id` enviado na criação, ou `DUPLICATE_CONTACT` tratado como “atualizar”
 - [ ] `Idempotency-Key` estável por contato
-- [ ] Tags acrescentadas pelo endpoint dedicado, não pelo `PATCH`
+- [ ] Etiquetas acrescentadas pelo endpoint dedicado, não pelo `PATCH`
 - [ ] Webhooks assinados e assinatura validada
 - [ ] Varredura de conferência agendada

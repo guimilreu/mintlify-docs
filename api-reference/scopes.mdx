@@ -30,8 +30,8 @@ Ao criar uma API Key, você define quais **escopos** ela possui. Um escopo é um
 | `write:broadcasts` | Escrita | Growth+ | Criar e gerenciar disparos |
 | `read:ai_agents` | Leitura | Módulo Agentes de IA | Listar agentes de IA |
 | `write:ai_agents` | Escrita | Módulo Agentes de IA | Gerenciar agentes de IA |
-| `read:tags` | Leitura | Todos | Listar tags da organização |
-| `write:tags` | Escrita | Todos | Adicionar e remover tags de recursos |
+| `read:tags` | Leitura | Todos | Listar etiquetas da organização |
+| `write:tags` | Escrita | Todos | Adicionar e remover etiquetas de recursos |
 | `read:members` | Leitura | Todos | Listar membros da organização |
 | `read:whatsapp_instances` | Leitura | Todos | Listar instâncias WhatsApp conectadas |
 | `read:messenger_pages` | Leitura | Todos | Listar páginas Messenger conectadas |
@@ -108,7 +108,7 @@ O painel oferece três conjuntos prontos. Nada impede montar o seu, mas estes co
 |--------|---------|----------|
 | **Só leitura** | todos os `read:*` | Relatórios, BI, espelhamento de dados |
 | **Mensagens** | `read:contacts`, `read:conversations`, `write:messages` | Bot ou integração que só precisa enviar e ler conversa |
-| **CRM típico** | leitura e escrita de contatos, empresas, negócios, funis, conversas, tags, campos personalizados e webhooks, mais `read:members` | Sincronização bidirecional com ERP ou CRM interno |
+| **CRM típico** | leitura e escrita de contatos, empresas, negócios, funis, conversas, etiquetas, campos personalizados e webhooks, mais `read:members` | Sincronização bidirecional com ERP ou CRM interno |
 
 ## Qual escopo cada endpoint exige
 
@@ -126,7 +126,7 @@ O painel oferece três conjuntos prontos. Nada impede montar o seu, mas estes co
 | `/webhooks`, `/webhooks/:id/deliveries` | `read:webhooks` | `write:webhooks` |
 | `/custom-fields` | `read:custom_fields` | `write:custom_fields` |
 | `/tags` | `read:tags` | — |
-| **Tags em contato, empresa ou negócio** | — | `write:tags` |
+| **Etiquetas em contato, empresa ou negócio** | — | `write:tags` |
 | `/members` | `read:members` | — |
 | `/whatsapp-instances` | `read:whatsapp_instances` | — |
 | `/messenger-pages` | `read:messenger_pages` | — |
@@ -134,7 +134,7 @@ O painel oferece três conjuntos prontos. Nada impede montar o seu, mas estes co
 | `/message-credits` (descontinuado) | `read:message_credits` | `write:message_credits` |
 
 <Warning>
-  Adicionar ou remover tag de um contato, empresa ou negócio exige **`write:tags`**, não o escopo de
+  Adicionar ou remover etiqueta de um contato, empresa ou negócio exige **`write:tags`**, não o escopo de
   escrita do recurso. Uma chave com `write:contacts` mas sem `write:tags` cria e edita contatos, e falha
   em `POST /v1/contacts/:id/tags` com `403`.
 </Warning>

@@ -18,7 +18,7 @@ GET /v1/companies
 | `limit` | integer | Itens por página. Padrão: `25`. Máximo: `100` |
 | `cursor` | string | Token de paginação |
 | `search` | string | Busca por nome, email ou telefone |
-| `tag` | string | Filtra por tag exata |
+| `tag` | string | Filtra por etiqueta exata |
 | `sector` | string | Filtra por setor (busca parcial, case-insensitive) |
 | `size` | string | Filtra por tamanho: `1-10`, `11-50`, `51-200`, `201-500`, `500+` |
 | `assigned_to` | string | ID do membro responsável |
@@ -87,7 +87,7 @@ curl "https://api.socialsell.ai/v1/companies?sector=tecnologia&size=51-200" \
 | `city` | string\|null | Cidade |
 | `state` | string\|null | Estado |
 | `assigned_to` | object\|null | Responsável `{id, name}` |
-| `tags` | string[] | Tags |
+| `tags` | string[] | Etiquetas |
 | `custom_fields` | object | Campos personalizados |
 | `contacts_count` | integer | Contatos vinculados à empresa |
 | `deals_count` | integer | Negócios vinculados à empresa |
