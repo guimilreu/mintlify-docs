@@ -30,6 +30,7 @@ Envie apenas os campos que deseja alterar. Campos não incluídos no corpo perma
 | `messenger_psid` | string\|null | PSID do Messenger |
 | `company_id` | string\|null | ID da empresa (envie `null` para desvincular) |
 | `external_id` | string\|null | Identificador no seu sistema, até 100 caracteres (envie `null` para limpar) |
+| `assigned_to` | string\|null | ID de um membro ativo como responsável da carteira (envie `null` para remover). As conversas abertas do contato que ninguém assumiu passam para a fila dele |
 | `tags` | string[] | Substitui completamente a lista de etiquetas |
 | `custom_fields` | object | Substitui completamente os campos personalizados |
 | `funnel_stage` | string\|null | Descontinuado — aceito e ignorado; a resposta devolve sempre `null` |
@@ -98,5 +99,6 @@ Cada mudança entra no histórico do contato, e o `contact.updated` traz `market
 | `INVALID_ID` | `400` | ID com formato inválido |
 | `VALIDATION_ERROR` | `400` | `external_id` fora do formato, ou `marketing_consent`/`marketing_opt_out` inválido. O corpo traz `details[]` com `field` e `message` |
 | `NOT_FOUND` | `404` | Contato não encontrado |
+| `INVALID_ASSIGNED_TO` | `400` | O `assigned_to` não é um membro ativo da organização |
 | `DUPLICATE_EXTERNAL_ID` | `409` | O `external_id` já pertence a outro contato da organização |
 | `OPT_OUT_LOCKED` | `409` | Tentativa de desfazer um descadastro que o próprio cliente fez pelo WhatsApp |
