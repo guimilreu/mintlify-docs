@@ -31,6 +31,7 @@ GET /v1/contacts
 | `phone` | string | Telefone em qualquer grafia (`+5514999990000`, `14999990000`, `(14) 99999-0000`). Casa também a identidade de WhatsApp |
 | `email` | string | E-mail exato (sem distinção de maiúsculas) |
 | `external_id` | string | Identificador do contato no seu sistema |
+| `assigned_to` | string | ID do responsável da carteira, ou `none` para os contatos sem responsável |
 
 ## Exemplo de requisição
 
@@ -102,6 +103,7 @@ curl "https://api.socialsell.ai/v1/contacts?limit=10&tag=vip&has_whatsapp=true" 
 | `external_id` | string\|null | Identificador do contato no seu sistema, único por organização |
 | `avatar_url` | string\|null | URL do avatar |
 | `company` | object\|null | Empresa vinculada `{id, name}` |
+| `assigned_to` | object\|null | Responsável da carteira `{id, name}`. Conversa nova deste contato vai direto para ele, sem passar pela fila nem pelo rodízio do número |
 | `tags` | string[] | Lista de etiquetas |
 | `custom_fields` | object | Campos personalizados (chave → valor) |
 | `funnel_stage` | string\|null | Etapa no funil de contatos |

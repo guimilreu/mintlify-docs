@@ -21,6 +21,7 @@ POST /v1/contacts
 | `instagram_username` | string | Não | Username do Instagram, sem `@`. Até 200 caracteres |
 | `messenger_psid` | string | Não | PSID do Facebook Messenger. Até 64 caracteres |
 | `company_id` | string | Não | ID da empresa para vincular |
+| `assigned_to` | string | Não | ID de um membro ativo como responsável da carteira. Vale só quando o contato é criado; para um contato que já existe, use [Atualizar contato](/api-reference/contacts/update) |
 | `external_id` | string | Não | Identificador do contato no **seu** sistema. Até 100 caracteres, único por organização. Torna a criação idempotente (veja abaixo) |
 | `tags` | string[] | Não | Lista de etiquetas |
 | `source` | string | Não | Origem do contato. Até 50 caracteres. Padrão: `api` |

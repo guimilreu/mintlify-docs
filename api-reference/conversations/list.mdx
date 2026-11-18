@@ -98,7 +98,8 @@ curl "https://api.socialsell.ai/v1/conversations?status=open&channel=whatsapp&un
 | `messenger_page` | object\|null | Página Messenger `{id, page_id, page_name}` |
 | `instagram_account` | object\|null | Conta Instagram `{id, username}` |
 | `status` | string | `open` ou `closed` |
-| `assigned_to` | object\|null | Responsável `{id, name}` |
+| `assigned_to` | object\|null | Quem assumiu o atendimento `{id, name}` |
+| `routed_to` | object\|null | Fila onde a conversa espera enquanto ninguém assume: `{id, type, reason, at}`. `type` é `user` ou `team`. `reason` diz por quê: `wallet` (responsável da carteira do contato), `round_robin` (rodízio do número), `channel_team` (fila da equipe do número), `absence_cover` (quem cobre a ausência do responsável), `handoff` (transferida pelo agente de IA), `transfer` (veio de outro número) |
 | `objective` | string\|null | Depreciado. Retorna `null`; não representa modo ou estado da conversa |
 | `ai_agent` | object\|null | Agente ativo `{id, name, paused, activated_at}`. Ver nota sobre `paused` |
 | `unread_count` | integer | Mensagens não lidas |
